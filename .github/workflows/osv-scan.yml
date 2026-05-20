@@ -24,6 +24,8 @@ permissions:
 
 jobs:
   scan:
-    uses: JacobPEvans/.github/.github/workflows/_osv-scan.yml@main
+    # SHA pin → JacobPEvans/.github main as of 2026-05-20.
+    # Bump intentionally when the upstream workflow changes.
+    uses: JacobPEvans/.github/.github/workflows/_osv-scan.yml@a76cf8faec4ea24036c9042bf52d18b573f172ae
     with:
       runner_label: ubuntu-latest
