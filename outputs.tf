@@ -131,16 +131,16 @@ output "ansible_inventory" {
   }
 }
 
-# PowerEdge cluster inventory - consumed by ansible-proxmox via terraform_remote_state
-output "poweredge_nodes" {
-  description = "PowerEdge node identity (names, iDRAC IPs/MACs, mgmt IPs, service tags, by-chassis grouping, ansible inventory shape). Real values come from terraform.sops.json; when var.poweredge_nodes defaults to an empty map, this output is an object whose collections are all empty."
+# Rack-server cluster inventory - consumed by ansible-proxmox via terraform_remote_state
+output "rack_servers" {
+  description = "Rack-server identity (names, BMC IPs/MACs, mgmt IPs, service tags, by-chassis grouping, ansible inventory shape). Real values come from terraform.sops.json; when var.rack_servers defaults to an empty map, this output is an object whose collections are all empty."
   value = {
-    names             = module.poweredge_cluster.node_names
-    idrac_ips         = module.poweredge_cluster.idrac_ips
-    idrac_macs        = module.poweredge_cluster.idrac_macs
-    mgmt_ips          = module.poweredge_cluster.mgmt_ips
-    service_tags      = module.poweredge_cluster.service_tags
-    by_chassis        = module.poweredge_cluster.by_chassis
-    ansible_inventory = module.poweredge_cluster.ansible_inventory
+    names             = module.rack_server_cluster.node_names
+    bmc_ips           = module.rack_server_cluster.bmc_ips
+    bmc_macs          = module.rack_server_cluster.bmc_macs
+    mgmt_ips          = module.rack_server_cluster.mgmt_ips
+    service_tags      = module.rack_server_cluster.service_tags
+    by_chassis        = module.rack_server_cluster.by_chassis
+    ansible_inventory = module.rack_server_cluster.ansible_inventory
   }
 }
