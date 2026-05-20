@@ -4,5 +4,21 @@
   "domain": "example.com",
   "vm_ssh_public_key_path": "~/.ssh/id_rsa_vm.pub",
   "vm_ssh_private_key_path": "~/.ssh/id_rsa_vm",
-  "proxmox_ssh_username": "root"
+  "proxmox_ssh_username": "root",
+  "poweredge_nodes": {
+    "node-a": {
+      "chassis": "r410",
+      "idrac_ip": "192.168.0.10",
+      "idrac_mac": "00:00:00:00:00:00",
+      "service_tag": "EXAMPLE1",
+      "mgmt_ip": "192.168.0.11"
+    },
+    "node-b": {
+      "chassis": "r710",
+      "idrac_ip": "192.168.0.20",
+      "idrac_mac": "00:00:00:00:00:00",
+      "service_tag": "EXAMPLE2",
+      "mgmt_ip": "192.168.0.21"
+    }
+  }
 }
