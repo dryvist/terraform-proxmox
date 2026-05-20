@@ -131,7 +131,9 @@ output "ansible_inventory" {
   }
 }
 
-# Rack-server cluster inventory - consumed by ansible-proxmox via terraform_remote_state
+# Rack-server cluster inventory - consumed by ansible-proxmox via terraform_remote_state.
+# Sensitive: BMC IPs/MACs and host mgmt IPs are operational secrets. ansible-proxmox
+# must use nonsensitive() when constructing inventory strings from these.
 output "rack_servers" {
   description = "Rack-server identity (names, BMC IPs/MACs, mgmt IPs, service tags, by-chassis grouping, ansible inventory shape). Real values come from terraform.sops.json; when var.rack_servers defaults to an empty map, this output is an object whose collections are all empty."
   value = {
@@ -143,4 +145,5 @@ output "rack_servers" {
     by_chassis        = module.rack_server_cluster.by_chassis
     ansible_inventory = module.rack_server_cluster.ansible_inventory
   }
+  sensitive = true
 }

@@ -7,4 +7,5 @@ variable "rack_servers" {
     service_tag = string
     mgmt_ip     = string
   }))
+  sensitive = true
 }

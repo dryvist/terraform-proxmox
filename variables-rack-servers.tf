@@ -29,5 +29,6 @@ variable "rack_servers" {
     service_tag = string
     mgmt_ip     = string
   }))
-  default = {}
+  default   = {}
+  sensitive = true
 }
