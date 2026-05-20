@@ -216,13 +216,13 @@ module "acme_certificates" {
   depends_on = [module.pools]
 }
 
-# PowerEdge cluster inventory. Declarative-only today (no resources created);
-# real values come from SOPS-encrypted terraform.sops.json. Outputs are
-# consumed by ansible-proxmox via terraform_remote_state to keep
-# IP/MAC/service-tag identity DRY across repos.
-module "poweredge_cluster" {
-  source          = "./modules/poweredge-cluster"
-  poweredge_nodes = var.poweredge_nodes
+# Rack-server cluster inventory. Declarative-only today (no resources
+# created); real values come from SOPS-encrypted terraform.sops.json.
+# Outputs are consumed by ansible-proxmox via terraform_remote_state to
+# keep IP/MAC/service-tag identity DRY across repos.
+module "rack_server_cluster" {
+  source       = "./modules/rack-server-cluster"
+  rack_servers = var.rack_servers
 }
 
 # Secure SSH key provisioning for Ansible VM

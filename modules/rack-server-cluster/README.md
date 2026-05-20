@@ -1,26 +1,31 @@
-# poweredge-cluster module
+# rack-server-cluster module
 
-Declarative inventory of Dell PowerEdge nodes joining the Proxmox cluster.
+Declarative inventory of rack servers (Dell PowerEdge, HPE ProLiant,
+Supermicro, etc.) joining the Proxmox cluster.
 
 ## Usage
 
-Set `poweredge_nodes` via the SOPS-encrypted `terraform.sops.json` at the
-repo root (real values supplied this way; the example file shows the shape
-with `192.168.0.x` placeholders):
+Set `rack_servers` via the SOPS-encrypted `terraform.sops.json` at the repo
+root (real values supplied this way; the example file shows the shape with
+`192.168.0.x` placeholders):
 
 ```json
 {
-  "poweredge_nodes": {
+  "rack_servers": {
     "node-a": {
       "chassis": "r410",
-      "idrac_ip": "192.168.0.10",
-      "idrac_mac": "00:00:00:00:00:00",
+      "bmc_ip": "192.168.0.10",
+      "bmc_mac": "00:00:00:00:00:00",
       "service_tag": "EXAMPLE1",
       "mgmt_ip": "192.168.0.11"
     }
   }
 }
 ```
+
+`bmc_ip` / `bmc_mac` refer to the out-of-band management interface — iDRAC
+on Dell, iLO on HPE, IMM on Lenovo, etc. `chassis` is a free-form model
+string (no vendor whitelist).
 
 The module emits outputs that `ansible-proxmox` reads via
 `terraform_remote_state` so IP / MAC / service-tag values stay in one
@@ -38,10 +43,10 @@ SOPS-encrypted source.
 | Output | Shape | Use |
 | ------ | ----- | --- |
 | `node_names` | sorted list of node names | iteration |
-| `idrac_ips` | map(name → ip) | racadm / ipmitool targeting |
-| `idrac_macs` | map(name → mac) | DHCP reservations, switch port mapping |
+| `bmc_ips` | map(name → ip) | racadm / ipmitool / ilorest targeting |
+| `bmc_macs` | map(name → mac) | DHCP reservations, switch port mapping |
 | `mgmt_ips` | map(name → ip) | PVE web UI, SSH, ansible inventory |
-| `service_tags` | map(name → tag) | Dell warranty / support lookup |
+| `service_tags` | map(name → tag) | vendor warranty / support lookup |
 | `by_chassis` | map(chassis → map of nodes) | ansible group_vars selection |
 | `ansible_inventory` | list of objects | drop-in ansible inventory shape |
 

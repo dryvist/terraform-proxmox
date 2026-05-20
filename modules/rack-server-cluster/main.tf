@@ -1,8 +1,9 @@
-# PowerEdge cluster module.
+# Rack-server cluster module.
 #
-# Scope today: declarative inventory of PowerEdge nodes that will join the
-# Proxmox cluster. Emits outputs that other repos (ansible-proxmox) consume
-# via terraform_remote_state so the IP/MAC/service-tag values stay DRY across
+# Scope today: declarative inventory of rack servers (Dell PowerEdge, HPE
+# ProLiant, Supermicro, etc.) that will join the Proxmox cluster. Emits
+# outputs that other repos (ansible-proxmox) consume via
+# terraform_remote_state so the IP/MAC/service-tag values stay DRY across
 # the org and out of public files.
 #
 # Future scope (commented enable below): when nodes are physically online and
@@ -15,9 +16,9 @@ locals {
   # Normalize to lowercase so "R410" and "r410" group together. Safe to
   # normalize here because by_chassis is not used as a for_each resource key.
   by_chassis = {
-    for chassis in distinct([for k, v in var.poweredge_nodes : lower(v.chassis)]) :
+    for chassis in distinct([for k, v in var.rack_servers : lower(v.chassis)]) :
     chassis => {
-      for k, v in var.poweredge_nodes : k => v if lower(v.chassis) == chassis
+      for k, v in var.rack_servers : k => v if lower(v.chassis) == chassis
     }
   }
 }
@@ -29,9 +30,9 @@ locals {
 # check "all_declared_nodes_in_cluster" {
 #   assert {
 #     condition = alltrue([
-#       for name, _ in var.poweredge_nodes :
+#       for name, _ in var.rack_servers :
 #       contains(data.proxmox_virtual_environment_nodes.live.names, name)
 #     ])
-#     error_message = "One or more declared PowerEdge nodes are not present in the live Proxmox cluster."
+#     error_message = "One or more declared rack servers are not present in the live Proxmox cluster."
 #   }
 # }
