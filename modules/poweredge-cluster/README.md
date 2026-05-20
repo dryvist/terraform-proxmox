@@ -28,7 +28,7 @@ SOPS-encrypted source.
 
 ## Requirements
 
-- Terraform >= 1.10
+- OpenTofu >= 1.10 (Terraform >= 1.10 also compatible — repo standardizes on OpenTofu)
 - bpg/proxmox provider ~> 0.106 (only needed once cluster-membership
   verification is enabled — see "Current scope" below)
 - SOPS for editing `terraform.sops.json`

@@ -1,5 +1,5 @@
 output "node_names" {
-  description = "Set of PowerEdge node names declared in the cluster inventory."
+  description = "Sorted list of PowerEdge node names declared in the cluster inventory."
   value       = sort(keys(var.poweredge_nodes))
 }
 
@@ -29,12 +29,13 @@ output "by_chassis" {
 }
 
 output "ansible_inventory" {
-  description = "Ansible-friendly inventory shape: list of hosts with iDRAC/mgmt addresses + chassis tag. Consume from ansible-proxmox via terraform_remote_state."
+  description = "Ansible-friendly inventory shape: list of hosts with iDRAC/mgmt addresses, MAC, and chassis tag. Consume from ansible-proxmox via terraform_remote_state."
   value = [
     for name, node in var.poweredge_nodes : {
       name        = name
       mgmt_ip     = node.mgmt_ip
       idrac_ip    = node.idrac_ip
+      idrac_mac   = node.idrac_mac
       chassis     = node.chassis
       service_tag = node.service_tag
     }

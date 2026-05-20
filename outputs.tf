@@ -133,7 +133,7 @@ output "ansible_inventory" {
 
 # PowerEdge cluster inventory - consumed by ansible-proxmox via terraform_remote_state
 output "poweredge_nodes" {
-  description = "PowerEdge node identity (names, iDRAC IPs/MACs, mgmt IPs, service tags, by-chassis grouping, ansible inventory shape). Real values come from terraform.sops.json; default is empty map."
+  description = "PowerEdge node identity (names, iDRAC IPs/MACs, mgmt IPs, service tags, by-chassis grouping, ansible inventory shape). Real values come from terraform.sops.json; when var.poweredge_nodes defaults to an empty map, this output is an object whose collections are all empty."
   value = {
     names             = module.poweredge_cluster.node_names
     idrac_ips         = module.poweredge_cluster.idrac_ips

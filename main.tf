@@ -221,8 +221,8 @@ module "acme_certificates" {
 # consumed by ansible-proxmox via terraform_remote_state to keep
 # IP/MAC/service-tag identity DRY across repos.
 module "poweredge_cluster" {
-  source           = "./modules/poweredge-cluster"
-  poweredge_nodes  = var.poweredge_nodes
+  source          = "./modules/poweredge-cluster"
+  poweredge_nodes = var.poweredge_nodes
 }
 
 # Secure SSH key provisioning for Ansible VM

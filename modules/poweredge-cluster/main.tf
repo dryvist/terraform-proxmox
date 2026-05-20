@@ -12,10 +12,12 @@
 
 locals {
   # Group by chassis model — handy for ansible-proxmox group_vars selection.
+  # Normalize to lowercase so "R410" and "r410" group together. Safe to
+  # normalize here because by_chassis is not used as a for_each resource key.
   by_chassis = {
-    for chassis in distinct([for k, v in var.poweredge_nodes : v.chassis]) :
+    for chassis in distinct([for k, v in var.poweredge_nodes : lower(v.chassis)]) :
     chassis => {
-      for k, v in var.poweredge_nodes : k => v if v.chassis == chassis
+      for k, v in var.poweredge_nodes : k => v if lower(v.chassis) == chassis
     }
   }
 }
