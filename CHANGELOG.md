@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.9.0](https://github.com/JacobPEvans/terraform-proxmox/compare/v1.8.0...v1.9.0) (2026-05-20)
+
+
+### Features
+
+* **poweredge:** declarative inventory module for cluster join ([#296](https://github.com/JacobPEvans/terraform-proxmox/issues/296)) ([40fabb3](https://github.com/JacobPEvans/terraform-proxmox/commit/40fabb3b594a2bc6428ef38119b0e445bfed150e))
+
 ## [1.8.0](https://github.com/JacobPEvans/terraform-proxmox/compare/v1.7.0...v1.8.0) (2026-05-16)
 
 
