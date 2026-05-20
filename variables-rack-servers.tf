@@ -31,4 +31,15 @@ variable "rack_servers" {
   }))
   default   = {}
   sensitive = true
+
+  validation {
+    # cidrhost("${ip}/32", 0) returns the same string iff `ip` is a valid IPv4.
+    # Catches SOPS typos cheaply. Error message intentionally omits the value
+    # because the variable is sensitive.
+    condition = alltrue([
+      for k, v in var.rack_servers :
+      can(cidrhost("${v.bmc_ip}/32", 0)) && can(cidrhost("${v.mgmt_ip}/32", 0))
+    ])
+    error_message = "Each rack_servers entry must set bmc_ip and mgmt_ip to a valid IPv4 address."
+  }
 }

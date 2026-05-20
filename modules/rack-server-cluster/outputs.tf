@@ -36,16 +36,15 @@ output "by_chassis" {
 }
 
 output "ansible_inventory" {
-  description = "Ansible-friendly inventory shape: list of hosts with BMC/mgmt addresses, MAC, and chassis tag. Sensitive — same fields as the source rack_servers map."
-  value = [
-    for name, node in var.rack_servers : {
-      name        = name
+  description = "Ansible-friendly inventory shape: map of hosts keyed by node name, each with BMC/mgmt addresses, MAC, and chassis tag. Same shape as the root vms/containers outputs. Sensitive — same fields as the source rack_servers map."
+  value = {
+    for name, node in var.rack_servers : name => {
       mgmt_ip     = node.mgmt_ip
       bmc_ip      = node.bmc_ip
       bmc_mac     = node.bmc_mac
       chassis     = node.chassis
       service_tag = node.service_tag
     }
-  ]
+  }
   sensitive = true
 }
