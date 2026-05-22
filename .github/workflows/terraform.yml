@@ -24,7 +24,6 @@ jobs:
       - name: OpenTofu Format
         id: fmt
         run: tofu fmt -check
-        continue-on-error: true
 
       - name: OpenTofu Init
         id: init
