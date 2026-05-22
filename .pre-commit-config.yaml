@@ -53,7 +53,7 @@ repos:
     hooks:
       - id: tofu-test
         name: tofu test (mock providers)
-        entry: bash -c 'nix develop "github:JacobPEvans/nix-devenv?dir=shells/terraform" --command bash -c "tofu init -backend=false -no-color >/dev/null 2>&1 && tofu test -no-color"'
+        entry: bash -c 'tofu init -backend=false -no-color >/dev/null 2>&1 && tofu test -no-color'
         language: system
         files: '\.(tf|hcl)$'
         pass_filenames: false
