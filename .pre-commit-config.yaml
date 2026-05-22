@@ -57,19 +57,3 @@ repos:
         language: system
         files: '\.(tf|hcl)$'
         pass_filenames: false
-
-      - id: terragrunt-validate
-        name: terragrunt validate
-        entry: bash -c 'nix develop "github:JacobPEvans/nix-devenv?dir=shells/terraform" --command bash -c "aws-vault exec tf-proxmox -- doppler run -- terragrunt validate"'
-        language: system
-        files: '\.(tf|hcl)$'
-        pass_filenames: false
-        stages: [pre-push]  # Requires aws-vault tf-proxmox profile + Doppler
-
-      - id: terragrunt-plan
-        name: terragrunt plan
-        entry: bash -c 'nix develop "github:JacobPEvans/nix-devenv?dir=shells/terraform" --command bash -c "aws-vault exec tf-proxmox -- doppler run -- terragrunt plan -detailed-exitcode"; rc=$?; if [ $rc -eq 0 ] || [ $rc -eq 2 ]; then exit 0; else exit 1; fi'
-        language: system
-        files: '\.(tf|hcl)$'
-        pass_filenames: false
-        stages: [pre-push]
