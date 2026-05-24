@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.9.1](https://github.com/JacobPEvans/terraform-proxmox/compare/v1.9.0...v1.9.1) (2026-05-24)
+
+
+### Bug Fixes
+
+* initialize OpenTofu in Copilot setup workflow ([#301](https://github.com/JacobPEvans/terraform-proxmox/issues/301)) ([84fa2f1](https://github.com/JacobPEvans/terraform-proxmox/commit/84fa2f10d90f0ca41368271dea7102b58bccc228))
+
 ## [1.9.0](https://github.com/JacobPEvans/terraform-proxmox/compare/v1.8.0...v1.9.0) (2026-05-20)
 
 
