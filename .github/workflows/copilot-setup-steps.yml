@@ -10,3 +10,5 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: opentofu/setup-opentofu@v2
+      - name: OpenTofu Init
+        run: tofu init -backend=false
