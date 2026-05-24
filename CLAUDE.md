@@ -36,6 +36,30 @@ aws-vault exec tf-proxmox -- doppler run -- terragrunt <COMMAND>
 
 The Nix shell (providing Terraform/Terragrunt/Ansible) is activated automatically via direnv when you enter the repository directory.
 
+### AI agents: when to use `aws-vault` vs ask for pre-injected credentials
+
+> **Autonomy rule**: every `aws-vault exec` call prompts for a Touch ID / keychain
+> password. A session that hits `aws-vault` repeatedly cannot run autonomously and
+> violates the "always run autonomously" rule.
+
+- **One-off command** (a single `validate`, single `plan`, single `apply` in the
+  whole session): an AI agent MAY run
+  `aws-vault exec tf-proxmox -- doppler run -- terragrunt …` directly. One
+  password prompt is acceptable.
+- **Two or more terragrunt commands in the same session**: the AI MUST stop and
+  ask the user to inject reusable AWS credentials before continuing. The user
+  can either launch the session inside `aws-vault exec tf-proxmox -- claude …`,
+  or export `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` / `AWS_SESSION_TOKEN`
+  into the parent shell before the session starts. Once injected, drop the
+  `aws-vault exec tf-proxmox --` prefix entirely and run
+  `doppler run -- terragrunt …` directly.
+- **Never** loop `aws-vault exec` across worktrees, parallel invocations, or
+  per-resource checks. Always batch behind one credential injection.
+
+If you're unsure whether credentials are already injected, run
+`aws sts get-caller-identity` once — if it returns an ARN without prompting,
+credentials are live and you should NOT call `aws-vault` again this session.
+
 **Doppler and SOPS serve different purposes — they are always used together:**
 
 - **`deployment.json`** contains resource definitions (containers, VMs, pools, sizing) — committed plaintext, edit directly
