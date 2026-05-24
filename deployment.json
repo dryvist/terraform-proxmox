@@ -197,7 +197,7 @@
       "description": "Infisical self-hosted secrets management - Docker Compose in LXC (Phase 1 deploy)",
       "cpu_cores": 2,
       "memory_dedicated": 4096,
-      "memory_swap": 8192,
+      "memory_swap": 12288,
       "tags": ["terraform", "container", "infisical", "secrets", "docker"],
       "pool_id": "infrastructure",
       "unprivileged": true,
