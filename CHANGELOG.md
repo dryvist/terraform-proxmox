@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.10.0](https://github.com/JacobPEvans/terraform-proxmox/compare/v1.9.1...v1.10.0) (2026-05-24)
+
+
+### Features
+
+* provision Infisical LXC at vm_id 108 with firewall + DRY constants ([#315](https://github.com/JacobPEvans/terraform-proxmox/issues/315)) ([17ef7ea](https://github.com/JacobPEvans/terraform-proxmox/commit/17ef7ea761ed42766d9fba2d3e1071c025e9aee5))
+
 ## [1.9.1](https://github.com/JacobPEvans/terraform-proxmox/compare/v1.9.0...v1.9.1) (2026-05-24)
 
 
