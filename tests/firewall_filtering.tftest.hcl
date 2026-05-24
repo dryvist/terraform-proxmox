@@ -304,6 +304,47 @@ run "minio_tagged_container_in_minio_ids" {
   }
 }
 
+# --- infisical_container_ids tests ---
+
+run "infisical_tagged_container_in_infisical_ids" {
+  command = plan
+
+  variables {
+    containers = {
+      "infisical" = {
+        vm_id    = 108
+        hostname = "infisical"
+        tags     = ["terraform", "container", "infisical", "secrets", "docker"]
+      }
+    }
+  }
+
+  assert {
+    condition     = contains(keys(local.infisical_container_ids), "infisical")
+    error_message = "Container with 'infisical' tag must be in infisical_container_ids"
+  }
+
+  assert {
+    condition     = local.infisical_container_ids["infisical"] == 108
+    error_message = "infisical_container_ids['infisical'] should be vm_id 108"
+  }
+
+  assert {
+    condition     = !contains(keys(local.pipeline_container_ids), "infisical")
+    error_message = "Container with 'infisical' tag must NOT be in pipeline_container_ids"
+  }
+
+  assert {
+    condition     = !contains(keys(local.minio_container_ids), "infisical")
+    error_message = "Container with 'infisical' tag must NOT be in minio_container_ids"
+  }
+
+  assert {
+    condition     = !contains(keys(local.notification_container_ids), "infisical")
+    error_message = "Container with 'infisical' tag must NOT be in notification_container_ids"
+  }
+}
+
 run "pipeline_and_stream_containers_mutually_exclusive" {
   command = plan
 

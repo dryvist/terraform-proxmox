@@ -4,7 +4,30 @@
 
 Self-hosted Infisical deployment on Proxmox infrastructure.
 
-**Status:** PLANNED
+**Status:** IN PROGRESS — Phase 1 deploy (LXC + firewall landing via
+`terraform-proxmox`; Ansible role + HAProxy frontend land via
+`ansible-proxmox-apps` PR 3).
+
+## Phase 1 — concrete values
+
+| Field | Value | Source |
+| --- | --- | --- |
+| LXC vm_id | `108` | `deployment.json` (groups with platform services 105/106/107) |
+| CPU / RAM / disk | 2 cores / 4 GB dedicated + 8 GB swap / 16 GB root + 30 GB at `/opt/infisical` | `deployment.json` |
+| FQDN | `infisical.<domain>` (resolved via Technitium A record on the haproxy LXC) | runtime, populated from `terraform.sops.json` `domain` |
+| Container internal API port | `8080` | `locals.pipeline_constants.service_ports.infisical_api` |
+| Bundled Postgres port | `5432` | `locals.pipeline_constants.service_ports.postgres_default` (container-internal Docker network only) |
+| Bundled Redis port | `6379` | `locals.pipeline_constants.service_ports.redis_default` (container-internal Docker network only) |
+| Firewall security group | `infisical-svc` | `modules/firewall/security_groups.tf` |
+| Ingress | HAProxy on vm_id 175 with ACME cert at `/etc/ssl/private/infisical.pem` | PR 3 |
+
+ACME cert for `infisical.<domain>` is **out of scope for Phase 1's
+terraform-proxmox PR**: the existing `modules/acme-certificate` module today
+issues node-level Proxmox certs (delivered to `/etc/pve/local/`), not certs
+delivered to LXCs. Cert delivery to the haproxy LXC is handled in
+`ansible-proxmox-apps` (PR 3) — either by an Ansible-driven Let's Encrypt
+flow on the haproxy LXC itself or by extending the ACME module separately.
+Tracked as a follow-up in issue #136 Phase 1.
 
 ## Overview
 

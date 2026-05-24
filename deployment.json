@@ -191,6 +191,22 @@
         { "volume": "local-zfs", "size": "100G", "path": "/opt/minio" }
       ]
     },
+    "infisical": {
+      "vm_id": 108,
+      "hostname": "infisical",
+      "description": "Infisical self-hosted secrets management - Docker Compose in LXC (Phase 1 deploy)",
+      "cpu_cores": 2,
+      "memory_dedicated": 4096,
+      "memory_swap": 8192,
+      "tags": ["terraform", "container", "infisical", "secrets", "docker"],
+      "pool_id": "infrastructure",
+      "unprivileged": true,
+      "root_disk": { "size": 16 },
+      "mount_points": [
+        { "volume": "local-zfs", "size": "30G", "path": "/opt/infisical" }
+      ],
+      "features": { "nesting": true, "keyctl": true, "fuse": true }
+    },
     "mailpit": {
       "vm_id": 110,
       "hostname": "mailpit",

@@ -66,6 +66,12 @@ locals {
     if contains(coalesce(try(v.tags, null), []), "minio")
   }
 
+  # Infisical secrets-management containers (infisical tag)
+  infisical_container_ids = {
+    for k, v in var.containers : k => v.vm_id
+    if contains(coalesce(try(v.tags, null), []), "infisical")
+  }
+
   # Cribl Stream containers: tagged cribl + stream (receives from Edge, routes to Splunk)
   # Distinct from pipeline_container_ids (HAProxy + Cribl Edge) as it doesn't receive external traffic
   cribl_stream_container_ids = {
@@ -94,6 +100,9 @@ locals {
       apt_cacher_ng    = 3142
       minio_api        = 9000
       minio_console    = 9001
+      infisical_api    = 8080
+      postgres_default = 5432
+      redis_default    = 6379
     }
     syslog_ports = {
       unifi     = 1514

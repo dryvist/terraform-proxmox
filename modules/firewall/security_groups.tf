@@ -250,6 +250,23 @@ resource "proxmox_virtual_environment_cluster_firewall_security_group" "minio_se
   }
 }
 
+resource "proxmox_virtual_environment_cluster_firewall_security_group" "infisical_services" {
+  name    = "infisical-svc"
+  comment = "Infisical API/Web from internal networks (HAProxy front-ends TLS termination on its own ports)"
+
+  dynamic "rule" {
+    for_each = local.infisical_services_rules
+    content {
+      type    = "in"
+      action  = "ACCEPT"
+      proto   = rule.value.proto
+      dport   = rule.value.dport
+      source  = rule.value.source
+      comment = rule.value.comment
+    }
+  }
+}
+
 resource "proxmox_virtual_environment_cluster_firewall_security_group" "ntp_server" {
   name    = "ntp-server"
   comment = "NTP server (UDP 123) from internal networks — Proxmox hosts serve time to VMs/containers via chrony"
