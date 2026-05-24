@@ -307,6 +307,42 @@ run "pipeline_constants_vector_db_ports" {
   }
 }
 
+# --- pipeline_constants infisical-related ports tests ---
+
+run "pipeline_constants_infisical_ports" {
+  command = plan
+
+  assert {
+    condition     = local.pipeline_constants.service_ports.infisical_api == 8080
+    error_message = "infisical_api port should be 8080"
+  }
+
+  assert {
+    condition     = local.pipeline_constants.service_ports.postgres_default == 5432
+    error_message = "postgres_default port should be 5432"
+  }
+
+  assert {
+    condition     = local.pipeline_constants.service_ports.redis_default == 6379
+    error_message = "redis_default port should be 6379"
+  }
+}
+
+# --- infisical_container_ids isolation from other groups ---
+
+run "infisical_ids_empty_by_default" {
+  command = plan
+
+  variables {
+    containers = {}
+  }
+
+  assert {
+    condition     = length(local.infisical_container_ids) == 0
+    error_message = "infisical_container_ids should be empty when containers is empty"
+  }
+}
+
 # --- cribl_stream_container_ids tests ---
 
 run "cribl_stream_ids_empty_by_default" {

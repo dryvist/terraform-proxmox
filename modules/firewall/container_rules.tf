@@ -332,3 +332,7 @@ resource "proxmox_virtual_environment_firewall_rules" "minio_container" {
 
   depends_on = [proxmox_virtual_environment_firewall_options.minio_container]
 }
+
+# Infisical container firewall resources live in modules/firewall/infisical_rules.tf
+# (extracted so container_rules.tf stays under the shared _file-size workflow's 12 KB error
+# threshold).

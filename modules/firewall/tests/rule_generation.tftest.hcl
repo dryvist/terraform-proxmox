@@ -10,6 +10,41 @@ variables {
   node_name          = "pve"
   management_network = "192.168.0.0/24"
   splunk_network     = "192.168.0.200"
+  pipeline_constants = {
+    service_ports = {
+      haproxy_stats    = 8404
+      splunk_web       = 8000
+      splunk_hec       = 8088
+      splunk_mgmt      = 8089
+      cribl_edge_api   = 9420
+      cribl_stream_api = 9000
+      apt_cacher_ng    = 3142
+      minio_api        = 9000
+      minio_console    = 9001
+      infisical_api    = 8080
+      postgres_default = 5432
+      redis_default    = 6379
+    }
+    syslog_ports = {
+      unifi     = 1514
+      palo_alto = 1515
+      cisco_asa = 1516
+      linux     = 1517
+      windows   = 1518
+    }
+    netflow_ports = {
+      unifi = 2055
+    }
+    notification_ports = {
+      mailpit_smtp = 1025
+      mailpit_web  = 8025
+      ntfy_http    = 8080
+    }
+    vector_db_ports = {
+      qdrant_http = 6333
+      qdrant_grpc = 6334
+    }
+  }
 }
 
 # --- internal_src joining ---
@@ -133,5 +168,90 @@ run "syslog_rules_source_matches_joined_networks" {
   assert {
     condition     = local.syslog_rules[0].source == "10.0.0.0/8,192.168.0.0/16"
     error_message = "syslog_rules source must be comma-joined networks, got '${local.syslog_rules[0].source}'"
+  }
+}
+
+# --- DRY: rule dports are sourced from var.pipeline_constants, not literals ---
+
+run "minio_rules_track_constants_port" {
+  command = plan
+
+  variables {
+    internal_networks = ["10.0.0.0/8"]
+  }
+
+  assert {
+    condition     = local.minio_services_rules[0].dport == tostring(var.pipeline_constants.service_ports.minio_api)
+    error_message = "minio_services_rules[0].dport must be tostring(pipeline_constants.service_ports.minio_api), got '${local.minio_services_rules[0].dport}'"
+  }
+
+  assert {
+    condition     = local.minio_services_rules[1].dport == tostring(var.pipeline_constants.service_ports.minio_console)
+    error_message = "minio_services_rules[1].dport must be tostring(pipeline_constants.service_ports.minio_console), got '${local.minio_services_rules[1].dport}'"
+  }
+}
+
+run "notification_rules_track_constants_ports" {
+  command = plan
+
+  variables {
+    internal_networks = ["10.0.0.0/8"]
+  }
+
+  assert {
+    condition     = local.notification_services_rules[0].dport == tostring(var.pipeline_constants.notification_ports.mailpit_smtp)
+    error_message = "notification rule 0 must track mailpit_smtp constant, got '${local.notification_services_rules[0].dport}'"
+  }
+
+  assert {
+    condition     = local.notification_services_rules[2].dport == tostring(var.pipeline_constants.notification_ports.ntfy_http)
+    error_message = "notification rule 2 must track ntfy_http constant, got '${local.notification_services_rules[2].dport}'"
+  }
+}
+
+# --- Infisical security group ---
+
+run "infisical_rules_always_one" {
+  command = plan
+
+  variables {
+    internal_networks = ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"]
+  }
+
+  # TCP infisical_api
+  assert {
+    condition     = length(local.infisical_services_rules) == 1
+    error_message = "infisical_services_rules must be exactly 1 (TCP infisical_api), got ${length(local.infisical_services_rules)}"
+  }
+}
+
+run "infisical_rule_dport_matches_constant" {
+  command = plan
+
+  variables {
+    internal_networks = ["10.0.0.0/8"]
+  }
+
+  assert {
+    condition     = local.infisical_services_rules[0].dport == tostring(var.pipeline_constants.service_ports.infisical_api)
+    error_message = "infisical_services_rules[0].dport must equal tostring(service_ports.infisical_api), got '${local.infisical_services_rules[0].dport}'"
+  }
+
+  assert {
+    condition     = local.infisical_services_rules[0].proto == "tcp"
+    error_message = "infisical service port must be TCP, got '${local.infisical_services_rules[0].proto}'"
+  }
+}
+
+run "infisical_rule_source_matches_joined_networks" {
+  command = plan
+
+  variables {
+    internal_networks = ["10.0.0.0/8", "192.168.0.0/16"]
+  }
+
+  assert {
+    condition     = local.infisical_services_rules[0].source == "10.0.0.0/8,192.168.0.0/16"
+    error_message = "infisical_services_rules source must be comma-joined networks, got '${local.infisical_services_rules[0].source}'"
   }
 }
