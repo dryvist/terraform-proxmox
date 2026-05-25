@@ -205,7 +205,7 @@
       "mount_points": [
         { "volume": "local-zfs", "size": "30G", "path": "/opt/infisical" }
       ],
-      "features": { "nesting": true, "keyctl": false, "fuse": false }
+      "features": { "nesting": true }
     },
     "mailpit": {
       "vm_id": 110,
@@ -271,7 +271,7 @@
       "mount_points": [
         { "volume": "local-zfs", "size": "50G", "path": "/opt/openproject" }
       ],
-      "features": { "nesting": true, "keyctl": false, "fuse": false }
+      "features": { "nesting": true }
     },
     "claude-code-01": {
       "vm_id": 150,
