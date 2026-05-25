@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.10.1](https://github.com/JacobPEvans/terraform-proxmox/compare/v1.10.0...v1.10.1) (2026-05-25)
+
+
+### Bug Fixes
+
+* **deployment:** drop keyctl/fuse from infisical+openproject features ([#318](https://github.com/JacobPEvans/terraform-proxmox/issues/318)) ([fdc4d36](https://github.com/JacobPEvans/terraform-proxmox/commit/fdc4d3613a2a73a6498e7fac0545eff4afbc7c94))
+
 ## [1.10.0](https://github.com/JacobPEvans/terraform-proxmox/compare/v1.9.1...v1.10.0) (2026-05-24)
 
 
