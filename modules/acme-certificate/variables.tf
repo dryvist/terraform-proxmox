@@ -39,14 +39,54 @@ variable "dns_plugins" {
 }
 
 variable "acme_certificates" {
-  description = "ACME certificates to provision and manage"
+  description = <<-EOT
+    ACME certificates to provision and manage. Each entry maps to a single
+    proxmox_acme_certificate resource per node, covering one primary domain
+    plus optional SANs. After issuance, the cert (combined PEM bundle and/or
+    split cert+key) can be delivered to LXCs or VMs via the module's
+    null_resource provisioner.
+
+    See README.md for the full schema and import procedure.
+  EOT
   type = map(object({
-    node_name     = string # Proxmox node name (e.g., "pve")
-    domain        = string # Primary domain for certificate
-    account_id    = string # Associated ACME account ID
-    dns_plugin_id = string # DNS plugin ID for validation
+    node_name     = string                      # Proxmox node name (e.g., "pve")
+    domain        = string                      # Primary domain (CN)
+    account_id    = string                      # ACME account name (key in var.acme_accounts)
+    dns_plugin_id = string                      # DNS plugin name (key in var.dns_plugins)
+    sans          = optional(list(string), []) # Additional SANs (each uses dns_plugin_id)
+    destinations = optional(list(object({
+      kind        = string                      # "lxc" or "vm"
+      target_id   = number                      # vm_id of the LXC or VM
+      target_ip   = optional(string)            # required when kind = "vm"
+      bundle_path = optional(string)            # combined cert+key PEM
+      cert_path   = optional(string)            # separate cert+chain PEM
+      key_path    = optional(string)            # separate private key
+      mode        = optional(string, "0600")
+      owner       = optional(string, "root")
+      group       = optional(string, "root")
+      reload_cmd  = optional(string, "")        # ran on target after delivery
+    })), [])
   }))
   default = {}
+}
+
+variable "proxmox_ssh_host" {
+  description = "Hostname/IP for SSH access to the Proxmox node. Used by the cert-delivery null_resource provisioner."
+  type        = string
+  default     = ""
+}
+
+variable "proxmox_ssh_username" {
+  description = "SSH username for the Proxmox node (e.g., \"root\")."
+  type        = string
+  default     = "root"
+}
+
+variable "proxmox_ssh_private_key" {
+  description = "SSH private key content or file path for connecting to the Proxmox node."
+  type        = string
+  sensitive   = true
+  default     = ""
 }
 
 variable "environment" {

@@ -219,7 +219,16 @@ module "acme_certificates" {
   acme_certificates = var.acme_certificates
   environment       = var.environment
 
-  depends_on = [module.pools]
+  # SSH credentials for the null_resource cert-delivery provisioner.
+  # The provisioner SSHes to the Proxmox node and uses `pct push` (LXC) or
+  # `scp` (VM) to deliver the issued cert to each destination configured
+  # in acme_certificates[*].destinations.
+  proxmox_ssh_host        = var.proxmox_ssh_host
+  proxmox_ssh_username    = var.proxmox_ssh_username
+  proxmox_ssh_private_key = var.proxmox_ssh_private_key
+
+  # Ensure the LXCs/VMs we deliver to exist before the cert lands.
+  depends_on = [module.pools, module.containers, module.vms, module.splunk_vm]
 }
 
 # Rack-server cluster inventory. Declarative-only today (no resources

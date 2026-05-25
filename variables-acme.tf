@@ -38,14 +38,63 @@ variable "dns_plugins" {
 }
 
 variable "acme_certificates" {
-  description = "ACME certificates to provision and manage"
+  description = <<-EOT
+    ACME certificates to provision and manage. Each entry maps to a single
+    proxmox_acme_certificate resource per node, which can cover one primary
+    domain plus a list of SANs. After issuance, the cert (combined PEM
+    bundle and/or split cert+key files) can be delivered to LXCs or VMs
+    via the module's null_resource provisioner.
+  EOT
   type = map(object({
     node_name     = string
-    domain        = string
-    account_id    = string
-    dns_plugin_id = string
+    domain        = string                      # primary CN (e.g., "pve.example.com")
+    account_id    = string                      # ACME account name (key in var.acme_accounts)
+    dns_plugin_id = string                      # DNS plugin name (key in var.dns_plugins)
+    sans          = optional(list(string), []) # Additional SANs (each uses dns_plugin_id)
+    destinations = optional(list(object({
+      kind        = string                       # "lxc" or "vm"
+      target_id   = number                       # vm_id of the LXC or VM
+      target_ip   = optional(string)             # required when kind = "vm" (SSH host for scp)
+      bundle_path = optional(string)             # combined cert+key PEM (e.g., "/etc/ssl/private/infisical.pem")
+      cert_path   = optional(string)             # separate cert+chain PEM (e.g., "/opt/splunk/etc/auth/server.pem")
+      key_path    = optional(string)             # separate private key (e.g., "/opt/splunk/etc/auth/server.key")
+      mode        = optional(string, "0600")     # file mode for delivered files
+      owner       = optional(string, "root")     # file owner
+      group       = optional(string, "root")     # file group
+      reload_cmd  = optional(string, "")         # command to run on the target after delivery
+    })), [])
   }))
   default = {}
+
+  validation {
+    condition = alltrue([
+      for k, v in var.acme_certificates : alltrue([
+        for d in v.destinations : contains(["lxc", "vm"], d.kind)
+      ])
+    ])
+    error_message = "Each destination.kind must be either \"lxc\" or \"vm\"."
+  }
+
+  validation {
+    condition = alltrue([
+      for k, v in var.acme_certificates : alltrue([
+        for d in v.destinations : (d.kind == "vm" ? d.target_ip != null && d.target_ip != "" : true)
+      ])
+    ])
+    error_message = "destinations with kind = \"vm\" must set target_ip (SSH host for scp delivery)."
+  }
+
+  validation {
+    condition = alltrue([
+      for k, v in var.acme_certificates : alltrue([
+        for d in v.destinations : (
+          d.bundle_path != null && d.bundle_path != "" ||
+          (d.cert_path != null && d.cert_path != "" && d.key_path != null && d.key_path != "")
+        )
+      ])
+    ])
+    error_message = "Each destination must set either bundle_path (combined PEM) or both cert_path and key_path (split)."
+  }
 }
 
 # NOTE: Route53 DNS configuration is now managed separately in aws-infra/

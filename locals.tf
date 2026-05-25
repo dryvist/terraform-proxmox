@@ -72,6 +72,14 @@ locals {
     if contains(coalesce(try(v.tags, null), []), "infisical")
   }
 
+  # HAProxy LXCs (haproxy tag) — receive delivered ACME certs for HTTPS frontends.
+  # Distinct from pipeline_container_ids (which also includes Cribl Edge); this
+  # local is dedicated to cert-delivery targeting.
+  haproxy_container_ids = {
+    for k, v in var.containers : k => v.vm_id
+    if contains(coalesce(try(v.tags, null), []), "haproxy")
+  }
+
   # Cribl Stream containers: tagged cribl + stream (receives from Edge, routes to Splunk)
   # Distinct from pipeline_container_ids (HAProxy + Cribl Edge) as it doesn't receive external traffic
   cribl_stream_container_ids = {
