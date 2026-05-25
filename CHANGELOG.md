@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.11.0](https://github.com/JacobPEvans/terraform-proxmox/compare/v1.10.1...v1.11.0) (2026-05-25)
+
+
+### Features
+
+* **acme:** SAN list + per-LXC/VM cert delivery via null_resource ([#320](https://github.com/JacobPEvans/terraform-proxmox/issues/320)) ([591071a](https://github.com/JacobPEvans/terraform-proxmox/commit/591071a6fa2a7e841610b8107a1dd0d6e3dfe698))
+
 ## [1.10.1](https://github.com/JacobPEvans/terraform-proxmox/compare/v1.10.0...v1.10.1) (2026-05-25)
 
 
