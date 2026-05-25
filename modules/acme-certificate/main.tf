@@ -111,7 +111,7 @@ resource "null_resource" "cert_delivery" {
   triggers = {
     not_after   = proxmox_acme_certificate.certificates[each.value.cert_key].not_after
     fingerprint = proxmox_acme_certificate.certificates[each.value.cert_key].fingerprint
-    target      = "${each.value.kind}:${each.value.target_id}:${each.value.bundle_path}:${each.value.cert_path}:${each.value.key_path}:${each.value.mode}:${each.value.owner}:${each.value.group}"
+    target      = "${each.value.kind}:${each.value.target_id}:${each.value.target_ip}:${each.value.bundle_path}:${each.value.cert_path}:${each.value.key_path}:${each.value.mode}:${each.value.owner}:${each.value.group}"
     reload      = each.value.reload_cmd
   }
 
@@ -132,11 +132,11 @@ resource "null_resource" "cert_delivery" {
       each.value.cert_path != "" ? "cp /etc/pve/local/pveproxy-ssl.pem $TMPDIR/cert.pem" : ":",
       each.value.key_path != "" ? "cp /etc/pve/local/pveproxy-ssl.key $TMPDIR/key.pem" : ":",
       each.value.bundle_path != "" ? "pct exec ${each.value.target_id} -- mkdir -p $(dirname '${each.value.bundle_path}')" : ":",
-      each.value.bundle_path != "" ? "pct push ${each.value.target_id} $TMPDIR/bundle.pem '${each.value.bundle_path}' --user 0 --group 0 --perms ${each.value.mode}" : ":",
+      each.value.bundle_path != "" ? "pct push ${each.value.target_id} $TMPDIR/bundle.pem '${each.value.bundle_path}' --user ${each.value.owner} --group ${each.value.group} --perms ${each.value.mode}" : ":",
       each.value.cert_path != "" ? "pct exec ${each.value.target_id} -- mkdir -p $(dirname '${each.value.cert_path}')" : ":",
-      each.value.cert_path != "" ? "pct push ${each.value.target_id} $TMPDIR/cert.pem '${each.value.cert_path}' --user 0 --group 0 --perms ${each.value.mode}" : ":",
+      each.value.cert_path != "" ? "pct push ${each.value.target_id} $TMPDIR/cert.pem '${each.value.cert_path}' --user ${each.value.owner} --group ${each.value.group} --perms ${each.value.mode}" : ":",
       each.value.key_path != "" ? "pct exec ${each.value.target_id} -- mkdir -p $(dirname '${each.value.key_path}')" : ":",
-      each.value.key_path != "" ? "pct push ${each.value.target_id} $TMPDIR/key.pem '${each.value.key_path}' --user 0 --group 0 --perms ${each.value.mode}" : ":",
+      each.value.key_path != "" ? "pct push ${each.value.target_id} $TMPDIR/key.pem '${each.value.key_path}' --user ${each.value.owner} --group ${each.value.group} --perms ${each.value.mode}" : ":",
       each.value.reload_cmd != "" ? "pct exec ${each.value.target_id} -- sh -c '${each.value.reload_cmd}'" : ":",
       ] : [
       "set -e",
