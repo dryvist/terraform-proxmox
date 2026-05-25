@@ -1,8 +1,16 @@
 #!/usr/bin/env bash
-# Cleanup VMs in pool that aren't defined in Terraform
-# Usage: ./scripts/cleanup-orphaned-vms.sh <pool-name>
+# Cleanup VMs in pool that aren't defined in Terraform.
+#
+# Assumes AWS creds and Doppler are already injected in the parent shell.
+# Run as: aws-vault exec tf-proxmox -- doppler run -- ./scripts/cleanup-orphaned-vms.sh <pool-name>
+# (the wrapper is the user's responsibility; this script does not invoke aws-vault.)
 
 set -euo pipefail
+
+if ! aws sts get-caller-identity >/dev/null 2>&1; then
+  echo "AWS credentials not present; re-run under aws-vault exec tf-proxmox -- doppler run --" >&2
+  exit 1
+fi
 
 POOL="${1:-logging}"
 
@@ -23,8 +31,7 @@ echo "Fetching VMs from Terraform state..."
 cd "$(dirname "$0")/.."
 
 run_terragrunt() {
-    nix develop "github:JacobPEvans/nix-devenv?dir=shells/terraform" --command bash -c \
-        "aws-vault exec tf-proxmox -- doppler run -- terragrunt $*"
+    terragrunt "$@"
 }
 
 # Get VM IDs from state
