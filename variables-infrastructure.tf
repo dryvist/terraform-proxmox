@@ -34,3 +34,9 @@ variable "proxmox_ssh_private_key" {
     error_message = "SSH private key must be either a file path starting with ~/ or /, or the actual key content starting with -----BEGIN."
   }
 }
+
+variable "proxmox_ssh_host" {
+  description = "Hostname or IP for SSH access to the Proxmox node. Used by the acme-certificate module's null_resource provisioner to deliver issued certs to LXCs/VMs. Sourced from PROXMOX_VE_HOSTNAME via Doppler/terragrunt."
+  type        = string
+  default     = ""
+}

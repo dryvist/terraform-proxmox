@@ -1,29 +1,29 @@
 # ACME Certificate Module
 
-This module manages ACME (Let's Encrypt) certificates for Proxmox VE nodes using the BPG Proxmox provider.
+Manages Let's Encrypt certificates for Proxmox VE nodes (via the BPG provider) and optionally
+delivers the issued certs to LXCs and VMs for use by services like HAProxy and Splunk.
 
-## Overview
+## What this module owns
 
-The module handles three key components:
+- **`proxmox_acme_account`** — Let's Encrypt account registration.
+- **`proxmox_acme_dns_plugin`** — DNS-01 challenge provider config (credentials carried in `data`).
+- **`proxmox_acme_certificate`** — the per-node cert resource. Supports a primary domain + SANs.
+- **`null_resource.cert_delivery`** — pushes the issued cert to LXC/VM destinations via SSH to the
+  Proxmox node, using `pct push` (LXC) or `scp` (VM).
 
-1. **ACME Accounts** - Let's Encrypt account registration
-2. **DNS Challenge Plugins** - DNS-01 validation via AWS Route53
-3. **ACME Certificates** - Certificate ordering and lifecycle management
-
-## Features
-
-- ✅ Let's Encrypt certificate provisioning
-- ✅ AWS Route53 DNS-01 challenge support
-- ✅ Automatic certificate renewal (via Proxmox)
-- ✅ Multi-account and multi-certificate support via `for_each`
-- ✅ Terraform state management for existing certificates
+The module does **not** manage Route53 hosted zones (see `aws-infra/` for that).
 
 ## Requirements
 
-1. **Proxmox VE** with ACME support (tested with 7.x+)
-2. **AWS Route53** access for DNS challenge validation
-3. **Doppler** configured with Route53 credentials
-4. **BPG Proxmox Provider** >= 0.90.0
+- Proxmox VE node with cluster-level ACME support (PVE 7.x+).
+- BPG Proxmox provider `~> 0.106`, hashicorp/null `~> 3.2`.
+- A reachable ACME directory (Let's Encrypt prod or staging).
+- A DNS-01 challenge provider (this repo uses AWS Route53; credentials must live in SOPS or
+  Doppler, never plaintext).
+- SSH access from the Terraform-runner host to the Proxmox node (`var.proxmox_ssh_host`,
+  `var.proxmox_ssh_username`, `var.proxmox_ssh_private_key`).
+- For VM delivery destinations: SSH access from the Proxmox node to each VM's `target_ip` as
+  `root` (cloud-init sets this up via the `vm-access-key` injected at template build time).
 
 ## Usage
 
@@ -32,275 +32,197 @@ module "acme_certificates" {
   source = "./modules/acme-certificate"
 
   acme_accounts = {
-    "letsencrypt" = {
-      email      = "admin@example.com"
-      directory  = "https://acme-v02.api.letsencrypt.org/directory"
-      tos_agreed = true
+    default = {
+      email     = "you@example.com"
+      directory = "https://acme-v02.api.letsencrypt.org/directory"
+      tos       = "https://letsencrypt.org/documents/LE-SA-v1.5-February-24-2025.pdf"
     }
   }
 
   dns_plugins = {
-    "route53" = {
-      plugin_type = "route53"
-      api_type    = "aws"
+    AWS = {
+      plugin_type = "aws"
+      data = {
+        AWS_ACCESS_KEY_ID     = "<from SOPS>"
+        AWS_SECRET_ACCESS_KEY = "<from SOPS>"
+      }
     }
   }
 
   acme_certificates = {
-    "pve-cert" = {
-      node_name      = "pve"
-      domain         = "pve.example.com"
-      account_id     = "letsencrypt"
-      dns_plugin_id  = "route53"
+    pve = {
+      node_name     = "pve"
+      domain        = "pve.example.com"
+      account_id    = "default"
+      dns_plugin_id = "AWS"
+      sans = [
+        "infisical.example.com",
+        "splunk.example.com",
+      ]
+      destinations = [
+        {
+          kind        = "lxc"
+          target_id   = 175
+          bundle_path = "/etc/ssl/private/haproxy.pem"
+          reload_cmd  = "systemctl reload haproxy"
+        },
+        {
+          kind       = "vm"
+          target_id  = 200
+          target_ip  = "10.0.1.200"
+          cert_path  = "/opt/splunk/etc/auth/server.pem"
+          key_path   = "/opt/splunk/etc/auth/server.key"
+          owner      = "splunk"
+          group      = "splunk"
+          reload_cmd = "/opt/splunk/bin/splunk restart splunkweb"
+        },
+      ]
     }
   }
 
-  environment = "homelab"
+  proxmox_ssh_host        = var.proxmox_ssh_host
+  proxmox_ssh_username    = var.proxmox_ssh_username
+  proxmox_ssh_private_key = var.proxmox_ssh_private_key
+  environment             = "homelab"
 }
 ```
 
-## Variables
+## Schema
 
 ### `acme_accounts`
 
-Map of ACME account configurations.
-
-**Example:**
-
-```hcl
-acme_accounts = {
-  "letsencrypt" = {
-    email      = "admin@example.com"
-    directory  = "https://acme-v02.api.letsencrypt.org/directory"  # Production
-    tos_agreed = true
-  }
-  "letsencrypt-staging" = {
-    email      = "admin@example.com"
-    directory  = "https://acme-staging-v02.api.letsencrypt.org/directory"  # Testing
-    tos_agreed = true
-  }
-}
-```
-
-**Fields:**
-
-- `email` - Email for Let's Encrypt notifications (required)
-- `directory` - ACME directory URL (required)
-  - Production: `https://acme-v02.api.letsencrypt.org/directory`
-  - Staging: `https://acme-staging-v02.api.letsencrypt.org/directory`
-- `tos_agreed` - Agree to Let's Encrypt TOS (default: true)
+Same shape as before. `directory` is the LE production or staging URL; `tos` is the current
+ToS URL (drift on `tos` is ignored via lifecycle).
 
 ### `dns_plugins`
 
-Map of DNS challenge plugin configurations.
-
-**Example (Route53):**
-
-```hcl
-dns_plugins = {
-  "route53" = {
-    plugin_type = "route53"
-    api_type    = "aws"
-  }
-}
-```
-
-**Fields:**
-
-- `plugin_type` - Plugin identifier (e.g., "route53", "dns01")
-- `api_type` - API type (e.g., "aws")
-
-**Note:** API credentials (AWS access key, secret key) are stored in Proxmox at `/etc/pve/priv/acme/plugins.cfg`, not managed by this module.
+`data` is a free-form map carrying provider credentials. For Route53:
+`{ AWS_ACCESS_KEY_ID = "...", AWS_SECRET_ACCESS_KEY = "..." }`. Must come from SOPS/Doppler.
 
 ### `acme_certificates`
 
-Map of certificate configurations.
+Each entry produces one `proxmox_acme_certificate` covering `domain` (CN) plus all `sans` (each
+validated through the same `dns_plugin_id`). Optional `destinations` list configures cert
+delivery to LXCs/VMs after issuance.
 
-**Example:**
+#### Destination fields
 
-```hcl
-acme_certificates = {
-  "pve-cert" = {
-    node_name      = "pve"
-    domain         = "pve.example.com"
-    account_id     = "letsencrypt"
-    dns_plugin_id  = "route53"
-  }
-}
+| Field | Required | Notes |
+| --- | --- | --- |
+| `kind` | yes | `"lxc"` or `"vm"` |
+| `target_id` | yes | vm_id of the LXC or VM |
+| `target_ip` | when kind = `"vm"` | SSH host for `scp` (pve node SSHes to this IP) |
+| `bundle_path` | one of... | Combined cert+key PEM (HAProxy, Caddy, nginx) |
+| `cert_path` | ...these... | Cert+chain PEM only (Splunk, Elasticsearch) |
+| `key_path` | ...combos | Private key (required alongside `cert_path`) |
+| `mode` | optional | File mode, default `0600` |
+| `owner` | optional | File owner, default `root` |
+| `group` | optional | File group, default `root` |
+| `reload_cmd` | optional | Command run on the target after delivery; runs on every re-trigger |
+
+Validation: each destination must set **either** `bundle_path` **or** both `cert_path` and
+`key_path`. VMs additionally require `target_ip`.
+
+### `proxmox_ssh_host` / `proxmox_ssh_username` / `proxmox_ssh_private_key`
+
+SSH credentials for the cert-delivery null_resource. Sourced from Doppler
+(`PROXMOX_VE_HOSTNAME`, `PROXMOX_SSH_USERNAME`, `PROXMOX_SSH_PRIVATE_KEY`) and threaded through
+`terragrunt.hcl` → root `main.tf`.
+
+## Delivery model
+
+The Proxmox node is the source of truth for the issued cert
+(`/etc/pve/local/pveproxy-ssl.{pem,key}`). When `proxmox_acme_certificate` renews (Proxmox does
+this automatically ~30 days before expiry via `pve-daily-update.service`), the cert's
+`not_after` and `fingerprint` attributes change. The `null_resource.cert_delivery` triggers on
+those changes and re-pushes the cert to every destination, then runs each `reload_cmd`.
+
+For **LXC** destinations:
+
+1. SSH to the Proxmox node.
+2. Build the bundle (`cat pveproxy-ssl.pem pveproxy-ssl.key`) and/or split files in a per-job tmpdir.
+3. `pct exec` to ensure target directories exist.
+4. `pct push` the file(s) with `--user 0 --group 0 --perms <mode>`.
+5. `pct exec` the `reload_cmd` if set.
+
+For **VM** destinations:
+
+1. SSH to the Proxmox node.
+2. Build the bundle/split files in a per-job tmpdir.
+3. SSH from the Proxmox node to the VM's `target_ip` to create target directories.
+4. `scp` the file(s) from the Proxmox node to the VM.
+5. SSH to set `chmod`/`chown`.
+6. SSH to run the `reload_cmd` if set.
+
+## Importing existing resources
+
+If your Proxmox node already has a manually-configured ACME account, plugin, and certificate,
+import them before the first `apply`:
+
+```bash
+cd <repo>/main
+
+# 1. Account — name from `pvesh get /cluster/acme/account` (default in homelab is "default")
+doppler run -- terragrunt run -- import \
+  'module.acme_certificates[0].proxmox_acme_account.accounts["default"]' \
+  'default'
+
+# 2. DNS plugin — name from `pvesh get /cluster/acme/plugins`
+doppler run -- terragrunt run -- import \
+  'module.acme_certificates[0].proxmox_acme_dns_plugin.dns_plugins["AWS"]' \
+  'AWS'
+
+# 3. Certificate — ID is the node name
+doppler run -- terragrunt run -- import \
+  'module.acme_certificates[0].proxmox_acme_certificate.certificates["pve"]' \
+  'pve'
 ```
 
-**Fields:**
+After import, run `terragrunt plan`. Expected diff:
 
-- `node_name` - Proxmox node name (e.g., "pve")
-- `domain` - Primary domain for certificate
-- `account_id` - Associated ACME account ID
-- `dns_plugin_id` - DNS plugin ID for DNS-01 validation
+- **Account**: zero changes (assuming HCL email/directory/tos match).
+- **DNS plugin**: zero changes if HCL `data` matches what's stored in PVE. Update SOPS to match
+  if there's drift.
+- **Certificate**: drift on `domains` if you're adding SANs in HCL that weren't on the live
+  cert. Apply triggers re-issuance with the new SAN list.
 
-### `environment`
-
-Environment name for organization and tagging.
-
-**Default:** `"homelab"`
+`null_resource.cert_delivery` is not importable; the first apply pushes the cert to every
+configured destination.
 
 ## Outputs
 
-### `acme_accounts`
+| Output | Sensitive | Notes |
+| --- | --- | --- |
+| `acme_accounts` | no | Map of `{id, email}` per account |
+| `dns_plugins` | yes | Map of `{id, plugin}` per plugin |
+| `certificates` | no | Map of `{node_name, account, domains, not_after, issuer, subject}` |
+| `cert_deliveries` | no | Map of `{cert_key, kind, target_id, target_ip, bundle_path, cert_path, key_path}` per delivery job |
 
-Account information including ID and email address.
-
-```hcl
-output "accounts" {
-  value = module.acme_certificates.acme_accounts
-}
-# {
-#   "letsencrypt" = {
-#     id    = "letsencrypt"
-#     email = "admin@example.com"
-#   }
-# }
-```
-
-### `dns_plugins`
-
-Configured DNS challenge plugins.
-
-```hcl
-output "plugins" {
-  value = module.acme_certificates.dns_plugins
-}
-# {
-#   "route53" = {
-#     id       = "route53"
-#     plugin   = "route53"
-#     api_type = "aws"
-#   }
-# }
-```
-
-### `certificates`
-
-Certificate details including node, account, and domains.
-
-```hcl
-output "certs" {
-  value = module.acme_certificates.certificates
-}
-# {
-#   "pve-cert" = {
-#     node_name = "pve"
-#     account   = "letsencrypt"
-#     domains   = ["pve.example.com"]
-#   }
-# }
-```
-
-## Certificate Lifecycle
-
-### Ordering
-
-When a certificate is first created:
-
-1. Proxmox contacts Let's Encrypt ACME directory
-2. Proxmox creates DNS TXT records for validation
-3. Let's Encrypt validates DNS records
-4. Certificate is issued and stored in Proxmox
-
-### Renewal
-
-Proxmox automatically renews certificates via `pve-daily-update.service`:
-
-- Runs daily
-- Checks certificates 30 days before expiry
-- Re-validates via DNS-01 challenge
-- Updates certificate in place
-
-**Monitor renewal:**
+## Renewal monitoring
 
 ```bash
-systemctl status pve-daily-update.timer
-journalctl -u pve-daily-update.service --since "7 days ago"
+ssh root@<pve-host> 'systemctl status pve-daily-update.timer'
+ssh root@<pve-host> 'journalctl -u pve-daily-update.service --since "7 days ago"'
+# Manual order:
+ssh root@<pve-host> 'pvenode acme cert order'
 ```
 
-### Manual Renewal
-
-If needed, trigger renewal manually:
-
-```bash
-pvenode acme cert order
-```
-
-## Importing Existing Certificates
-
-If you have existing ACME certificates in Proxmox, import them:
-
-```bash
-# Import ACME account
-terraform import 'module.acme_certificates.proxmox_virtual_environment_acme_account.accounts["letsencrypt"]' 'letsencrypt'
-
-# Import DNS plugin
-terraform import 'module.acme_certificates.proxmox_virtual_environment_acme_dns_plugin.dns_plugins["route53"]' 'route53'
-
-# Import certificate
-terraform import 'module.acme_certificates.proxmox_virtual_environment_acme_certificate.certificates["pve-cert"]' 'pve'
-```
+When Proxmox renews, the next `terragrunt apply` (or any plan that refreshes the `null_resource`
+triggers) will re-push the cert to every destination automatically.
 
 ## Troubleshooting
 
-### Certificate ordering fails with DNS validation error
-
-**Issue:** Let's Encrypt cannot validate DNS records
-
-**Causes:**
-
-- Route53 credentials incorrect
-- IAM permissions insufficient
-- DNS records not propagating
-- Proxmox cannot reach AWS
-
-**Solution:**
-
-1. Verify Route53 IAM policy allows DNS operations
-2. Check DNS propagation: `dig -t TXT _acme-challenge.pve.example.com @8.8.8.8`
-3. Monitor Proxmox logs: `journalctl -u pve-daily-update.service`
-
-### Certificate renewal fails
-
-**Issue:** Proxmox cannot renew existing certificate
-
-**Causes:**
-
-- Route53 credentials expired or revoked
-- DNS plugin misconfiguration
-- Proxmox service issues
-
-**Solution:**
-
-1. Verify Doppler secrets are up to date
-2. Check Proxmox service status: `systemctl status pveproxy`
-3. Review renewal logs: `journalctl -u pve-daily-update.service`
-
-### Terraform plan shows changes after import
-
-**Issue:** Imported resources don't match Terraform configuration
-
-**Solution:**
-
-1. Extract imported state: `terraform state show 'module.acme_certificates.proxmox_virtual_environment_acme_account.accounts["letsencrypt"]'`
-2. Compare with variable values
-3. Update variables to match Proxmox configuration
-4. Re-run plan to verify zero drift
-
-## Best Practices
-
-1. **Use production Let's Encrypt** - Only use staging for testing due to rate limits
-2. **Monitor renewals** - Set up alerts for renewal failures
-3. **Rotate credentials** - Rotate Route53 IAM keys quarterly
-4. **Backup certificates** - Keep exported certificate copies
-5. **Document changes** - Keep Terraform configuration in sync with manual changes
+| Symptom | Likely cause |
+| --- | --- |
+| Plan wants to recreate the account | `tos` or `directory` mismatch — update SOPS to match the live account |
+| Plan wants to recreate the DNS plugin | `data` map drift (AWS key rotated outside Terraform) — update SOPS |
+| Cert order fails with DNS validation | Route53 IAM perms insufficient, or wrong zone; check `journalctl -u pveproxy` |
+| `pct push` fails with "no such file" | Target directory doesn't exist — module auto-`mkdir -p`s but check the path |
+| `scp` to VM fails with auth error | PVE node lacks SSH access to the VM as `root`; check `~/.ssh/authorized_keys` |
+| `reload_cmd` fails but cert is delivered | Command syntax issue — run it manually on the target to debug |
 
 ## References
 
-- [BPG Proxmox Provider](https://github.com/bpg/terraform-provider-proxmox)
-- [Proxmox Certificate Management](https://pve.proxmox.com/wiki/Certificate_Management)
-- [Let's Encrypt Documentation](https://letsencrypt.org/docs/)
-- [ACME DNS API Support](https://github.com/acmesh-official/acme.sh/blob/master/dnsapi/README.md)
+- [BPG Proxmox Provider — proxmox_acme_certificate](https://registry.terraform.io/providers/bpg/proxmox/latest/docs/resources/acme_certificate)
+- [Proxmox Wiki — Certificate Management](https://pve.proxmox.com/wiki/Certificate_Management)
+- [Let's Encrypt — ACME v2 directory](https://letsencrypt.org/docs/)

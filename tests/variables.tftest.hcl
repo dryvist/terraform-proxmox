@@ -429,3 +429,75 @@ run "acme_account_non_https_directory_rejected" {
     var.acme_accounts,
   ]
 }
+
+run "acme_certificates_invalid_destination_kind_rejected" {
+  command = plan
+
+  variables {
+    acme_certificates = {
+      bad = {
+        node_name     = "pve"
+        domain        = "pve.example.com"
+        account_id    = "default"
+        dns_plugin_id = "AWS"
+        destinations = [{
+          kind        = "container"
+          target_id   = 175
+          bundle_path = "/etc/ssl/private/x.pem"
+        }]
+      }
+    }
+  }
+
+  expect_failures = [
+    var.acme_certificates,
+  ]
+}
+
+run "acme_certificates_vm_missing_target_ip_rejected" {
+  command = plan
+
+  variables {
+    acme_certificates = {
+      bad = {
+        node_name     = "pve"
+        domain        = "pve.example.com"
+        account_id    = "default"
+        dns_plugin_id = "AWS"
+        destinations = [{
+          kind        = "vm"
+          target_id   = 200
+          bundle_path = "/etc/ssl/private/x.pem"
+        }]
+      }
+    }
+  }
+
+  expect_failures = [
+    var.acme_certificates,
+  ]
+}
+
+run "acme_certificates_missing_path_combo_rejected" {
+  command = plan
+
+  variables {
+    acme_certificates = {
+      bad = {
+        node_name     = "pve"
+        domain        = "pve.example.com"
+        account_id    = "default"
+        dns_plugin_id = "AWS"
+        destinations = [{
+          kind      = "lxc"
+          target_id = 175
+          # No bundle_path, no cert_path/key_path — must be rejected.
+        }]
+      }
+    }
+  }
+
+  expect_failures = [
+    var.acme_certificates,
+  ]
+}
