@@ -34,9 +34,18 @@ run_terragrunt() {
     terragrunt "$@"
 }
 
-# Get VM IDs from state
-STATE_VMS=$(run_terragrunt state list 2>/dev/null | grep 'module.vms.proxmox_virtual_environment_vm.vms' | sed -E 's/.*\["([^"]+)"\].*/\1/' || true)
-STATE_CTS=$(run_terragrunt state list 2>/dev/null | grep 'module.containers.proxmox_virtual_environment_container.containers' | sed -E 's/.*\["([^"]+)"\].*/\1/' || true)
+# Fetch the state list once and fail fast if the command itself errors.
+# Without this guard, a credential/network failure would silently leave
+# STATE_VMS/STATE_CTS empty, causing every live VM to be flagged as
+# orphaned and prompting destruction — see Gemini critical review on #322.
+if ! STATE_LIST=$(run_terragrunt state list 2>&1); then
+    echo "Error: terragrunt state list failed. Aborting before any destroy prompts." >&2
+    echo "$STATE_LIST" >&2
+    exit 1
+fi
+
+STATE_VMS=$(echo "$STATE_LIST" | grep 'module.vms.proxmox_virtual_environment_vm.vms' | sed -E 's/.*\["([^"]+)"\].*/\1/' || true)
+STATE_CTS=$(echo "$STATE_LIST" | grep 'module.containers.proxmox_virtual_environment_container.containers' | sed -E 's/.*\["([^"]+)"\].*/\1/' || true)
 
 echo "VMs in Terraform state: ${STATE_VMS:-none}"
 echo "Containers in Terraform state: ${STATE_CTS:-none}"
