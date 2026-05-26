@@ -51,14 +51,14 @@ locals {
   splunk_services_rules = [
     { proto = "tcp", dport = tostring(local.svc_ports.splunk_web), source = local.internal_src, comment = "Splunk Web UI from internal" },
     { proto = "tcp", dport = tostring(local.svc_ports.splunk_hec), source = local.internal_src, comment = "Splunk HEC from internal" },
-    { proto = "tcp", dport = tostring(local.svc_ports.splunk_forwarding), source = local.internal_src, comment = "Splunk Forwarding from internal" },
+    { proto = "tcp", dport = tostring(local.svc_ports.splunk_forwarding), source = local.internal_src, comment = "Splunk Forwarding (TCP ${local.svc_ports.splunk_forwarding}) from internal" },
   ]
 
   syslog_rules = [
-    { proto = "udp", dport = tostring(local.syslog_ports.default), source = local.internal_src, comment = "Syslog UDP from internal" },
-    { proto = "tcp", dport = tostring(local.syslog_ports.default), source = local.internal_src, comment = "Syslog TCP from internal" },
-    { proto = "udp", dport = local.pipeline_syslog_range, source = local.internal_src, comment = "Pipeline syslog UDP from internal" },
-    { proto = "tcp", dport = local.pipeline_syslog_range, source = local.internal_src, comment = "Pipeline syslog TCP from internal" },
+    { proto = "udp", dport = tostring(local.syslog_ports.default), source = local.internal_src, comment = "Syslog UDP (UDP ${local.syslog_ports.default}) from internal" },
+    { proto = "tcp", dport = tostring(local.syslog_ports.default), source = local.internal_src, comment = "Syslog TCP (TCP ${local.syslog_ports.default}) from internal" },
+    { proto = "udp", dport = local.pipeline_syslog_range, source = local.internal_src, comment = "Pipeline syslog UDP (UDP ${local.pipeline_syslog_range}) from internal" },
+    { proto = "tcp", dport = local.pipeline_syslog_range, source = local.internal_src, comment = "Pipeline syslog TCP (TCP ${local.pipeline_syslog_range}) from internal" },
   ]
 
   pipeline_services_rules = [
@@ -71,7 +71,7 @@ locals {
   ]
 
   ntp_server_rules = [
-    { proto = "udp", dport = tostring(local.svc_ports.ntp), source = local.internal_src, comment = "NTP (chrony server) from internal" },
+    { proto = "udp", dport = tostring(local.svc_ports.ntp), source = local.internal_src, comment = "NTP chrony server (UDP ${local.svc_ports.ntp}) from internal" },
   ]
 
   notification_services_rules = [
