@@ -282,12 +282,12 @@ run "syslog_rules_track_constants_ports" {
 
   # Pipeline range is derived from min/max of non-default syslog_ports values
   assert {
-    condition     = local.syslog_rules[2].dport == "1514:1518"
+    condition     = local.syslog_rules[2].dport == "1514,1515,1516,1517,1518"
     error_message = "syslog_rules[2].dport must be the derived 1514:1518 range, got '${local.syslog_rules[2].dport}'"
   }
 
   assert {
-    condition     = local.syslog_rules[3].dport == "1514:1518"
+    condition     = local.syslog_rules[3].dport == "1514,1515,1516,1517,1518"
     error_message = "syslog_rules[3].dport must be the derived 1514:1518 range, got '${local.syslog_rules[3].dport}'"
   }
 }
@@ -343,9 +343,15 @@ run "pipeline_syslog_range_excludes_default" {
     internal_networks = ["10.0.0.0/8"]
   }
 
-  # 514 (default) must NOT appear in pipeline range; range covers 1514..1518 only.
+  # 514 (default) must NOT appear in the pipeline list; comma-joined avoids
+  # any over-permit if a non-contiguous port is ever added to syslog_ports.
   assert {
-    condition     = local.pipeline_syslog_range == "1514:1518"
-    error_message = "pipeline_syslog_range must exclude the default port 514 and span 1514:1518, got '${local.pipeline_syslog_range}'"
+    condition     = local.pipeline_syslog_range == "1514,1515,1516,1517,1518"
+    error_message = "pipeline_syslog_range must exclude the default port 514, got '${local.pipeline_syslog_range}'"
+  }
+
+  assert {
+    condition     = !contains(local.pipeline_syslog_ports, 514)
+    error_message = "pipeline_syslog_ports must not contain the default port (514), got '${jsonencode(local.pipeline_syslog_ports)}'"
   }
 }

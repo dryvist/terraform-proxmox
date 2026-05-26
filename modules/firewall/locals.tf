@@ -32,11 +32,16 @@ locals {
   vector_db_ports    = var.pipeline_constants.vector_db_ports
   netflow_ports      = var.pipeline_constants.netflow_ports
 
-  # Pipeline syslog port range — derived from syslog_ports values so that
-  # adding a new typed-source port (e.g. another 151x entry) auto-expands
-  # the firewall rule. Excludes the default (514) which has its own rule.
+  # Pipeline syslog ports — derived from syslog_ports values so that adding
+  # a new typed-source port auto-expands the firewall rule. Excludes the
+  # default (514) which has its own rule.
+  #
+  # Emitted as a comma-separated list rather than a min:max range to avoid
+  # accidentally over-permitting if a non-contiguous port (e.g. 9999) is
+  # ever added to syslog_ports — see Gemini security review on #323.
+  # Proxmox firewall dport accepts comma-separated port lists.
   pipeline_syslog_ports = [for k, v in local.syslog_ports : v if k != "default"]
-  pipeline_syslog_range = "${min(local.pipeline_syslog_ports...)}:${max(local.pipeline_syslog_ports...)}"
+  pipeline_syslog_range = join(",", [for v in sort(local.pipeline_syslog_ports) : tostring(v)])
 
   internal_access_rules = [
     { proto = "tcp", dport = "22", source = local.internal_src, comment = "SSH from internal networks" },
@@ -106,7 +111,7 @@ locals {
 
   # iDRAC KVM: inbound noVNC HTTP ports from internal; egress reuses outbound_internal
   idrac_kvm_services_rules = [
-    { proto = "tcp", dport = tostring(local.svc_ports.idrac_kvm_r410), source = local.internal_src, comment = "iDRAC HTML5 KVM R410 from internal" },
-    { proto = "tcp", dport = tostring(local.svc_ports.idrac_kvm_r710), source = local.internal_src, comment = "iDRAC HTML5 KVM R710 from internal" },
+    { proto = "tcp", dport = tostring(local.svc_ports.idrac_kvm_r410), source = local.internal_src, comment = "iDRAC HTML5 KVM R410 (TCP ${local.svc_ports.idrac_kvm_r410}) from internal" },
+    { proto = "tcp", dport = tostring(local.svc_ports.idrac_kvm_r710), source = local.internal_src, comment = "iDRAC HTML5 KVM R710 (TCP ${local.svc_ports.idrac_kvm_r710}) from internal" },
   ]
 }
