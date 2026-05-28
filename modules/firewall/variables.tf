@@ -69,6 +69,12 @@ variable "idrac_kvm_vm_ids" {
   default     = {}
 }
 
+variable "idrac_kvm_container_ids" {
+  description = "Map of iDRAC KVM host LXC names to IDs (tag-driven, set by root locals). Containers replace the retired idrac-kvm VM — one LXC per physical iDRAC."
+  type        = map(number)
+  default     = {}
+}
+
 variable "management_network" {
   description = "CIDR of management network for SSH/Web access. Configure in terraform.tfvars for your environment."
   type        = string

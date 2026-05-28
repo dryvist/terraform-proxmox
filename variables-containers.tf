@@ -20,11 +20,15 @@ variable "containers" {
       size         = optional(number, 16)
     }), {})
 
-    # Mount points (additional volumes mounted into the container)
+    # Mount points (additional volumes mounted into the container).
+    # size is required for managed volumes (e.g. "30G" on local-zfs) but
+    # omitted for bind mounts where volume is an absolute host path
+    # (e.g. "/var/lib/vz/template/iso"). read_only maps to mp ro=1.
     mount_points = optional(list(object({
-      volume = string
-      size   = string
-      path   = string
+      volume    = string
+      size      = optional(string)
+      path      = string
+      read_only = optional(bool, false)
     })), [])
 
     # Network

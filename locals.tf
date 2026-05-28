@@ -87,9 +87,15 @@ locals {
     if contains(coalesce(try(v.tags, null), []), "cribl") && contains(coalesce(try(v.tags, null), []), "stream")
   }
 
-  # iDRAC KVM VMs: tagged "idrac" (domistyle/idrac6 containers on dedicated Docker VM)
+  # iDRAC KVM hosts: tagged "idrac". Was a dedicated Docker VM; now one
+  # unprivileged LXC per physical iDRAC (252 = R410, 253 = R710), each
+  # running a domistyle/idrac6 Docker container.
   idrac_kvm_vm_ids = {
     for k, v in var.vms : k => v.vm_id
+    if contains(coalesce(try(v.tags, null), []), "idrac")
+  }
+  idrac_kvm_container_ids = {
+    for k, v in var.containers : k => v.vm_id
     if contains(coalesce(try(v.tags, null), []), "idrac")
   }
 }

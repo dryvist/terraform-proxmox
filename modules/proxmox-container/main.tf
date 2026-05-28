@@ -93,9 +93,10 @@ resource "proxmox_virtual_environment_container" "containers" {
   dynamic "mount_point" {
     for_each = each.value.mount_points
     content {
-      volume = mount_point.value.volume
-      size   = mount_point.value.size
-      path   = mount_point.value.path
+      volume    = mount_point.value.volume
+      size      = mount_point.value.size
+      path      = mount_point.value.path
+      read_only = mount_point.value.read_only
     }
   }
 

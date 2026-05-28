@@ -91,19 +91,6 @@
       "additional_disks": [{ "datastore_id": "local-zfs", "interface": "scsi1", "size": 100 }],
       "clone_template": { "template_id": 9000 },
       "user_account": { "username": "debian", "password": "", "keys": [] }
-    },
-    "idrac-kvm": {
-      "vm_id": 251,
-      "name": "idrac-kvm",
-      "description": "Vendor domistyle/idrac6 containers (R410 + R710). HTML5 iDRAC KVM. Vendor Docker image only.",
-      "cpu_cores": 1,
-      "memory_dedicated": 2048,
-      "tags": ["terraform", "docker", "idrac", "oob", "management"],
-      "pool_id": "infrastructure",
-      "boot_disk": { "datastore_id": "local-zfs", "size": 16 },
-      "network_interfaces": [{ "bridge": "vmbr0", "firewall": true }],
-      "clone_template": { "template_id": 9000 },
-      "user_account": { "username": "debian", "password": "", "keys": [] }
     }
   },
 
@@ -435,6 +422,38 @@
       "tags": ["terraform", "container", "splunk", "management"],
       "pool_id": "logging",
       "root_disk": { "size": 100 }
+    },
+    "idrac6-domistyle": {
+      "vm_id": 252,
+      "hostname": "idrac6-domistyle",
+      "description": "iDRAC6 HTML5 KVM viewer for R410 (domistyle/idrac6 via Docker). Target IP/creds in ansible-proxmox-apps secrets.enc.yaml (IDRAC_R410_*).",
+      "cpu_cores": 2,
+      "memory_dedicated": 1024,
+      "memory_swap": 512,
+      "tags": ["terraform", "container", "docker", "idrac", "oob", "management"],
+      "pool_id": "infrastructure",
+      "unprivileged": true,
+      "root_disk": { "size": 8 },
+      "mount_points": [
+        { "volume": "/var/lib/vz/template/iso", "path": "/iso", "read_only": true }
+      ],
+      "features": { "nesting": true }
+    },
+    "idrac6-r710": {
+      "vm_id": 253,
+      "hostname": "idrac6-r710",
+      "description": "iDRAC6 HTML5 KVM viewer for R710 (domistyle/idrac6 via Docker). Target IP/creds in ansible-proxmox-apps secrets.enc.yaml (IDRAC_R710_*).",
+      "cpu_cores": 2,
+      "memory_dedicated": 1024,
+      "memory_swap": 512,
+      "tags": ["terraform", "container", "docker", "idrac", "oob", "management"],
+      "pool_id": "infrastructure",
+      "unprivileged": true,
+      "root_disk": { "size": 8 },
+      "mount_points": [
+        { "volume": "/var/lib/vz/template/iso", "path": "/iso", "read_only": true }
+      ],
+      "features": { "nesting": true }
     }
   }
 }
