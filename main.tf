@@ -194,8 +194,8 @@ module "firewall" {
   # Infisical secrets-management containers (infisical tag)
   infisical_container_ids = local.infisical_container_ids
 
-  # iDRAC KVM VMs: tagged "idrac" (domistyle/idrac6 containers on dedicated Docker VM)
-  idrac_kvm_vm_ids = local.idrac_kvm_vm_ids
+  # iDRAC KVM LXC: tagged "idrac" (domistyle/idrac6-based viewers, Docker-in-LXC)
+  idrac_kvm_container_ids = local.idrac_kvm_container_ids
 
   # Pipeline constants: single source of truth for service ports (DRY)
   pipeline_constants = local.pipeline_constants

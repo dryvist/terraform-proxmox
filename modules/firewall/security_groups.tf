@@ -286,7 +286,7 @@ resource "proxmox_virtual_environment_cluster_firewall_security_group" "ntp_serv
 
 resource "proxmox_virtual_environment_cluster_firewall_security_group" "idrac_kvm_svc" {
   name    = "idrac-kvm-svc"
-  comment = "iDRAC KVM HTML5 noVNC ports (5800, 5801) from internal networks"
+  comment = "iDRAC KVM HTML5 noVNC ports (5410, 5710) from internal networks"
 
   dynamic "rule" {
     for_each = local.idrac_kvm_services_rules

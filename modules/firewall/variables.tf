@@ -63,8 +63,8 @@ variable "infisical_container_ids" {
   default     = {}
 }
 
-variable "idrac_kvm_vm_ids" {
-  description = "Map of iDRAC KVM host VM names to IDs (tag-driven, set by root locals)"
+variable "idrac_kvm_container_ids" {
+  description = "Map of iDRAC KVM LXC names to IDs (tag-driven, set by root locals)"
   type        = map(number)
   default     = {}
 }

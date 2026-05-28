@@ -91,19 +91,6 @@
       "additional_disks": [{ "datastore_id": "local-zfs", "interface": "scsi1", "size": 100 }],
       "clone_template": { "template_id": 9000 },
       "user_account": { "username": "debian", "password": "", "keys": [] }
-    },
-    "idrac-kvm": {
-      "vm_id": 251,
-      "name": "idrac-kvm",
-      "description": "Vendor domistyle/idrac6 containers (R410 + R710). HTML5 iDRAC KVM. Vendor Docker image only.",
-      "cpu_cores": 1,
-      "memory_dedicated": 2048,
-      "tags": ["terraform", "docker", "idrac", "oob", "management"],
-      "pool_id": "infrastructure",
-      "boot_disk": { "datastore_id": "local-zfs", "size": 16 },
-      "network_interfaces": [{ "bridge": "vmbr0", "firewall": true }],
-      "clone_template": { "template_id": 9000 },
-      "user_account": { "username": "debian", "password": "", "keys": [] }
     }
   },
 
@@ -205,6 +192,19 @@
       "mount_points": [
         { "volume": "local-zfs", "size": "30G", "path": "/opt/infisical" }
       ],
+      "features": { "nesting": true }
+    },
+    "idrac-kvm": {
+      "vm_id": 251,
+      "hostname": "idrac-kvm",
+      "description": "iDRAC6 HTML5 KVM viewers (R410 + R710) - Docker in LXC. Runs a locally rebuilt image (FROM domistyle/idrac6 + the Dell AVCT KVM client COPYed into /app; proprietary jars staged privately, not in git). Consolidates former manual LXCs 252/253; host ports 5410 (R410) / 5710 (R710).",
+      "cpu_cores": 2,
+      "memory_dedicated": 3072,
+      "memory_swap": 1024,
+      "tags": ["terraform", "container", "idrac", "oob", "management", "docker"],
+      "pool_id": "infrastructure",
+      "unprivileged": true,
+      "root_disk": { "size": 16 },
       "features": { "nesting": true }
     },
     "mailpit": {

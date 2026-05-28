@@ -384,52 +384,52 @@ run "pipeline_and_stream_containers_mutually_exclusive" {
   }
 }
 
-# --- idrac_kvm_vm_ids tests ---
+# --- idrac_kvm_container_ids tests ---
 
-run "idrac_tagged_vm_in_idrac_kvm_vm_ids" {
+run "idrac_tagged_container_in_idrac_kvm_container_ids" {
   command = plan
 
   variables {
-    vms = {
+    containers = {
       "idrac-kvm" = {
-        vm_id = 251
-        name  = "idrac-kvm"
-        tags  = ["terraform", "docker", "idrac", "oob", "management"]
+        vm_id    = 251
+        hostname = "idrac-kvm"
+        tags     = ["terraform", "container", "idrac", "oob", "management", "docker"]
       }
     }
   }
 
   assert {
-    condition     = contains(keys(local.idrac_kvm_vm_ids), "idrac-kvm")
-    error_message = "VM with 'idrac' tag must be in idrac_kvm_vm_ids"
+    condition     = contains(keys(local.idrac_kvm_container_ids), "idrac-kvm")
+    error_message = "container with 'idrac' tag must be in idrac_kvm_container_ids"
   }
 
   assert {
-    condition     = local.idrac_kvm_vm_ids["idrac-kvm"] == 251
-    error_message = "idrac_kvm_vm_ids['idrac-kvm'] should be vm_id 251"
+    condition     = local.idrac_kvm_container_ids["idrac-kvm"] == 251
+    error_message = "idrac_kvm_container_ids['idrac-kvm'] should be vm_id 251"
   }
 }
 
-run "non_idrac_vm_not_in_idrac_kvm_vm_ids" {
+run "non_idrac_container_not_in_idrac_kvm_container_ids" {
   command = plan
 
   variables {
-    vms = {
-      "docker-host" = {
-        vm_id = 250
-        name  = "docker-host"
-        tags  = ["terraform", "docker", "logging"]
+    containers = {
+      "mailpit" = {
+        vm_id    = 110
+        hostname = "mailpit"
+        tags     = ["terraform", "container", "notifications", "docker"]
       }
     }
   }
 
   assert {
-    condition     = !contains(keys(local.idrac_kvm_vm_ids), "docker-host")
-    error_message = "VM without 'idrac' tag must NOT be in idrac_kvm_vm_ids"
+    condition     = !contains(keys(local.idrac_kvm_container_ids), "mailpit")
+    error_message = "container without 'idrac' tag must NOT be in idrac_kvm_container_ids"
   }
 
   assert {
-    condition     = length(local.idrac_kvm_vm_ids) == 0
-    error_message = "idrac_kvm_vm_ids should be empty when no VMs have the 'idrac' tag"
+    condition     = length(local.idrac_kvm_container_ids) == 0
+    error_message = "idrac_kvm_container_ids should be empty when no containers have the 'idrac' tag"
   }
 }
