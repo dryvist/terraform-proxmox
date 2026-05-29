@@ -1,7 +1,7 @@
 # Periodic + per-PR OSV vulnerability scan.
 #
-# Inherits the centralized reusable workflow from JacobPEvans/.github.
-# Config: JacobPEvans/.github/osv-scanner.toml (org default) or local
+# Inherits the centralized reusable workflow from JacobPEvans-personal/.github.
+# Config: JacobPEvans-personal/.github/osv-scanner.toml (org default) or local
 # osv-scanner.toml in this repo (takes precedence).
 #
 # Make this a required check via branch protection on `main` after merge.
@@ -24,8 +24,8 @@ permissions:
 
 jobs:
   scan:
-    # SHA pin → JacobPEvans/.github main as of 2026-05-20.
+    # SHA pin → JacobPEvans-personal/.github main as of 2026-05-20.
     # Bump intentionally when the upstream workflow changes.
-    uses: JacobPEvans/.github/.github/workflows/_osv-scan.yml@a76cf8faec4ea24036c9042bf52d18b573f172ae
+    uses: JacobPEvans-personal/.github/.github/workflows/_osv-scan.yml@a76cf8faec4ea24036c9042bf52d18b573f172ae
     with:
       runner_label: ubuntu-latest

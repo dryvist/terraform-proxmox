@@ -28,7 +28,7 @@ jobs:
     #   github.event.workflow_run.conclusion == 'failure' &&
     #   github.event.workflow_run.head_branch != 'main'
     # --- END DISABLED ---
-    uses: JacobPEvans/ai-workflows/.github/workflows/ci-fix.yml@main
+    uses: dryvist/ai-workflows/.github/workflows/ci-fix.yml@main
     with:
       repo_context: "Terraform/OpenTofu project managing Proxmox VE infrastructure"
       ci_structure: "terraform.yml (tofu fmt/init/validate/test), markdown-lint.yml (markdownlint)"
