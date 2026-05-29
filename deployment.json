@@ -3,6 +3,14 @@
 
   "proxmox_node": "pve",
   "environment": "homelab",
+
+  "_nodes_comment": "Proxmox cluster nodes (non-secret identity). proxmox_node above is the primary/default placement. Real mgmt/BMC IPs live in terraform.sops.json. commissioned=false => declared but not yet installed (no workloads, storage not applied).",
+  "nodes": {
+    "pve": { "role": "pve1", "hardware": "amd-desktop" },
+    "pve2": { "role": "pve2", "hardware": "dell-r410" },
+    "pve3": { "role": "pve3", "hardware": "dell-r710", "commissioned": false }
+  },
+
   "proxmox_iso_debian": "debian-13.2.0-amd64-netinst.iso",
   "proxmox_ct_template_debian": "debian-13-standard_13.1-2_amd64.tar.zst",
   "ansible_cloud_init_file": "cloud-init/ansible-server-example.yml",
@@ -21,6 +29,41 @@
   },
 
   "datastores": {},
+
+  "_node_storage_comment": "Per-node ZFS storage DECLARATION. Terraform does NOT create ZFS pools (zpool create is OS-level). ansible-proxmox reads this via the ansible_inventory output to create pools/datasets/quotas and (when register=true) `pvesm add zfspool`. pve2 reflects the LIVE pool `tank` (3-drive raidz1) + tank/backups. pve3 is provisional from ADR-0001 and stays register=false until commissioned.",
+  "node_storage": {
+    "pve2": {
+      "pools": {
+        "tank": {
+          "type": "zfspool",
+          "raid": "raidz1",
+          "protected": true,
+          "register": true,
+          "content": ["images", "rootdir"],
+          "datasets": {
+            "backups": { "quota": "1T" }
+          }
+        }
+      }
+    },
+    "pve3": {
+      "pools": {
+        "bulk-pool": {
+          "type": "zfspool",
+          "raid": "raidz2",
+          "register": false,
+          "content": ["images", "rootdir"],
+          "datasets": {
+            "splunk": { "quota": "1T" },
+            "backups": { "quota": "1T" },
+            "media-library": { "quota": "1.5T" },
+            "downloads": { "quota": "500G" },
+            "scratch": {}
+          }
+        }
+      }
+    }
+  },
 
   "host_services": {
     "nas": {
@@ -82,6 +125,7 @@
     "docker-host": {
       "vm_id": 250,
       "name": "docker",
+      "protection": true,
       "description": "Docker host for GitHub Actions runners and ad-hoc Docker workloads (Cribl moved to dedicated LXCs cribl-edge-* and cribl-stream-*)",
       "cpu_cores": 4,
       "memory_dedicated": 8192,
@@ -180,6 +224,7 @@
     "minio": {
       "vm_id": 107,
       "hostname": "minio",
+      "protection": true,
       "description": "MinIO S3-compatible object storage for artifact hosting",
       "cpu_cores": 1,
       "memory_dedicated": 1024,
@@ -194,6 +239,7 @@
     "infisical": {
       "vm_id": 108,
       "hostname": "infisical",
+      "protection": true,
       "description": "Infisical self-hosted secrets management - Docker Compose in LXC (Phase 1 deploy)",
       "cpu_cores": 2,
       "memory_dedicated": 4096,
@@ -245,6 +291,7 @@
     "mssql": {
       "vm_id": 130,
       "hostname": "mssql",
+      "protection": true,
       "description": "Microsoft SQL Server 2022 - Docker in LXC",
       "cpu_cores": 4,
       "memory_dedicated": 4096,
@@ -260,6 +307,7 @@
     "openproject": {
       "vm_id": 140,
       "hostname": "openproject",
+      "protection": true,
       "description": "OpenProject Community Edition - project management platform (Docker in LXC)",
       "cpu_cores": 2,
       "memory_dedicated": 4096,
@@ -320,6 +368,7 @@
     "qdrant": {
       "vm_id": 165,
       "hostname": "qdrant",
+      "protection": true,
       "description": "Qdrant vector database - AI RAG memory store (Docker in LXC)",
       "cpu_cores": 2,
       "memory_dedicated": 8192,

@@ -126,6 +126,12 @@ output "ansible_inventory" {
     constants = local.pipeline_constants
     # Host-level NAS service config - consumed by ansible-proxmox to provision ZFS dataset + Samba
     host_services = var.host_services
+    # Cluster node inventory (non-secret identity) - ansible-proxmox targets hosts and
+    # skips nodes where commissioned = false.
+    nodes = var.nodes
+    # Per-node ZFS storage to provision (pools/datasets/quotas) - ansible-proxmox creates
+    # and registers these; Terraform only references the datastore by id on disks.
+    node_storage = var.node_storage
     # Domain for FQDN resolution (e.g., example.com)
     domain = var.domain
   }
