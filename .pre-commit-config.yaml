@@ -9,23 +9,20 @@ repos:
       - id: check-yaml
       - id: check-added-large-files
 
-  # Terraform hooks - require terraform/tflint installed locally
-  # These run in CI via GitHub Actions instead
+  # Terraform static checks - run on every commit via direnv-provided tools
+  # (Nix shell at .envrc supplies terraform, tflint, terraform-docs).
+  # Same checks run in CI via .github/workflows/ci-gate.yml as a safety net.
   - repo: https://github.com/antonbabenko/pre-commit-terraform
     rev: v1.92.0
     hooks:
       - id: terraform_fmt
-        stages: [manual]  # Run manually or in CI, not on every commit
       - id: terraform_validate
-        stages: [manual]
       - id: terraform_docs
-        stages: [manual]
         args:
           - --hook-config=--path-to-file=README.md
           - --hook-config=--add-to-existing-file=true
           - --hook-config=--create-file-if-not-exist=true
       - id: terraform_tflint
-        stages: [manual]
         args:
           - --args=--only=terraform_deprecated_interpolation
           - --args=--only=terraform_deprecated_index
