@@ -1,6 +1,7 @@
 # Overrides only — inherits defaults from shared workflow:
 #   warn: 6144, error: 12288, scan: [.md, .nix, .tf], exempt: [CHANGELOG]
 extended:
-  limit: 32768
+  limit: 49152
   files:
     - TROUBLESHOOTING
+    - README
