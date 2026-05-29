@@ -87,9 +87,9 @@ locals {
     if contains(coalesce(try(v.tags, null), []), "cribl") && contains(coalesce(try(v.tags, null), []), "stream")
   }
 
-  # iDRAC KVM VMs: tagged "idrac" (domistyle/idrac6 containers on dedicated Docker VM)
-  idrac_kvm_vm_ids = {
-    for k, v in var.vms : k => v.vm_id
+  # iDRAC KVM LXC: tagged "idrac" (domistyle/idrac6-based viewers, Docker-in-LXC)
+  idrac_kvm_container_ids = {
+    for k, v in var.containers : k => v.vm_id
     if contains(coalesce(try(v.tags, null), []), "idrac")
   }
 }
@@ -113,8 +113,8 @@ locals {
       postgres_default  = 5432
       redis_default     = 6379
       ntp               = 123
-      idrac_kvm_r410    = 5800
-      idrac_kvm_r710    = 5801
+      idrac_kvm_r410    = 5410
+      idrac_kvm_r710    = 5710
     }
     syslog_ports = {
       default   = 514
