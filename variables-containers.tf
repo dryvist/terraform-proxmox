@@ -9,6 +9,10 @@ variable "containers" {
     tags        = optional(list(string), ["terraform", "container"])
     pool_id     = optional(string)
 
+    # Node placement (optional). When unset, main.tf defaults to var.proxmox_node
+    # (the primary node). Set to "pve2"/"pve3" to place an LXC on another cluster node.
+    node_name = optional(string)
+
     # Resource configuration
     cpu_cores        = optional(number, 2)
     memory_dedicated = optional(number, 512)

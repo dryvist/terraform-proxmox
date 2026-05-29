@@ -5,9 +5,12 @@ locals {
   # Contains container/VM definitions, pool names, Splunk VM sizing, template IDs, etc.
   deployment_config = try(jsondecode(file("${get_terragrunt_dir()}/deployment.json")), {})
 
+  # Strip any "_"-prefixed key: deployment.json uses "_comment" / "_*_comment"
+  # keys for inline documentation (JSON has no comment syntax). These are not
+  # Terraform variables and must not be passed as inputs.
   deployment_inputs = {
     for k, v in local.deployment_config : k => v
-    if k != "_comment"
+    if !startswith(k, "_")
   }
 
   # Layer 2: Network topology + SSH paths (committed, SOPS-encrypted — edit with `sops terraform.sops.json`).

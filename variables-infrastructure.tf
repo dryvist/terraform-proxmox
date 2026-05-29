@@ -40,3 +40,20 @@ variable "proxmox_ssh_host" {
   type        = string
   default     = ""
 }
+
+# Proxmox cluster nodes. Keyed by Proxmox node_name (e.g. "pve", "pve2", "pve3").
+# Non-secret identity only — real management/BMC IPs live in terraform.sops.json
+# (see the rack_server_cluster module). A node with commissioned = false is
+# declared but not yet installed: no workloads are placed on it and its
+# node_storage is not applied until it is brought online.
+variable "nodes" {
+  description = "Proxmox cluster node inventory (non-secret identity), surfaced to ansible-proxmox via ansible_inventory."
+  type = map(object({
+    role         = string               # role label: pve1 | pve2 | pve3
+    hardware     = optional(string)     # e.g. amd-desktop, dell-r410, dell-r710
+    commissioned = optional(bool, true) # false = declared but not yet installed
+  }))
+  default = {
+    pve = { role = "pve1", hardware = "amd-desktop" }
+  }
+}

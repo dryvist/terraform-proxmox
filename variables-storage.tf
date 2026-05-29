@@ -96,3 +96,31 @@ variable "host_services" {
   })
   default = {}
 }
+
+# Per-node ZFS storage DECLARATION (not created by Terraform).
+# zpool/zfs creation is an OS-level operation the Proxmox API cannot perform, so
+# ansible-proxmox consumes this map (via the ansible_inventory output) to create
+# pools, datasets, and quotas and to register them with Proxmox. Terraform only
+# references the resulting datastore_id on VM/container disks.
+#   - register = true  -> ansible-proxmox runs `pvesm add zfspool` (node-scoped)
+#   - a node marked commissioned = false should keep register = false until live
+variable "node_storage" {
+  description = "Per-node ZFS pools/datasets/quotas for ansible-proxmox to provision; Terraform consumes the datastore by id."
+  type = map(object({
+    pools = map(object({
+      type = optional(string, "zfspool")
+      raid = optional(string) # raidz1, raidz2, mirror (informational)
+      # protected pools must never be auto-destroyed; ansible-proxmox enforces
+      # zfs hold / readonly / snapshot retention (storage-safety, design pending).
+      protected = optional(bool, true)
+      register  = optional(bool, true) # register as PVE storage via pvesm
+      content   = optional(list(string), ["images", "rootdir"])
+      datasets = optional(map(object({
+        quota      = optional(string)
+        mountpoint = optional(string)
+        nfs_export = optional(string)
+      })), {})
+    }))
+  }))
+  default = {}
+}

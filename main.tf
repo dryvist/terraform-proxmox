@@ -57,7 +57,8 @@ module "vms" {
 
   vms = {
     for k, v in var.vms : k => merge(v, {
-      node_name      = var.proxmox_node
+      # Per-VM node placement; falls back to the primary node when unset.
+      node_name      = coalesce(try(v.node_name, null), var.proxmox_node)
       cdrom_file_id  = v.cdrom_file_id != null ? "${var.datastore_iso}:iso/${var.proxmox_iso_debian}" : null
       clone_template = v.clone_template
       # DRY: IP is ALWAYS derived from vm_id (consistent with containers)
@@ -95,7 +96,8 @@ module "containers" {
 
   containers = {
     for k, v in var.containers : k => merge(v, {
-      node_name        = var.proxmox_node
+      # Per-LXC node placement; falls back to the primary node when unset.
+      node_name        = coalesce(try(v.node_name, null), var.proxmox_node)
       template_file_id = "${var.datastore_iso}:vztmpl/${var.proxmox_ct_template_debian}"
       # DRY: IP is ALWAYS derived from vm_id (no override possible)
       # Format: network_prefix.vm_id/mask (e.g., 192.168.0.100/24 for vm_id 100)

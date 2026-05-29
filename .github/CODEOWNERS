@@ -1,0 +1,17 @@
+# Code ownership for PR review assignment.
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+#
+# NOTE: This becomes a real merge gate only when branch protection enables
+# "Require review from Code Owners" (a repository-admin setting). The file alone
+# documents ownership and auto-requests review.
+
+# Default owner for everything
+* @JacobPEvans
+
+# Storage-critical surface — changes here can cause irreversible data loss.
+# See AGENTS.md storage-safety: protection flags, node_storage, ZFS pools.
+/deployment.json            @JacobPEvans
+/variables-storage.tf       @JacobPEvans
+/modules/storage/           @JacobPEvans
+/modules/proxmox-vm/        @JacobPEvans
+/modules/proxmox-container/ @JacobPEvans

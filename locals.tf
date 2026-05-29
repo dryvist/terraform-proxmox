@@ -99,20 +99,25 @@ locals {
 locals {
   pipeline_constants = {
     service_ports = {
-      haproxy_stats    = 8404
-      splunk_web       = 8000
-      splunk_hec       = 8088
-      splunk_mgmt      = 8089
-      cribl_edge_api   = 9420
-      cribl_stream_api = 9000
-      apt_cacher_ng    = 3142
-      minio_api        = 9000
-      minio_console    = 9001
-      infisical_api    = 8080
-      postgres_default = 5432
-      redis_default    = 6379
+      haproxy_stats     = 8404
+      splunk_web        = 8000
+      splunk_hec        = 8088
+      splunk_mgmt       = 8089
+      splunk_forwarding = 9997
+      cribl_edge_api    = 9420
+      cribl_stream_api  = 9000
+      apt_cacher_ng     = 3142
+      minio_api         = 9000
+      minio_console     = 9001
+      infisical_api     = 8080
+      postgres_default  = 5432
+      redis_default     = 6379
+      ntp               = 123
+      idrac_kvm_r410    = 5410
+      idrac_kvm_r710    = 5710
     }
     syslog_ports = {
+      default   = 514
       unifi     = 1514
       palo_alto = 1515
       cisco_asa = 1516

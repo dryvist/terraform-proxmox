@@ -9,6 +9,10 @@ variable "vms" {
     tags        = optional(list(string), ["terraform"])
     pool_id     = optional(string)
 
+    # Node placement (optional). When unset, main.tf defaults to var.proxmox_node
+    # (the primary node). Set to "pve2"/"pve3" to place a VM on another cluster node.
+    node_name = optional(string)
+
     # Resource configuration
     cpu_cores        = optional(number, 4)
     cpu_type         = optional(string, "x86-64-v2-AES")

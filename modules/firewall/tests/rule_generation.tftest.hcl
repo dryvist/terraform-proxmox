@@ -12,20 +12,25 @@ variables {
   splunk_network     = "192.168.0.200"
   pipeline_constants = {
     service_ports = {
-      haproxy_stats    = 8404
-      splunk_web       = 8000
-      splunk_hec       = 8088
-      splunk_mgmt      = 8089
-      cribl_edge_api   = 9420
-      cribl_stream_api = 9000
-      apt_cacher_ng    = 3142
-      minio_api        = 9000
-      minio_console    = 9001
-      infisical_api    = 8080
-      postgres_default = 5432
-      redis_default    = 6379
+      haproxy_stats     = 8404
+      splunk_web        = 8000
+      splunk_hec        = 8088
+      splunk_mgmt       = 8089
+      splunk_forwarding = 9997
+      cribl_edge_api    = 9420
+      cribl_stream_api  = 9000
+      apt_cacher_ng     = 3142
+      minio_api         = 9000
+      minio_console     = 9001
+      infisical_api     = 8080
+      postgres_default  = 5432
+      redis_default     = 6379
+      ntp               = 123
+      idrac_kvm_r410    = 5800
+      idrac_kvm_r710    = 5801
     }
     syslog_ports = {
+      default   = 514
       unifi     = 1514
       palo_alto = 1515
       cisco_asa = 1516
@@ -253,5 +258,100 @@ run "infisical_rule_source_matches_joined_networks" {
   assert {
     condition     = local.infisical_services_rules[0].source == "10.0.0.0/8,192.168.0.0/16"
     error_message = "infisical_services_rules source must be comma-joined networks, got '${local.infisical_services_rules[0].source}'"
+  }
+}
+
+# --- Newly-promoted literals all track pipeline_constants ---
+
+run "syslog_rules_track_constants_ports" {
+  command = plan
+
+  variables {
+    internal_networks = ["10.0.0.0/8"]
+  }
+
+  assert {
+    condition     = local.syslog_rules[0].dport == tostring(var.pipeline_constants.syslog_ports.default)
+    error_message = "syslog_rules[0].dport must equal tostring(syslog_ports.default), got '${local.syslog_rules[0].dport}'"
+  }
+
+  assert {
+    condition     = local.syslog_rules[1].dport == tostring(var.pipeline_constants.syslog_ports.default)
+    error_message = "syslog_rules[1].dport must equal tostring(syslog_ports.default), got '${local.syslog_rules[1].dport}'"
+  }
+
+  # Pipeline range is derived from min/max of non-default syslog_ports values
+  assert {
+    condition     = local.syslog_rules[2].dport == "1514,1515,1516,1517,1518"
+    error_message = "syslog_rules[2].dport must be the derived 1514:1518 range, got '${local.syslog_rules[2].dport}'"
+  }
+
+  assert {
+    condition     = local.syslog_rules[3].dport == "1514,1515,1516,1517,1518"
+    error_message = "syslog_rules[3].dport must be the derived 1514:1518 range, got '${local.syslog_rules[3].dport}'"
+  }
+}
+
+run "splunk_forwarding_rule_tracks_constant" {
+  command = plan
+
+  variables {
+    internal_networks = ["10.0.0.0/8"]
+  }
+
+  assert {
+    condition     = local.splunk_services_rules[2].dport == tostring(var.pipeline_constants.service_ports.splunk_forwarding)
+    error_message = "splunk_services_rules[2].dport must equal tostring(service_ports.splunk_forwarding), got '${local.splunk_services_rules[2].dport}'"
+  }
+}
+
+run "ntp_rule_tracks_constant" {
+  command = plan
+
+  variables {
+    internal_networks = ["10.0.0.0/8"]
+  }
+
+  assert {
+    condition     = local.ntp_server_rules[0].dport == tostring(var.pipeline_constants.service_ports.ntp)
+    error_message = "ntp_server_rules[0].dport must equal tostring(service_ports.ntp), got '${local.ntp_server_rules[0].dport}'"
+  }
+}
+
+run "idrac_kvm_rules_track_constants_ports" {
+  command = plan
+
+  variables {
+    internal_networks = ["10.0.0.0/8"]
+  }
+
+  assert {
+    condition     = local.idrac_kvm_services_rules[0].dport == tostring(var.pipeline_constants.service_ports.idrac_kvm_r410)
+    error_message = "idrac_kvm_services_rules[0].dport must equal tostring(service_ports.idrac_kvm_r410), got '${local.idrac_kvm_services_rules[0].dport}'"
+  }
+
+  assert {
+    condition     = local.idrac_kvm_services_rules[1].dport == tostring(var.pipeline_constants.service_ports.idrac_kvm_r710)
+    error_message = "idrac_kvm_services_rules[1].dport must equal tostring(service_ports.idrac_kvm_r710), got '${local.idrac_kvm_services_rules[1].dport}'"
+  }
+}
+
+run "pipeline_syslog_range_excludes_default" {
+  command = plan
+
+  variables {
+    internal_networks = ["10.0.0.0/8"]
+  }
+
+  # 514 (default) must NOT appear in the pipeline list; comma-joined avoids
+  # any over-permit if a non-contiguous port is ever added to syslog_ports.
+  assert {
+    condition     = local.pipeline_syslog_range == "1514,1515,1516,1517,1518"
+    error_message = "pipeline_syslog_range must exclude the default port 514, got '${local.pipeline_syslog_range}'"
+  }
+
+  assert {
+    condition     = !contains(local.pipeline_syslog_ports, 514)
+    error_message = "pipeline_syslog_ports must not contain the default port (514), got '${jsonencode(local.pipeline_syslog_ports)}'"
   }
 }

@@ -27,9 +27,21 @@ locals {
 
   # Local aliases to keep rule definitions readable
   svc_ports          = var.pipeline_constants.service_ports
+  syslog_ports       = var.pipeline_constants.syslog_ports
   notification_ports = var.pipeline_constants.notification_ports
   vector_db_ports    = var.pipeline_constants.vector_db_ports
   netflow_ports      = var.pipeline_constants.netflow_ports
+
+  # Pipeline syslog ports — derived from syslog_ports values so that adding
+  # a new typed-source port auto-expands the firewall rule. Excludes the
+  # default (514) which has its own rule.
+  #
+  # Emitted as a comma-separated list rather than a min:max range to avoid
+  # accidentally over-permitting if a non-contiguous port (e.g. 9999) is
+  # ever added to syslog_ports — see Gemini security review on #323.
+  # Proxmox firewall dport accepts comma-separated port lists.
+  pipeline_syslog_ports = [for k, v in local.syslog_ports : v if k != "default"]
+  pipeline_syslog_range = join(",", [for v in sort(local.pipeline_syslog_ports) : tostring(v)])
 
   internal_access_rules = [
     { proto = "tcp", dport = "22", source = local.internal_src, comment = "SSH from internal networks" },
@@ -39,14 +51,14 @@ locals {
   splunk_services_rules = [
     { proto = "tcp", dport = tostring(local.svc_ports.splunk_web), source = local.internal_src, comment = "Splunk Web UI from internal" },
     { proto = "tcp", dport = tostring(local.svc_ports.splunk_hec), source = local.internal_src, comment = "Splunk HEC from internal" },
-    { proto = "tcp", dport = "9997", source = local.internal_src, comment = "Splunk Forwarding from internal" },
+    { proto = "tcp", dport = tostring(local.svc_ports.splunk_forwarding), source = local.internal_src, comment = "Splunk Forwarding (TCP ${local.svc_ports.splunk_forwarding}) from internal" },
   ]
 
   syslog_rules = [
-    { proto = "udp", dport = "514", source = local.internal_src, comment = "Syslog UDP from internal" },
-    { proto = "tcp", dport = "514", source = local.internal_src, comment = "Syslog TCP from internal" },
-    { proto = "udp", dport = "1514:1518", source = local.internal_src, comment = "Pipeline syslog UDP from internal" },
-    { proto = "tcp", dport = "1514:1518", source = local.internal_src, comment = "Pipeline syslog TCP from internal" },
+    { proto = "udp", dport = tostring(local.syslog_ports.default), source = local.internal_src, comment = "Syslog UDP (UDP ${local.syslog_ports.default}) from internal" },
+    { proto = "tcp", dport = tostring(local.syslog_ports.default), source = local.internal_src, comment = "Syslog TCP (TCP ${local.syslog_ports.default}) from internal" },
+    { proto = "udp", dport = local.pipeline_syslog_range, source = local.internal_src, comment = "Pipeline syslog UDP (UDP ${local.pipeline_syslog_range}) from internal" },
+    { proto = "tcp", dport = local.pipeline_syslog_range, source = local.internal_src, comment = "Pipeline syslog TCP (TCP ${local.pipeline_syslog_range}) from internal" },
   ]
 
   pipeline_services_rules = [
@@ -59,7 +71,7 @@ locals {
   ]
 
   ntp_server_rules = [
-    { proto = "udp", dport = "123", source = local.internal_src, comment = "NTP (chrony server) from internal" },
+    { proto = "udp", dport = tostring(local.svc_ports.ntp), source = local.internal_src, comment = "NTP chrony server (UDP ${local.svc_ports.ntp}) from internal" },
   ]
 
   notification_services_rules = [
@@ -99,7 +111,7 @@ locals {
 
   # iDRAC KVM: inbound noVNC HTTP ports from internal; egress reuses outbound_internal
   idrac_kvm_services_rules = [
-    { proto = "tcp", dport = "5410", source = local.internal_src, comment = "iDRAC HTML5 KVM R410 (TCP 5410) from internal" },
-    { proto = "tcp", dport = "5710", source = local.internal_src, comment = "iDRAC HTML5 KVM R710 (TCP 5710) from internal" },
+    { proto = "tcp", dport = tostring(local.svc_ports.idrac_kvm_r410), source = local.internal_src, comment = "iDRAC HTML5 KVM R410 (TCP ${local.svc_ports.idrac_kvm_r410}) from internal" },
+    { proto = "tcp", dport = tostring(local.svc_ports.idrac_kvm_r710), source = local.internal_src, comment = "iDRAC HTML5 KVM R710 (TCP ${local.svc_ports.idrac_kvm_r710}) from internal" },
   ]
 }

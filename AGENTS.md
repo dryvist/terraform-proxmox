@@ -128,15 +128,15 @@ To sync manually after importing state without applying, see
 
 ## Development workflow
 
-Before any commit:
+Static checks (`tofu fmt -check`, `tofu validate`, `tofu test`) run
+automatically in pre-commit and CI — no manual invocation needed.
 
-1. `doppler run -- terragrunt validate` (with `aws-vault` wrapper if not
-   pre-injected — see "Running Terraform / Terragrunt").
-2. `doppler run -- terragrunt plan` and review the diff.
+Credentialed operations (`terragrunt plan` against the live state
+backend, `terragrunt apply`) only run in CI under OIDC, or interactively
+when explicitly preparing to apply. Do not gate commits on them.
 
 Test in isolated resource pools, never production-first. Use feature
-branches. Conventional-commit subjects only. Never commit without running
-validate + plan first.
+branches. Conventional-commit subjects only.
 
 For slow operations and "context deadline exceeded" debugging:
 [`TROUBLESHOOTING.md`](./TROUBLESHOOTING.md).
