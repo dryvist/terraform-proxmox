@@ -24,10 +24,23 @@ variable "containers" {
     }), {})
 
     # Mount points
+    # `size` is optional: omit it for host-directory bind-mounts (volume is a
+    # host path like "/tank/media"), set it to allocate a new managed volume.
     mount_points = optional(list(object({
       volume = string
-      size   = string
+      size   = optional(string)
       path   = string
+    })), [])
+
+    # Device passthrough (e.g. /dev/net/tun for WireGuard inside an LXC).
+    # Each entry maps a host device node into the container. `mode` is a
+    # 4-digit octal string (e.g. "0666"). Requires root@pam-capable auth.
+    device_passthrough = optional(list(object({
+      path       = string
+      mode       = optional(string)
+      uid        = optional(number)
+      gid        = optional(number)
+      deny_write = optional(bool)
     })), [])
 
     # Network

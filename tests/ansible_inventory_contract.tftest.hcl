@@ -128,6 +128,25 @@ run "ansible_inventory_constants_vector_db_ports_exists" {
   }
 }
 
+run "ansible_inventory_constants_media_ports_exists" {
+  command = plan
+
+  assert {
+    condition     = can(output.ansible_inventory.constants.media_ports)
+    error_message = "ansible_inventory.constants must contain 'media_ports' key for the media stack roles"
+  }
+
+  assert {
+    condition     = output.ansible_inventory.constants.media_ports.qbittorrent_web == 8080
+    error_message = "media_ports.qbittorrent_web must be 8080"
+  }
+
+  assert {
+    condition     = output.ansible_inventory.constants.media_ports.prowlarr_web == 9696
+    error_message = "media_ports.prowlarr_web must be 9696"
+  }
+}
+
 # --- key port value tests ---
 
 run "ansible_inventory_splunk_hec_port_value" {
@@ -183,6 +202,47 @@ run "ansible_inventory_docker_vms_exists" {
   assert {
     condition     = can(output.ansible_inventory.docker_vms)
     error_message = "ansible_inventory must contain 'docker_vms' key at root level"
+  }
+}
+
+# --- per-container node placement (media stack pins to pve2) ---
+
+run "ansible_inventory_container_node_override_propagated" {
+  command = plan
+
+  variables {
+    containers = {
+      "download-vpn" = {
+        vm_id      = 210
+        hostname   = "download-vpn"
+        node_name  = "pve2"
+        pool_id    = "media"
+        protection = true # has mount_points -> satisfies storage_guest_protection check
+        tags       = ["terraform", "container", "media", "vpn"]
+        device_passthrough = [
+          { path = "/dev/net/tun", mode = "0666" }
+        ]
+        mount_points = [
+          { volume = "/tank/downloads", path = "/mnt/downloads" }
+        ]
+      }
+      "lan-default-node" = {
+        vm_id    = 211
+        hostname = "lan-default-node"
+      }
+    }
+  }
+
+  # node_name set on the container is honored end-to-end in the inventory output.
+  assert {
+    condition     = output.ansible_inventory.containers["download-vpn"].node == "pve2"
+    error_message = "container node_name override must propagate to ansible_inventory.containers[*].node"
+  }
+
+  # Containers without node_name fall back to the cluster-wide proxmox_node.
+  assert {
+    condition     = output.ansible_inventory.containers["lan-default-node"].node == var.proxmox_node
+    error_message = "container without node_name must default to var.proxmox_node"
   }
 }
 

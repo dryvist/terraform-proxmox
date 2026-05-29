@@ -136,5 +136,16 @@ locals {
       qdrant_http = 6333
       qdrant_grpc = 6334
     }
+    # Media stack web UIs. qBittorrent + Prowlarr run inside the download-vpn
+    # LXC bound to wg0; their UIs are reachable on the LAN. Sonarr/Radarr/Plex
+    # are LAN-only guests. Consumed by ansible-proxmox-apps media roles so no
+    # port is hardcoded downstream.
+    media_ports = {
+      qbittorrent_web = 8080
+      prowlarr_web    = 9696
+      sonarr_web      = 8989
+      radarr_web      = 7878
+      plex_web        = 32400
+    }
   }
 }
