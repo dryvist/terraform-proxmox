@@ -25,10 +25,22 @@ variable "containers" {
     }), {})
 
     # Mount points (additional volumes mounted into the container)
+    # Omit `size` for host-directory bind-mounts (volume = host path such as
+    # "/tank/media"); set it to allocate a new managed volume.
     mount_points = optional(list(object({
       volume = string
-      size   = string
+      size   = optional(string)
       path   = string
+    })), [])
+
+    # Host device nodes mapped into the container. Used by download-vpn for
+    # /dev/net/tun so WireGuard can create the wg0 interface inside the LXC.
+    device_passthrough = optional(list(object({
+      path       = string
+      mode       = optional(string)
+      uid        = optional(number)
+      gid        = optional(number)
+      deny_write = optional(bool)
     })), [])
 
     # Network

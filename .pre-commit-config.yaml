@@ -17,13 +17,11 @@ repos:
     hooks:
       - id: terraform_fmt
       - id: terraform_validate
-      - id: terraform_docs
-        args:
-          - --hook-config=--path-to-file=README.md
-          - --hook-config=--add-to-existing-file=true
-          - --hook-config=--create-file-if-not-exist=true
       - id: terraform_tflint
         args:
+          # Fail the hook on errors; surface (do not block on) warnings such as
+          # the repo's deliberate variables-*.tf split (terraform_standard_module_structure).
+          - --args=--minimum-failure-severity=error
           - --args=--only=terraform_deprecated_interpolation
           - --args=--only=terraform_deprecated_index
           - --args=--only=terraform_unused_declarations

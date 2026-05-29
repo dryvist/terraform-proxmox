@@ -90,12 +90,27 @@ resource "proxmox_virtual_environment_container" "containers" {
   }
 
   # Additional mount points
+  # `size` is only set for managed-volume mounts. Host-directory bind-mounts
+  # (volume = "/tank/media") must omit size — passing a size to a bind-mount
+  # is rejected by the Proxmox API.
   dynamic "mount_point" {
     for_each = each.value.mount_points
     content {
       volume = mount_point.value.volume
       size   = mount_point.value.size
       path   = mount_point.value.path
+    }
+  }
+
+  # Device passthrough (e.g. /dev/net/tun for WireGuard inside the LXC).
+  dynamic "device_passthrough" {
+    for_each = each.value.device_passthrough
+    content {
+      path       = device_passthrough.value.path
+      mode       = device_passthrough.value.mode
+      uid        = device_passthrough.value.uid
+      gid        = device_passthrough.value.gid
+      deny_write = device_passthrough.value.deny_write
     }
   }
 

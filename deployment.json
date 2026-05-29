@@ -25,7 +25,8 @@
   "pools": {
     "logging": { "comment": "Logging and observability infrastructure" },
     "ai": { "comment": "AI development environments" },
-    "infrastructure": { "comment": "Core infrastructure services" }
+    "infrastructure": { "comment": "Core infrastructure services" },
+    "media": { "comment": "Media stack: VPN-locked downloaders + *arr + Plex (pve2)" }
   },
 
   "datastores": {},
@@ -484,6 +485,77 @@
       "tags": ["terraform", "container", "splunk", "management"],
       "pool_id": "logging",
       "root_disk": { "size": 100 }
+    },
+    "download-vpn": {
+      "vm_id": 210,
+      "hostname": "download-vpn",
+      "description": "VPN-locked downloader: qBittorrent-nox + Prowlarr behind Proton WireGuard with an nftables killswitch (wg0 down => no egress). Configured by ansible-proxmox-apps download_vpn role. Pinned to pve2 (always-on NAS/media host).",
+      "node_name": "pve2",
+      "cpu_cores": 2,
+      "memory_dedicated": 2048,
+      "memory_swap": 2048,
+      "tags": ["terraform", "container", "media", "download", "vpn", "torrent", "indexer"],
+      "pool_id": "media",
+      "unprivileged": true,
+      "root_disk": { "size": 16 },
+      "mount_points": [
+        { "volume": "/tank/downloads", "path": "/mnt/downloads" },
+        { "volume": "/tank/media", "path": "/mnt/media" }
+      ],
+      "features": { "nesting": true, "keyctl": true },
+      "device_passthrough": [
+        { "path": "/dev/net/tun", "mode": "0666" }
+      ]
+    },
+    "sonarr": {
+      "vm_id": 211,
+      "hostname": "sonarr",
+      "description": "Sonarr TV series PVR/management. LAN-only (no VPN); reaches Prowlarr+qBittorrent on download-vpn over the LAN. Configured by ansible-proxmox-apps sonarr role. Pinned to pve2.",
+      "node_name": "pve2",
+      "cpu_cores": 2,
+      "memory_dedicated": 1024,
+      "memory_swap": 1024,
+      "tags": ["terraform", "container", "media", "sonarr", "pvr"],
+      "pool_id": "media",
+      "unprivileged": true,
+      "root_disk": { "size": 16 },
+      "mount_points": [
+        { "volume": "/tank/downloads", "path": "/mnt/downloads" },
+        { "volume": "/tank/media", "path": "/mnt/media" }
+      ]
+    },
+    "radarr": {
+      "vm_id": 212,
+      "hostname": "radarr",
+      "description": "Radarr movie PVR/management. LAN-only (no VPN); reaches Prowlarr+qBittorrent on download-vpn over the LAN. Configured by ansible-proxmox-apps radarr role. Pinned to pve2.",
+      "node_name": "pve2",
+      "cpu_cores": 2,
+      "memory_dedicated": 1024,
+      "memory_swap": 1024,
+      "tags": ["terraform", "container", "media", "radarr", "pvr"],
+      "pool_id": "media",
+      "unprivileged": true,
+      "root_disk": { "size": 16 },
+      "mount_points": [
+        { "volume": "/tank/downloads", "path": "/mnt/downloads" },
+        { "volume": "/tank/media", "path": "/mnt/media" }
+      ]
+    },
+    "plex": {
+      "vm_id": 213,
+      "hostname": "plex",
+      "description": "Plex Media Server. LAN-only (no VPN); streams from tank/media. Configured by ansible-proxmox-apps plex role. Pinned to pve2.",
+      "node_name": "pve2",
+      "cpu_cores": 4,
+      "memory_dedicated": 4096,
+      "memory_swap": 4096,
+      "tags": ["terraform", "container", "media", "plex", "streaming"],
+      "pool_id": "media",
+      "unprivileged": true,
+      "root_disk": { "size": 16 },
+      "mount_points": [
+        { "volume": "/tank/media", "path": "/mnt/media" }
+      ]
     }
   }
 }
