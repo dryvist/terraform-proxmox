@@ -42,7 +42,7 @@ override_module {
   outputs = {
     vm_id       = 200
     name        = "splunk-aio"
-    ip_address  = "192.168.0.200"
+    ip_address  = "198.18.20.200"
     mac_address = "BC:24:11:00:00:C8"
   }
 }
@@ -67,9 +67,22 @@ override_module {
 }
 
 variables {
-  network_prefix    = "192.168.0"
-  network_cidr_mask = "/24"
-  splunk_vm_id      = 200
+  network_cidrs = {
+    lan_main  = "198.18.0.0/22"
+    lan_mgmt  = "198.18.1.0/24"
+    dns       = "198.18.2.0/24"
+    bmc       = "198.18.8.0/24"
+    compute   = "198.18.10.0/24"
+    siem      = "198.18.20.0/24"
+    pipeline  = "198.18.25.0/24"
+    data      = "198.18.30.0/24"
+    ai        = "198.18.40.0/24"
+    apps      = "198.18.50.0/24"
+    media_svc = "198.18.55.0/24"
+    homeauto  = "198.18.60.0/24"
+    nonprod   = "198.18.90.0/24"
+  }
+  splunk_vm_id = 200
 }
 
 # --- constants structure tests ---
@@ -215,6 +228,7 @@ run "ansible_inventory_container_node_override_propagated" {
       "download-vpn" = {
         vm_id      = 210
         hostname   = "download-vpn"
+        vlan       = "media_svc"
         node_name  = "pve2"
         pool_id    = "media"
         protection = true # has mount_points -> satisfies storage_guest_protection check
@@ -229,6 +243,7 @@ run "ansible_inventory_container_node_override_propagated" {
       "lan-default-node" = {
         vm_id    = 211
         hostname = "lan-default-node"
+        vlan     = "apps"
       }
     }
   }
@@ -457,6 +472,7 @@ run "vm_node_placement_defaults_to_primary" {
       placement = {
         vm_id = 210
         name  = "placement-default"
+        vlan  = "apps"
       }
     }
   }
@@ -475,6 +491,7 @@ run "vm_node_placement_override" {
       placement = {
         vm_id     = 211
         name      = "placement-pve2"
+        vlan      = "apps"
         node_name = "pve2"
       }
     }

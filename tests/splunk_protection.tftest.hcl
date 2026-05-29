@@ -3,7 +3,7 @@
 # Verifies that the splunk VM module:
 #   1. Plans successfully without splunk credentials (moved to Ansible/Doppler)
 #   2. Produces the expected outputs used by downstream Ansible repos
-#   3. Handles non-default splunk_vm_id correctly in derived IPs
+#   3. Handles non-default splunk_vm_id correctly in derived IPs (siem VLAN)
 
 mock_provider "proxmox" {
   mock_data "proxmox_virtual_environment_datastores" {
@@ -41,7 +41,7 @@ override_module {
   outputs = {
     vm_id       = 200
     name        = "splunk-aio"
-    ip_address  = "192.168.0.200"
+    ip_address  = "198.18.20.200"
     mac_address = "BC:24:11:00:00:C8"
   }
 }
@@ -66,9 +66,22 @@ override_module {
 }
 
 variables {
-  network_prefix    = "192.168.0"
-  network_cidr_mask = "/24"
-  splunk_vm_id      = 200
+  network_cidrs = {
+    lan_main  = "198.18.0.0/22"
+    lan_mgmt  = "198.18.1.0/24"
+    dns       = "198.18.2.0/24"
+    bmc       = "198.18.8.0/24"
+    compute   = "198.18.10.0/24"
+    siem      = "198.18.20.0/24"
+    pipeline  = "198.18.25.0/24"
+    data      = "198.18.30.0/24"
+    ai        = "198.18.40.0/24"
+    apps      = "198.18.50.0/24"
+    media_svc = "198.18.55.0/24"
+    homeauto  = "198.18.60.0/24"
+    nonprod   = "198.18.90.0/24"
+  }
+  splunk_vm_id = 200
 }
 
 # --- Test: no Splunk credentials required at Terraform level ---
@@ -93,7 +106,7 @@ run "ansible_inventory_splunk_vm_at_root" {
   }
 }
 
-# --- Test: splunk IP is derived from vm_id, not hardcoded ---
+# --- Test: splunk IP is derived from vm_id on the siem VLAN, not hardcoded ---
 # Changing splunk_vm_id must produce a different IP and be reflected in
 # ansible_inventory. This prevents silent misconfiguration if the VM is
 # renumbered.
@@ -106,7 +119,7 @@ run "splunk_ip_derived_from_vm_id" {
   }
 
   assert {
-    condition     = local.splunk_derived_ip == "192.168.0.205/24"
-    error_message = "splunk_derived_ip must track splunk_vm_id (205), got ${local.splunk_derived_ip}"
+    condition     = local.splunk_derived_ip == "198.18.20.205/24"
+    error_message = "splunk_derived_ip must track splunk_vm_id (205) on the siem VLAN, got ${local.splunk_derived_ip}"
   }
 }

@@ -61,12 +61,15 @@ module "vms" {
       node_name      = coalesce(try(v.node_name, null), var.proxmox_node)
       cdrom_file_id  = v.cdrom_file_id != null ? "${var.datastore_iso}:iso/${var.proxmox_iso_debian}" : null
       clone_template = v.clone_template
-      # DRY: IP is ALWAYS derived from vm_id (consistent with containers)
-      # Format: network_prefix.vm_id/mask (e.g., 192.168.0.250/24 for vm_id 250)
+      # DRY: IP/gateway derived from the VM's VLAN CIDR + vm_id (see locals.tf).
       ip_config = {
-        ipv4_address = local.derive_ip[v.vm_id]
-        ipv4_gateway = local.network_gateway
+        ipv4_address = local.vm_ipv4[k]
+        ipv4_gateway = local.vm_gateway[k]
       }
+      # Tag every NIC onto the VM's service VLAN (802.1Q id from var.vlan_ids).
+      network_interfaces = [
+        for ni in v.network_interfaces : merge(ni, { vlan_id = var.vlan_ids[v.vlan] })
+      ]
       user_account = {
         username = v.user_account.username
         password = v.user_account.password
@@ -99,12 +102,15 @@ module "containers" {
       # Per-LXC node placement; falls back to the primary node when unset.
       node_name        = coalesce(try(v.node_name, null), var.proxmox_node)
       template_file_id = "${var.datastore_iso}:vztmpl/${var.proxmox_ct_template_debian}"
-      # DRY: IP is ALWAYS derived from vm_id (no override possible)
-      # Format: network_prefix.vm_id/mask (e.g., 192.168.0.100/24 for vm_id 100)
+      # DRY: IP/gateway derived from the LXC's VLAN CIDR + vm_id (see locals.tf).
       ip_config = {
-        ipv4_address = local.derive_ip[v.vm_id]
-        ipv4_gateway = local.network_gateway
+        ipv4_address = local.container_ipv4[k]
+        ipv4_gateway = local.container_gateway[k]
       }
+      # Tag every NIC onto the LXC's service VLAN (802.1Q id from var.vlan_ids).
+      network_interfaces = [
+        for ni in v.network_interfaces : merge(ni, { vlan_id = var.vlan_ids[v.vlan] })
+      ]
       # DRY: Always inject SSH key for Ansible access
       # Uses container's password/keys if specified, otherwise empty password with SSH key only
       user_account = {

@@ -1,7 +1,11 @@
-# Tests for locals.tf - IP derivation and pipeline constants
+# Tests for locals.tf - per-VLAN IP derivation and pipeline constants
 #
 # All runs use mock providers (no real infrastructure needed).
 # command = plan is sufficient since locals are evaluated at plan time.
+#
+# network_cidrs fixture uses the homelab VLAN layout from
+# int_homelab network/architecture.md (test data, not committed secrets).
+# Every guest IP is cidrhost(network_cidrs[vlan], vm_id); gateway is the .1.
 
 mock_provider "proxmox" {
   mock_data "proxmox_virtual_environment_datastores" {
@@ -65,59 +69,91 @@ override_module {
 }
 
 variables {
-  network_prefix    = "192.168.0"
-  network_cidr_mask = "/24"
-  splunk_vm_id      = 200
+  network_cidrs = {
+    lan_main  = "198.18.0.0/22"
+    lan_mgmt  = "198.18.1.0/24"
+    dns       = "198.18.2.0/24"
+    bmc       = "198.18.8.0/24"
+    compute   = "198.18.10.0/24"
+    siem      = "198.18.20.0/24"
+    pipeline  = "198.18.25.0/24"
+    data      = "198.18.30.0/24"
+    ai        = "198.18.40.0/24"
+    apps      = "198.18.50.0/24"
+    media_svc = "198.18.55.0/24"
+    homeauto  = "198.18.60.0/24"
+    nonprod   = "198.18.90.0/24"
+  }
+  splunk_vm_id = 200
 }
 
-# --- derive_ip tests ---
+# --- per-guest IP derivation tests ---
 
-run "derive_ip_200" {
+run "container_ipv4_uses_vlan_cidr" {
   command = plan
 
+  variables {
+    containers = {
+      "technitium-dns" = { vm_id = 103, hostname = "technitium-dns", vlan = "dns" }
+      "haproxy"        = { vm_id = 175, hostname = "haproxy", vlan = "pipeline" }
+    }
+  }
+
   assert {
-    condition     = local.derive_ip[200] == "192.168.0.200/24"
-    error_message = "derive_ip[200] should be 192.168.0.200/24, got ${local.derive_ip[200]}"
+    condition     = local.container_ipv4["technitium-dns"] == "198.18.2.103/24"
+    error_message = "dns-VLAN container 103 should be 198.18.2.103/24, got ${local.container_ipv4["technitium-dns"]}"
+  }
+
+  assert {
+    condition     = local.container_gateway["technitium-dns"] == "198.18.2.1"
+    error_message = "dns-VLAN gateway should be 198.18.2.1, got ${local.container_gateway["technitium-dns"]}"
+  }
+
+  assert {
+    condition     = local.container_ipv4["haproxy"] == "198.18.25.175/24"
+    error_message = "pipeline-VLAN container 175 should be 198.18.25.175/24, got ${local.container_ipv4["haproxy"]}"
   }
 }
 
-run "derive_ip_boundary_low" {
+run "vm_ipv4_uses_vlan_cidr" {
   command = plan
 
+  variables {
+    vms = {
+      "docker-host" = { vm_id = 250, name = "docker", vlan = "nonprod" }
+      "idrac-kvm"   = { vm_id = 251, name = "idrac-kvm", vlan = "apps" }
+    }
+  }
+
   assert {
-    condition     = local.derive_ip[1] == "192.168.0.1/24"
-    error_message = "derive_ip[1] should be 192.168.0.1/24, got ${local.derive_ip[1]}"
+    condition     = local.vm_ipv4["docker-host"] == "198.18.90.250/24"
+    error_message = "nonprod-VLAN VM 250 should be 198.18.90.250/24, got ${local.vm_ipv4["docker-host"]}"
+  }
+
+  assert {
+    condition     = local.vm_gateway["docker-host"] == "198.18.90.1"
+    error_message = "nonprod-VLAN gateway should be 198.18.90.1, got ${local.vm_gateway["docker-host"]}"
+  }
+
+  assert {
+    condition     = local.vm_ipv4["idrac-kvm"] == "198.18.50.251/24"
+    error_message = "apps-VLAN VM 251 should be 198.18.50.251/24, got ${local.vm_ipv4["idrac-kvm"]}"
   }
 }
 
-run "derive_ip_boundary_high" {
+# --- splunk derivation tests (siem VLAN) ---
+
+run "splunk_derived_ip_uses_siem_vlan" {
   command = plan
 
   assert {
-    condition     = local.derive_ip[999] == "192.168.0.999/24"
-    error_message = "derive_ip[999] should be 192.168.0.999/24, got ${local.derive_ip[999]}"
+    condition     = local.splunk_derived_ip == "198.18.20.200/24"
+    error_message = "splunk_derived_ip should be siem-VLAN 198.18.20.200/24, got ${local.splunk_derived_ip}"
   }
-}
-
-# --- network_gateway test ---
-
-run "network_gateway_derivation" {
-  command = plan
 
   assert {
-    condition     = local.network_gateway == "192.168.0.1"
-    error_message = "network_gateway should be 192.168.0.1, got ${local.network_gateway}"
-  }
-}
-
-# --- splunk_derived_ip test ---
-
-run "splunk_derived_ip_uses_vm_id" {
-  command = plan
-
-  assert {
-    condition     = local.splunk_derived_ip == "192.168.0.200/24"
-    error_message = "splunk_derived_ip should use splunk_vm_id (200), got ${local.splunk_derived_ip}"
+    condition     = local.splunk_network_gateway == "198.18.20.1"
+    error_message = "splunk_network_gateway should be siem-VLAN .1 (198.18.20.1), got ${local.splunk_network_gateway}"
   }
 }
 
@@ -125,12 +161,73 @@ run "splunk_derived_ip_different_id" {
   command = plan
 
   variables {
-    splunk_vm_id = 100
+    splunk_vm_id = 205
   }
 
   assert {
-    condition     = local.splunk_derived_ip == "192.168.0.100/24"
-    error_message = "splunk_derived_ip should be 192.168.0.100/24, got ${local.splunk_derived_ip}"
+    condition     = local.splunk_derived_ip == "198.18.20.205/24"
+    error_message = "splunk_derived_ip should track splunk_vm_id (205), got ${local.splunk_derived_ip}"
+  }
+}
+
+# --- management_network test (compute VLAN CIDR) ---
+
+run "management_network_is_compute_cidr" {
+  command = plan
+
+  assert {
+    condition     = local.management_network == "198.18.10.0/24"
+    error_message = "management_network should be the compute VLAN CIDR 198.18.10.0/24, got ${local.management_network}"
+  }
+}
+
+# --- splunk_network_ips tests (siem VLAN, host-form) ---
+
+run "splunk_network_ips_default_no_containers" {
+  command = plan
+
+  variables {
+    containers = {}
+  }
+
+  assert {
+    condition     = length(local.splunk_network_ips) == 1
+    error_message = "splunk_network_ips with no splunk containers should have exactly 1 entry, got ${length(local.splunk_network_ips)}"
+  }
+
+  assert {
+    condition     = contains(local.splunk_network_ips, "198.18.20.200")
+    error_message = "splunk_network_ips should contain splunk VM IP 198.18.20.200"
+  }
+}
+
+run "splunk_network_ips_includes_splunk_tagged_container" {
+  command = plan
+
+  variables {
+    containers = {
+      "splunk-mgmt" = {
+        vm_id    = 199
+        hostname = "splunk-mgmt"
+        vlan     = "siem"
+        tags     = ["terraform", "splunk", "container"]
+      }
+    }
+  }
+
+  assert {
+    condition     = contains(local.splunk_network_ips, "198.18.20.200")
+    error_message = "splunk_network_ips must include splunk VM IP"
+  }
+
+  assert {
+    condition     = contains(local.splunk_network_ips, "198.18.20.199")
+    error_message = "splunk_network_ips must include splunk-tagged container IP on siem VLAN"
+  }
+
+  assert {
+    condition     = length(local.splunk_network_ips) == 2
+    error_message = "splunk_network_ips should have exactly 2 entries"
   }
 }
 
@@ -169,82 +266,6 @@ run "pipeline_constants_syslog_ports" {
   }
 }
 
-# --- management_network tests ---
-
-run "management_network_default" {
-  command = plan
-
-  assert {
-    condition     = local.management_network == "192.168.0.0/24"
-    error_message = "management_network should be 192.168.0.0/24, got ${local.management_network}"
-  }
-}
-
-
-run "management_network_custom_mask" {
-  command = plan
-
-  variables {
-    network_cidr_mask = "/16"
-  }
-
-  assert {
-    condition     = local.management_network == "192.168.0.0/16"
-    error_message = "management_network with /16 mask should be 192.168.0.0/16, got ${local.management_network}"
-  }
-}
-
-# --- splunk_network_ips tests ---
-
-run "splunk_network_ips_default_no_containers" {
-  command = plan
-
-  variables {
-    containers = {}
-  }
-
-  assert {
-    condition     = length(local.splunk_network_ips) == 1
-    error_message = "splunk_network_ips with no splunk containers should have exactly 1 entry, got ${length(local.splunk_network_ips)}"
-  }
-
-  assert {
-    condition     = contains(local.splunk_network_ips, "192.168.0.200")
-    error_message = "splunk_network_ips should contain splunk VM IP 192.168.0.200"
-  }
-}
-
-run "splunk_network_ips_includes_splunk_tagged_container" {
-  command = plan
-
-  variables {
-    containers = {
-      "splunk-mgmt" = {
-        vm_id    = 199
-        hostname = "splunk-mgmt"
-        tags     = ["terraform", "splunk", "container"]
-      }
-    }
-  }
-
-  assert {
-    condition     = contains(local.splunk_network_ips, "192.168.0.200")
-    error_message = "splunk_network_ips must include splunk VM IP"
-  }
-
-  assert {
-    condition     = contains(local.splunk_network_ips, "192.168.0.199")
-    error_message = "splunk_network_ips must include splunk-tagged container IP"
-  }
-
-  assert {
-    condition     = length(local.splunk_network_ips) == 2
-    error_message = "splunk_network_ips should have exactly 2 entries"
-  }
-}
-
-# --- pipeline_constants netflow_ports tests ---
-
 run "pipeline_constants_netflow_ports" {
   command = plan
 
@@ -253,8 +274,6 @@ run "pipeline_constants_netflow_ports" {
     error_message = "unifi netflow port should be 2055"
   }
 }
-
-# --- pipeline_constants notification_ports tests ---
 
 run "pipeline_constants_notification_ports" {
   command = plan
@@ -275,8 +294,6 @@ run "pipeline_constants_notification_ports" {
   }
 }
 
-# --- pipeline_constants cribl ports tests ---
-
 run "pipeline_constants_cribl_ports" {
   command = plan
 
@@ -291,8 +308,6 @@ run "pipeline_constants_cribl_ports" {
   }
 }
 
-# --- pipeline_constants vector_db_ports tests ---
-
 run "pipeline_constants_vector_db_ports" {
   command = plan
 
@@ -306,8 +321,6 @@ run "pipeline_constants_vector_db_ports" {
     error_message = "qdrant_grpc port should be 6334"
   }
 }
-
-# --- pipeline_constants infisical-related ports tests ---
 
 run "pipeline_constants_infisical_ports" {
   command = plan
@@ -328,7 +341,7 @@ run "pipeline_constants_infisical_ports" {
   }
 }
 
-# --- infisical_container_ids isolation from other groups ---
+# --- tag-filtering locals isolation ---
 
 run "infisical_ids_empty_by_default" {
   command = plan
@@ -342,8 +355,6 @@ run "infisical_ids_empty_by_default" {
     error_message = "infisical_container_ids should be empty when containers is empty"
   }
 }
-
-# --- cribl_stream_container_ids tests ---
 
 run "cribl_stream_ids_empty_by_default" {
   command = plan
@@ -364,8 +375,9 @@ run "cribl_stream_ids_picks_up_stream_tagged" {
   variables {
     containers = {
       "cribl-stream" = {
-        vm_id    = 171
+        vm_id    = 182
         hostname = "cribl-stream"
+        vlan     = "pipeline"
         tags     = ["terraform", "cribl", "stream", "container"]
       }
     }
@@ -377,27 +389,7 @@ run "cribl_stream_ids_picks_up_stream_tagged" {
   }
 
   assert {
-    condition     = local.cribl_stream_container_ids["cribl-stream"] == 171
-    error_message = "cribl_stream_container_ids should map 'cribl-stream' to vm_id 171"
-  }
-}
-
-# --- derive_ip with different prefix ---
-
-run "derive_ip_custom_prefix" {
-  command = plan
-
-  variables {
-    network_prefix = "192.168.1"
-  }
-
-  assert {
-    condition     = local.derive_ip[100] == "192.168.1.100/24"
-    error_message = "derive_ip with custom prefix should work, got ${local.derive_ip[100]}"
-  }
-
-  assert {
-    condition     = local.network_gateway == "192.168.1.1"
-    error_message = "network_gateway should use custom prefix, got ${local.network_gateway}"
+    condition     = local.cribl_stream_container_ids["cribl-stream"] == 182
+    error_message = "cribl_stream_container_ids should map 'cribl-stream' to vm_id 182"
   }
 }

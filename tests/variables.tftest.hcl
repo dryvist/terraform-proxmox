@@ -66,9 +66,22 @@ override_module {
 
 # Shared valid defaults for all runs
 variables {
-  network_prefix    = "192.168.0"
-  network_cidr_mask = "/24"
-  splunk_vm_id      = 200
+  network_cidrs = {
+    lan_main  = "198.18.0.0/22"
+    lan_mgmt  = "198.18.1.0/24"
+    dns       = "198.18.2.0/24"
+    bmc       = "198.18.8.0/24"
+    compute   = "198.18.10.0/24"
+    siem      = "198.18.20.0/24"
+    pipeline  = "198.18.25.0/24"
+    data      = "198.18.30.0/24"
+    ai        = "198.18.40.0/24"
+    apps      = "198.18.50.0/24"
+    media_svc = "198.18.55.0/24"
+    homeauto  = "198.18.60.0/24"
+    nonprod   = "198.18.90.0/24"
+  }
+  splunk_vm_id = 200
 }
 
 # --- Positive test: valid inputs pass ---
@@ -79,15 +92,18 @@ run "valid_inputs_pass" {
 
 # --- Negative tests: invalid inputs rejected ---
 
-run "invalid_network_prefix_rejected" {
+run "invalid_network_cidrs_rejected" {
   command = plan
 
   variables {
-    network_prefix = "999.999.999"
+    network_cidrs = {
+      siem    = "not-a-cidr"
+      compute = "198.18.10.0/24"
+    }
   }
 
   expect_failures = [
-    var.network_prefix,
+    var.network_cidrs,
   ]
 }
 
@@ -123,6 +139,7 @@ run "vm_with_invalid_vga_type_rejected" {
       test = {
         vm_id    = 100
         name     = "test-vm"
+        vlan     = "apps"
         vga_type = "invalid-vga"
       }
     }
@@ -141,6 +158,7 @@ run "vm_with_id_below_minimum_rejected" {
       test = {
         vm_id = 1
         name  = "test-vm"
+        vlan  = "apps"
       }
     }
   }
@@ -158,6 +176,7 @@ run "container_with_id_below_minimum_rejected" {
       test = {
         vm_id    = 1
         hostname = "test"
+        vlan     = "apps"
       }
     }
   }
@@ -175,6 +194,7 @@ run "container_with_excessive_cpu_rejected" {
       test = {
         vm_id     = 100
         hostname  = "test"
+        vlan      = "apps"
         cpu_cores = 64
       }
     }
@@ -193,6 +213,7 @@ run "container_with_memory_below_minimum_rejected" {
       test = {
         vm_id            = 100
         hostname         = "test"
+        vlan             = "apps"
         memory_dedicated = 0
       }
     }
@@ -270,6 +291,7 @@ run "vm_with_excessive_cpu_cores_rejected" {
       test = {
         vm_id     = 100
         name      = "test-vm"
+        vlan      = "apps"
         cpu_cores = 64
       }
     }
@@ -288,6 +310,7 @@ run "vm_with_memory_above_maximum_rejected" {
       test = {
         vm_id            = 100
         name             = "test-vm"
+        vlan             = "apps"
         memory_dedicated = 131072
       }
     }
