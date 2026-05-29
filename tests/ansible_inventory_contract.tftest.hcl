@@ -313,3 +313,115 @@ run "ansible_inventory_host_services_nas_propagated" {
     error_message = "host_services.nas.shares must propagate to ansible_inventory output"
   }
 }
+
+# --- multi-node: nodes + node_storage contract ---
+
+run "ansible_inventory_nodes_exists" {
+  command = plan
+
+  assert {
+    condition     = can(output.ansible_inventory.nodes)
+    error_message = "ansible_inventory must contain 'nodes' key for downstream host targeting"
+  }
+}
+
+run "ansible_inventory_node_storage_exists" {
+  command = plan
+
+  assert {
+    condition     = can(output.ansible_inventory.node_storage)
+    error_message = "ansible_inventory must contain 'node_storage' key for ansible-proxmox ZFS provisioning"
+  }
+}
+
+run "ansible_inventory_nodes_commissioned_propagated" {
+  command = plan
+
+  variables {
+    nodes = {
+      pve  = { role = "pve1" }
+      pve3 = { role = "pve3", commissioned = false }
+    }
+  }
+
+  assert {
+    condition     = output.ansible_inventory.nodes["pve"].commissioned == true
+    error_message = "nodes commissioned must default to true"
+  }
+
+  assert {
+    condition     = output.ansible_inventory.nodes["pve3"].commissioned == false
+    error_message = "nodes commissioned=false must propagate (gates apply on un-commissioned nodes)"
+  }
+}
+
+run "ansible_inventory_node_storage_propagated" {
+  command = plan
+
+  variables {
+    node_storage = {
+      pve2 = {
+        pools = {
+          tank = {
+            raid     = "raidz1"
+            datasets = { backups = { quota = "1T" } }
+          }
+        }
+      }
+    }
+  }
+
+  assert {
+    condition     = output.ansible_inventory.node_storage["pve2"].pools["tank"].datasets["backups"].quota == "1T"
+    error_message = "node_storage pool/dataset/quota must propagate to ansible_inventory for ansible-proxmox"
+  }
+
+  assert {
+    condition     = output.ansible_inventory.node_storage["pve2"].pools["tank"].register == true
+    error_message = "node_storage pool register must default to true"
+  }
+
+  assert {
+    condition     = output.ansible_inventory.node_storage["pve2"].pools["tank"].protected == true
+    error_message = "node_storage pool protected must default to true (storage-safety)"
+  }
+}
+
+# --- multi-node: per-resource node placement ---
+
+run "vm_node_placement_defaults_to_primary" {
+  command = plan
+
+  variables {
+    vms = {
+      placement = {
+        vm_id = 210
+        name  = "placement-default"
+      }
+    }
+  }
+
+  assert {
+    condition     = output.ansible_inventory.vms["placement"].node == "pve"
+    error_message = "a VM without node_name must default to the primary node (var.proxmox_node)"
+  }
+}
+
+run "vm_node_placement_override" {
+  command = plan
+
+  variables {
+    vms = {
+      placement = {
+        vm_id     = 211
+        name      = "placement-pve2"
+        node_name = "pve2"
+      }
+    }
+  }
+
+  assert {
+    condition     = output.ansible_inventory.vms["placement"].node == "pve2"
+    error_message = "a VM with node_name set must be placed on that node"
+  }
+}
