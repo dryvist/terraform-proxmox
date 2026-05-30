@@ -67,21 +67,20 @@ override_module {
 # Shared valid defaults for all runs
 variables {
   network_cidrs = {
-    lan_main  = "198.18.0.0/22"
-    lan_mgmt  = "198.18.1.0/24"
-    dns       = "198.18.2.0/24"
-    bmc       = "198.18.8.0/24"
-    compute   = "198.18.10.0/24"
-    siem      = "198.18.20.0/24"
-    pipeline  = "198.18.25.0/24"
-    data      = "198.18.30.0/24"
-    ai        = "198.18.40.0/24"
-    apps      = "198.18.50.0/24"
-    media_svc = "198.18.55.0/24"
-    homeauto  = "198.18.60.0/24"
-    nonprod   = "198.18.90.0/24"
+    lan_main  = "192.168.0.0/22"
+    lan_mgmt  = "192.168.1.0/24"
+    dns       = "192.168.2.0/24"
+    bmc       = "192.168.8.0/24"
+    compute   = "192.168.10.0/24"
+    siem      = "192.168.20.0/24"
+    pipeline  = "192.168.25.0/24"
+    data      = "192.168.30.0/24"
+    ai        = "192.168.40.0/24"
+    apps      = "192.168.50.0/24"
+    media_svc = "192.168.55.0/24"
+    homeauto  = "192.168.60.0/24"
+    nonprod   = "192.168.90.0/24"
   }
-  splunk_vm_id = 200
 }
 
 # --- Positive test: valid inputs pass ---
@@ -98,7 +97,7 @@ run "invalid_network_cidrs_rejected" {
   variables {
     network_cidrs = {
       siem    = "not-a-cidr"
-      compute = "198.18.10.0/24"
+      compute = "192.168.10.0/24"
     }
   }
 

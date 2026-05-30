@@ -70,21 +70,20 @@ override_module {
 
 variables {
   network_cidrs = {
-    lan_main  = "198.18.0.0/22"
-    lan_mgmt  = "198.18.1.0/24"
-    dns       = "198.18.2.0/24"
-    bmc       = "198.18.8.0/24"
-    compute   = "198.18.10.0/24"
-    siem      = "198.18.20.0/24"
-    pipeline  = "198.18.25.0/24"
-    data      = "198.18.30.0/24"
-    ai        = "198.18.40.0/24"
-    apps      = "198.18.50.0/24"
-    media_svc = "198.18.55.0/24"
-    homeauto  = "198.18.60.0/24"
-    nonprod   = "198.18.90.0/24"
+    lan_main  = "192.168.0.0/22"
+    lan_mgmt  = "192.168.1.0/24"
+    dns       = "192.168.2.0/24"
+    bmc       = "192.168.8.0/24"
+    compute   = "192.168.10.0/24"
+    siem      = "192.168.20.0/24"
+    pipeline  = "192.168.25.0/24"
+    data      = "192.168.30.0/24"
+    ai        = "192.168.40.0/24"
+    apps      = "192.168.50.0/24"
+    media_svc = "192.168.55.0/24"
+    homeauto  = "192.168.60.0/24"
+    nonprod   = "192.168.90.0/24"
   }
-  splunk_vm_id = 200
 }
 
 # --- per-guest IP derivation tests ---
@@ -100,18 +99,18 @@ run "container_ipv4_uses_vlan_cidr" {
   }
 
   assert {
-    condition     = local.container_ipv4["technitium-dns"] == "198.18.2.103/24"
-    error_message = "dns-VLAN container 103 should be 198.18.2.103/24, got ${local.container_ipv4["technitium-dns"]}"
+    condition     = local.container_ipv4["technitium-dns"] == "192.168.2.103/24"
+    error_message = "dns-VLAN container 103 should be 192.168.2.103/24, got ${local.container_ipv4["technitium-dns"]}"
   }
 
   assert {
-    condition     = local.container_gateway["technitium-dns"] == "198.18.2.1"
-    error_message = "dns-VLAN gateway should be 198.18.2.1, got ${local.container_gateway["technitium-dns"]}"
+    condition     = local.container_gateway["technitium-dns"] == "192.168.2.1"
+    error_message = "dns-VLAN gateway should be 192.168.2.1, got ${local.container_gateway["technitium-dns"]}"
   }
 
   assert {
-    condition     = local.container_ipv4["haproxy"] == "198.18.25.175/24"
-    error_message = "pipeline-VLAN container 175 should be 198.18.25.175/24, got ${local.container_ipv4["haproxy"]}"
+    condition     = local.container_ipv4["haproxy"] == "192.168.25.175/24"
+    error_message = "pipeline-VLAN container 175 should be 192.168.25.175/24, got ${local.container_ipv4["haproxy"]}"
   }
 }
 
@@ -126,18 +125,18 @@ run "vm_ipv4_uses_vlan_cidr" {
   }
 
   assert {
-    condition     = local.vm_ipv4["docker-host"] == "198.18.90.250/24"
-    error_message = "nonprod-VLAN VM 250 should be 198.18.90.250/24, got ${local.vm_ipv4["docker-host"]}"
+    condition     = local.vm_ipv4["docker-host"] == "192.168.90.250/24"
+    error_message = "nonprod-VLAN VM 250 should be 192.168.90.250/24, got ${local.vm_ipv4["docker-host"]}"
   }
 
   assert {
-    condition     = local.vm_gateway["docker-host"] == "198.18.90.1"
-    error_message = "nonprod-VLAN gateway should be 198.18.90.1, got ${local.vm_gateway["docker-host"]}"
+    condition     = local.vm_gateway["docker-host"] == "192.168.90.1"
+    error_message = "nonprod-VLAN gateway should be 192.168.90.1, got ${local.vm_gateway["docker-host"]}"
   }
 
   assert {
-    condition     = local.vm_ipv4["idrac-kvm"] == "198.18.50.251/24"
-    error_message = "apps-VLAN VM 251 should be 198.18.50.251/24, got ${local.vm_ipv4["idrac-kvm"]}"
+    condition     = local.vm_ipv4["idrac-kvm"] == "192.168.50.251/24"
+    error_message = "apps-VLAN VM 251 should be 192.168.50.251/24, got ${local.vm_ipv4["idrac-kvm"]}"
   }
 }
 
@@ -147,13 +146,13 @@ run "splunk_derived_ip_uses_siem_vlan" {
   command = plan
 
   assert {
-    condition     = local.splunk_derived_ip == "198.18.20.200/24"
-    error_message = "splunk_derived_ip should be siem-VLAN 198.18.20.200/24, got ${local.splunk_derived_ip}"
+    condition     = local.splunk_derived_ip == "192.168.20.200/24"
+    error_message = "splunk_derived_ip should be siem-VLAN 192.168.20.200/24, got ${local.splunk_derived_ip}"
   }
 
   assert {
-    condition     = local.splunk_network_gateway == "198.18.20.1"
-    error_message = "splunk_network_gateway should be siem-VLAN .1 (198.18.20.1), got ${local.splunk_network_gateway}"
+    condition     = local.splunk_network_gateway == "192.168.20.1"
+    error_message = "splunk_network_gateway should be siem-VLAN .1 (192.168.20.1), got ${local.splunk_network_gateway}"
   }
 }
 
@@ -165,7 +164,7 @@ run "splunk_derived_ip_different_id" {
   }
 
   assert {
-    condition     = local.splunk_derived_ip == "198.18.20.205/24"
+    condition     = local.splunk_derived_ip == "192.168.20.205/24"
     error_message = "splunk_derived_ip should track splunk_vm_id (205), got ${local.splunk_derived_ip}"
   }
 }
@@ -176,8 +175,8 @@ run "management_network_is_compute_cidr" {
   command = plan
 
   assert {
-    condition     = local.management_network == "198.18.10.0/24"
-    error_message = "management_network should be the compute VLAN CIDR 198.18.10.0/24, got ${local.management_network}"
+    condition     = local.management_network == "192.168.10.0/24"
+    error_message = "management_network should be the compute VLAN CIDR 192.168.10.0/24, got ${local.management_network}"
   }
 }
 
@@ -196,8 +195,8 @@ run "splunk_network_ips_default_no_containers" {
   }
 
   assert {
-    condition     = contains(local.splunk_network_ips, "198.18.20.200")
-    error_message = "splunk_network_ips should contain splunk VM IP 198.18.20.200"
+    condition     = contains(local.splunk_network_ips, "192.168.20.200")
+    error_message = "splunk_network_ips should contain splunk VM IP 192.168.20.200"
   }
 }
 
@@ -216,12 +215,12 @@ run "splunk_network_ips_includes_splunk_tagged_container" {
   }
 
   assert {
-    condition     = contains(local.splunk_network_ips, "198.18.20.200")
+    condition     = contains(local.splunk_network_ips, "192.168.20.200")
     error_message = "splunk_network_ips must include splunk VM IP"
   }
 
   assert {
-    condition     = contains(local.splunk_network_ips, "198.18.20.199")
+    condition     = contains(local.splunk_network_ips, "192.168.20.199")
     error_message = "splunk_network_ips must include splunk-tagged container IP on siem VLAN"
   }
 

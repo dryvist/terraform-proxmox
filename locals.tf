@@ -16,9 +16,8 @@ locals {
   # Splunk lives on the siem VLAN (per network/architecture.md). The siem CIDR
   # is the only VLAN referenced by name here; all other guests resolve via their
   # own `vlan` field below.
-  splunk_cidr            = var.network_cidrs["siem"]
-  splunk_derived_ip      = nonsensitive("${cidrhost(local.splunk_cidr, var.splunk_vm_id)}/${split("/", local.splunk_cidr)[1]}")
-  splunk_network_gateway = nonsensitive(cidrhost(local.splunk_cidr, 1))
+  splunk_derived_ip      = nonsensitive("${cidrhost(var.network_cidrs["siem"], var.splunk_vm_id)}/${split("/", var.network_cidrs["siem"])[1]}")
+  splunk_network_gateway = nonsensitive(cidrhost(var.network_cidrs["siem"], 1))
 
   # Per-guest IPv4 (CIDR notation) and gateway, keyed by resource name. IP is
   # cidrhost(<guest VLAN CIDR>, vm_id); gateway is the .1 of that subnet.
@@ -49,7 +48,7 @@ locals {
   # rules: the Splunk VM on siem + any containers tagged "splunk" (e.g.
   # splunk-mgmt), each at its own VLAN address.
   splunk_network_ips = nonsensitive(concat(
-    [cidrhost(local.splunk_cidr, var.splunk_vm_id)],
+    [cidrhost(var.network_cidrs["siem"], var.splunk_vm_id)],
     [for k, v in var.containers : cidrhost(var.network_cidrs[v.vlan], v.vm_id) if contains(coalesce(v.tags, []), "splunk")]
   ))
 

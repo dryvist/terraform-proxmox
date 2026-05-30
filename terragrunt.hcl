@@ -25,7 +25,7 @@ locals {
   }
 
   # Per-VLAN network CIDRs are SENSITIVE and live only in Doppler
-  # (NETWORK_CIDR_<KEY>, network-form like 198.18.20.0/24 — a fake RFC2544 doc
+  # (NETWORK_CIDR_<KEY>, network-form like 192.168.20.0/24 — a fake RFC2544 doc
   # example; real subnets live ONLY in Doppler). No default: a missing
   # key fails loudly instead of silently selecting a wrong subnet. Canonical and
   # shared one-way with terraform-unifi — single source, no magic numbers.
