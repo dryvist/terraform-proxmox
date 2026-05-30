@@ -32,25 +32,6 @@ All commands run through the toolchain wrapper:
 aws-vault exec tf-proxmox -- doppler run -- terragrunt <COMMAND>
 ```
 
-### When to use `aws-vault` vs ask for pre-injected credentials
-
-> Autonomy rule: every `aws-vault exec` — and every keychain `security` read —
-> forces the user to type their full keychain password TWICE (there is no Touch
-> ID on this machine). A session that hits `aws-vault`/keychain repeatedly
-> cannot run autonomously — minimise these calls hard.
-
-- **Single one-off command** in the session: prefix with
-  `aws-vault exec tf-proxmox --`. One credential prompt is acceptable.
-- **Two or more commands**: STOP and ask the user to re-launch Claude with
-  credentials already injected: `aws-vault exec tf-proxmox -- claude`. This is
-  the ONLY supported injection method — never ask the user to export raw AWS
-  keys. After re-launch, AWS creds are live for the whole session: drop the
-  prefix and call `doppler run -- terragrunt …` directly.
-- **Never** loop `aws-vault exec` across worktrees, parallel invocations, or
-  per-resource checks. Always batch behind one credential injection.
-- If unsure whether credentials are already live: `aws sts get-caller-identity`
-  once. If it returns an ARN without prompting, do not call `aws-vault` again.
-
 ### Common commands
 
 ```bash
