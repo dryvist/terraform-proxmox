@@ -78,7 +78,7 @@ output "ansible_inventory" {
       for k, v in(length(var.containers) > 0 ? module.containers[0].container_details : {}) : k => {
         vmid     = v.id
         hostname = var.containers[k].hostname
-        ip       = split("/", local.derive_ip[v.id])[0] # IP derived from vm_id: network_prefix.vm_id/mask; strip CIDR for Ansible
+        ip       = split("/", local.container_ipv4[k])[0] # per-VLAN IP cidrhost(network_cidrs[vlan], vm_id); strip CIDR for Ansible
         node     = v.node_name
         # Connection settings for proxmox_pct_remote (community.proxmox)
         ansible_connection = "community.proxmox.proxmox_pct_remote"
@@ -93,7 +93,7 @@ output "ansible_inventory" {
       for k, v in module.vms.vm_details : k => {
         vmid               = v.id
         hostname           = v.name
-        ip                 = split("/", local.derive_ip[v.id])[0]
+        ip                 = split("/", local.vm_ipv4[k])[0]
         node               = v.node_name
         ansible_connection = "ssh"
         tags               = v.tags
@@ -105,7 +105,7 @@ output "ansible_inventory" {
       for k, v in module.vms.vm_details : k => {
         vmid               = v.id
         hostname           = v.name
-        ip                 = split("/", local.derive_ip[v.id])[0]
+        ip                 = split("/", local.vm_ipv4[k])[0]
         node               = v.node_name
         ansible_connection = "ssh"
         tags               = v.tags

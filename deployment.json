@@ -1,5 +1,5 @@
 {
-  "_comment": "Non-secret deployment config. Committed to git, plain JSON, readable in PRs. Edit directly—no SOPS needed. Network topology (network_prefix, SSH paths) is in terraform.sops.json. See docs/SOPS_SETUP.md.",
+  "_comment": "Non-secret deployment config. Committed to git, plain JSON, readable in PRs. Edit directly—no SOPS needed. Each guest carries a non-secret `vlan` name selecting its subnet+802.1Q tag; the per-VLAN CIDRs are sensitive and injected from Doppler NETWORK_CIDR_* by terragrunt.hcl. SSH paths/domain are in terraform.sops.json. See docs/SOPS_SETUP.md.",
 
   "proxmox_node": "pve",
   "environment": "homelab",
@@ -125,6 +125,7 @@
   "vms": {
     "docker-host": {
       "vm_id": 250,
+      "vlan": "nonprod",
       "name": "docker",
       "protection": true,
       "description": "Docker host for GitHub Actions runners and ad-hoc Docker workloads (Cribl moved to dedicated LXCs cribl-edge-* and cribl-stream-*)",
@@ -142,6 +143,7 @@
   "containers": {
     "ansible": {
       "vm_id": 100,
+      "vlan": "apps",
       "hostname": "ansible",
       "description": "Ansible control node - primary",
       "cpu_cores": 2,
@@ -153,6 +155,7 @@
     },
     "pve-scripts-local": {
       "vm_id": 102,
+      "vlan": "apps",
       "hostname": "pve-scripts-local",
       "description": "Proxmox VE Helper Scripts - community automation tools",
       "cpu_cores": 2,
@@ -165,6 +168,7 @@
     },
     "technitium-dns": {
       "vm_id": 103,
+      "vlan": "dns",
       "hostname": "technitium-dns",
       "description": "Technitium DNS Server - local DNS for homelab",
       "cpu_cores": 1,
@@ -177,6 +181,7 @@
     },
     "pi-hole": {
       "vm_id": 104,
+      "vlan": "dns",
       "hostname": "pi-hole",
       "description": "Pi-Hole DNS server and ad blocker",
       "cpu_cores": 1,
@@ -188,6 +193,7 @@
     },
     "phpipam": {
       "vm_id": 105,
+      "vlan": "apps",
       "hostname": "phpipam",
       "description": "phpIPAM - IP Address Management for homelab",
       "cpu_cores": 1,
@@ -200,6 +206,7 @@
     },
     "apt-cacher-ng": {
       "vm_id": 106,
+      "vlan": "apps",
       "hostname": "apt-cacher-ng",
       "description": "apt-cacher-ng - APT package caching proxy",
       "cpu_cores": 1,
@@ -211,6 +218,7 @@
     },
     "minio": {
       "vm_id": 107,
+      "vlan": "apps",
       "hostname": "minio",
       "protection": true,
       "description": "MinIO S3-compatible object storage for artifact hosting",
@@ -226,6 +234,7 @@
     },
     "infisical": {
       "vm_id": 108,
+      "vlan": "apps",
       "hostname": "infisical",
       "protection": true,
       "description": "Infisical self-hosted secrets management - Docker Compose in LXC (Phase 1 deploy)",
@@ -243,6 +252,7 @@
     },
     "idrac-kvm": {
       "vm_id": 251,
+      "vlan": "apps",
       "hostname": "idrac-kvm",
       "description": "iDRAC6 HTML5 KVM viewers (R410 + R710) - Docker in LXC. Runs a locally rebuilt image (FROM domistyle/idrac6 + the Dell AVCT KVM client COPYed into /app; proprietary jars staged privately, not in git). Consolidates former manual LXCs 252/253; host ports 5410 (R410) / 5710 (R710).",
       "cpu_cores": 2,
@@ -256,6 +266,7 @@
     },
     "mailpit": {
       "vm_id": 110,
+      "vlan": "apps",
       "hostname": "mailpit",
       "description": "Mailpit SMTP relay with web UI - Docker in LXC",
       "cpu_cores": 1,
@@ -268,6 +279,7 @@
     },
     "ntfy": {
       "vm_id": 111,
+      "vlan": "apps",
       "hostname": "ntfy",
       "description": "ntfy push notification server - Docker in LXC",
       "cpu_cores": 1,
@@ -280,6 +292,7 @@
     },
     "homeassistant": {
       "vm_id": 120,
+      "vlan": "homeauto",
       "hostname": "homeassistant",
       "description": "Home Assistant home automation platform",
       "cpu_cores": 2,
@@ -291,6 +304,7 @@
     },
     "mssql": {
       "vm_id": 130,
+      "vlan": "data",
       "hostname": "mssql",
       "protection": true,
       "description": "Microsoft SQL Server 2022 - Docker in LXC",
@@ -307,6 +321,7 @@
     },
     "openproject": {
       "vm_id": 140,
+      "vlan": "apps",
       "hostname": "openproject",
       "protection": true,
       "description": "OpenProject Community Edition - project management platform (Docker in LXC)",
@@ -324,6 +339,7 @@
     },
     "claude-code-01": {
       "vm_id": 150,
+      "vlan": "ai",
       "hostname": "claude-code-01",
       "description": "Claude Code development environment 1",
       "cpu_cores": 2,
@@ -335,6 +351,7 @@
     },
     "claude-code-02": {
       "vm_id": 151,
+      "vlan": "ai",
       "hostname": "claude-code-02",
       "description": "Claude Code development environment 2",
       "cpu_cores": 2,
@@ -346,6 +363,7 @@
     },
     "gemini-01": {
       "vm_id": 161,
+      "vlan": "ai",
       "hostname": "gemini-01",
       "description": "Gemini development environment 1",
       "cpu_cores": 2,
@@ -357,6 +375,7 @@
     },
     "gemini-02": {
       "vm_id": 162,
+      "vlan": "ai",
       "hostname": "gemini-02",
       "description": "Gemini development environment 2",
       "cpu_cores": 2,
@@ -368,6 +387,7 @@
     },
     "qdrant": {
       "vm_id": 165,
+      "vlan": "ai",
       "hostname": "qdrant",
       "protection": true,
       "description": "Qdrant vector database - AI RAG memory store (Docker in LXC)",
@@ -385,6 +405,7 @@
     },
     "llamaindex": {
       "vm_id": 166,
+      "vlan": "ai",
       "hostname": "llamaindex",
       "description": "LlamaIndex RAG engine with Ollama embeddings (CPU-only)",
       "cpu_cores": 2,
@@ -396,6 +417,7 @@
     },
     "nginx-proxy-manager": {
       "vm_id": 170,
+      "vlan": "apps",
       "hostname": "nginx-proxy-manager",
       "description": "Nginx Proxy Manager - reverse proxy for all services",
       "cpu_cores": 1,
@@ -408,6 +430,7 @@
     },
     "haproxy": {
       "vm_id": 175,
+      "vlan": "pipeline",
       "hostname": "haproxy",
       "description": "HAProxy - syslog/NetFlow TCP+UDP load balancer",
       "cpu_cores": 1,
@@ -419,6 +442,7 @@
     },
     "cribl-edge-01": {
       "vm_id": 180,
+      "vlan": "pipeline",
       "hostname": "cribl-edge-01",
       "description": "Cribl Edge node 1 - syslog/NetFlow collection",
       "cpu_cores": 2,
@@ -431,6 +455,7 @@
     },
     "cribl-edge-02": {
       "vm_id": 181,
+      "vlan": "pipeline",
       "hostname": "cribl-edge-02",
       "description": "Cribl Edge node 2 - syslog/NetFlow collection",
       "cpu_cores": 2,
@@ -443,6 +468,7 @@
     },
     "cribl-stream-01": {
       "vm_id": 182,
+      "vlan": "pipeline",
       "hostname": "cribl-stream-01",
       "description": "Cribl Stream processing node 1",
       "cpu_cores": 2,
@@ -454,6 +480,7 @@
     },
     "cribl-stream-02": {
       "vm_id": 183,
+      "vlan": "pipeline",
       "hostname": "cribl-stream-02",
       "description": "Cribl Stream processing node 2",
       "cpu_cores": 2,
@@ -465,6 +492,7 @@
     },
     "prometheus": {
       "vm_id": 195,
+      "vlan": "siem",
       "hostname": "prometheus",
       "description": "Prometheus - metrics collection and monitoring",
       "cpu_cores": 2,
@@ -477,6 +505,7 @@
     },
     "splunk-mgmt": {
       "vm_id": 199,
+      "vlan": "siem",
       "hostname": "splunk-mgmt",
       "description": "Splunk Management - Search Head, Deployment Server, License Manager, MC, Cluster Manager",
       "cpu_cores": 3,
@@ -488,6 +517,7 @@
     },
     "download-vpn": {
       "vm_id": 210,
+      "vlan": "media_svc",
       "hostname": "download-vpn",
       "description": "VPN-locked downloader: qBittorrent-nox + Prowlarr behind Proton WireGuard with an nftables killswitch (wg0 down => no egress). Configured by ansible-proxmox-apps download_vpn role. Pinned to pve2 (always-on NAS/media host).",
       "node_name": "pve2",
@@ -509,6 +539,7 @@
     },
     "sonarr": {
       "vm_id": 211,
+      "vlan": "media_svc",
       "hostname": "sonarr",
       "description": "Sonarr TV series PVR/management. LAN-only (no VPN); reaches Prowlarr+qBittorrent on download-vpn over the LAN. Configured by ansible-proxmox-apps sonarr role. Pinned to pve2.",
       "node_name": "pve2",
@@ -526,6 +557,7 @@
     },
     "radarr": {
       "vm_id": 212,
+      "vlan": "media_svc",
       "hostname": "radarr",
       "description": "Radarr movie PVR/management. LAN-only (no VPN); reaches Prowlarr+qBittorrent on download-vpn over the LAN. Configured by ansible-proxmox-apps radarr role. Pinned to pve2.",
       "node_name": "pve2",
@@ -543,6 +575,7 @@
     },
     "plex": {
       "vm_id": 213,
+      "vlan": "media_svc",
       "hostname": "plex",
       "description": "Plex Media Server. LAN-only (no VPN); streams from tank/media. Configured by ansible-proxmox-apps plex role. Pinned to pve2.",
       "node_name": "pve2",

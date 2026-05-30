@@ -14,13 +14,35 @@ locals {
   }
 
   # Layer 2: Network topology + SSH paths (committed, SOPS-encrypted — edit with `sops terraform.sops.json`).
-  # Values: network_prefix, vm_ssh_public_key_path, vm_ssh_private_key_path, proxmox_ssh_username.
+  # Values: domain, vm_ssh_public_key_path, vm_ssh_private_key_path, proxmox_ssh_username.
+  # Per-VLAN CIDRs come from Doppler (local.network_cidrs below), not SOPS.
   # management_network and splunk_network are DERIVED in locals.tf — never stored here.
   sops_config = fileexists("${get_terragrunt_dir()}/terraform.sops.json") ? jsondecode(sops_decrypt_file("${get_terragrunt_dir()}/terraform.sops.json")) : {}
 
   sops_inputs = {
     for k, v in local.sops_config : k => v
     if k != "_comment"
+  }
+
+  # Per-VLAN network CIDRs are SENSITIVE and live only in Doppler
+  # (NETWORK_CIDR_<KEY>, network-form like 192.168.20.0/24 — a fake RFC2544 doc
+  # example; real subnets live ONLY in Doppler). No default: a missing
+  # key fails loudly instead of silently selecting a wrong subnet. Canonical and
+  # shared one-way with terraform-unifi — single source, no magic numbers.
+  network_cidrs = {
+    lan_main  = get_env("NETWORK_CIDR_LAN_MAIN")
+    lan_mgmt  = get_env("NETWORK_CIDR_LAN_MGMT")
+    dns       = get_env("NETWORK_CIDR_DNS")
+    bmc       = get_env("NETWORK_CIDR_BMC")
+    compute   = get_env("NETWORK_CIDR_COMPUTE")
+    siem      = get_env("NETWORK_CIDR_SIEM")
+    pipeline  = get_env("NETWORK_CIDR_PIPELINE")
+    data      = get_env("NETWORK_CIDR_DATA")
+    ai        = get_env("NETWORK_CIDR_AI")
+    apps      = get_env("NETWORK_CIDR_APPS")
+    media_svc = get_env("NETWORK_CIDR_MEDIA_SVC")
+    homeauto  = get_env("NETWORK_CIDR_HOMEAUTO")
+    nonprod   = get_env("NETWORK_CIDR_NONPROD")
   }
 
   # Layer 3: Doppler env vars — credentials only (API tokens, SSH keys, passwords).
@@ -72,9 +94,14 @@ remote_state {
   }
 }
 
-# Merge order: deployment.json < SOPS < Doppler env vars
+# Merge order: deployment.json < SOPS < Doppler-derived (network_cidrs + env defaults).
 # Later entries win for the same key.
-inputs = merge(local.deployment_inputs, local.sops_inputs, local.env_var_defaults)
+inputs = merge(
+  local.deployment_inputs,
+  local.sops_inputs,
+  { network_cidrs = local.network_cidrs },
+  local.env_var_defaults,
+)
 
 # Generate provider.tf — required_providers block + SSH credentials from Doppler env vars.
 # BPG provider reads API auth (endpoint, token) from PROXMOX_VE_* env vars set by Doppler.

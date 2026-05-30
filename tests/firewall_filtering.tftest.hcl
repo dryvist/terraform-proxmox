@@ -68,9 +68,21 @@ override_module {
 }
 
 variables {
-  network_prefix    = "192.168.0"
-  network_cidr_mask = "/24"
-  splunk_vm_id      = 200
+  network_cidrs = {
+    lan_main  = "192.168.0.0/22"
+    lan_mgmt  = "192.168.1.0/24"
+    dns       = "192.168.2.0/24"
+    bmc       = "192.168.8.0/24"
+    compute   = "192.168.10.0/24"
+    siem      = "192.168.20.0/24"
+    pipeline  = "192.168.25.0/24"
+    data      = "192.168.30.0/24"
+    ai        = "192.168.40.0/24"
+    apps      = "192.168.50.0/24"
+    media_svc = "192.168.55.0/24"
+    homeauto  = "192.168.60.0/24"
+    nonprod   = "192.168.90.0/24"
+  }
 }
 
 # --- pipeline_container_ids tests ---
@@ -83,6 +95,7 @@ run "haproxy_tagged_container_in_pipeline_ids" {
       "haproxy" = {
         vm_id    = 190
         hostname = "haproxy"
+        vlan     = "pipeline"
         tags     = ["terraform", "haproxy", "container"]
       }
     }
@@ -107,6 +120,7 @@ run "cribl_edge_tagged_container_in_pipeline_ids" {
       "cribl-edge" = {
         vm_id    = 181
         hostname = "cribl-edge"
+        vlan     = "pipeline"
         tags     = ["terraform", "cribl", "edge", "container"]
       }
     }
@@ -131,6 +145,7 @@ run "notifications_tagged_container_in_notification_ids" {
       "mailpit" = {
         vm_id    = 185
         hostname = "mailpit"
+        vlan     = "apps"
         tags     = ["terraform", "notifications", "container"]
       }
     }
@@ -160,6 +175,7 @@ run "database_tagged_container_in_neither_set" {
       "postgres" = {
         vm_id    = 170
         hostname = "postgres"
+        vlan     = "data"
         tags     = ["terraform", "database", "container"]
       }
     }
@@ -202,6 +218,7 @@ run "cribl_without_edge_not_in_pipeline_ids" {
       "cribl-stream" = {
         vm_id    = 171
         hostname = "cribl-stream"
+        vlan     = "pipeline"
         tags     = ["terraform", "cribl", "stream", "container"]
       }
     }
@@ -223,6 +240,7 @@ run "cribl_stream_tagged_container_in_cribl_stream_ids" {
       "cribl-stream" = {
         vm_id    = 171
         hostname = "cribl-stream"
+        vlan     = "pipeline"
         tags     = ["terraform", "cribl", "stream", "pipeline", "container"]
       }
     }
@@ -252,6 +270,7 @@ run "cribl_edge_not_in_cribl_stream_ids" {
       "cribl-edge-01" = {
         vm_id    = 180
         hostname = "cribl-edge-01"
+        vlan     = "pipeline"
         tags     = ["terraform", "cribl", "edge", "pipeline", "container"]
       }
     }
@@ -278,6 +297,7 @@ run "minio_tagged_container_in_minio_ids" {
       "minio" = {
         vm_id    = 107
         hostname = "minio"
+        vlan     = "apps"
         tags     = ["terraform", "container", "minio", "storage", "infrastructure"]
       }
     }
@@ -314,6 +334,7 @@ run "infisical_tagged_container_in_infisical_ids" {
       "infisical" = {
         vm_id    = 108
         hostname = "infisical"
+        vlan     = "apps"
         tags     = ["terraform", "container", "infisical", "secrets", "docker"]
       }
     }
@@ -353,16 +374,19 @@ run "pipeline_and_stream_containers_mutually_exclusive" {
       "haproxy" = {
         vm_id    = 175
         hostname = "haproxy"
+        vlan     = "pipeline"
         tags     = ["terraform", "haproxy", "pipeline", "container"]
       }
       "cribl-edge-01" = {
         vm_id    = 180
         hostname = "cribl-edge-01"
+        vlan     = "pipeline"
         tags     = ["terraform", "cribl", "edge", "pipeline", "container"]
       }
       "cribl-stream" = {
         vm_id    = 171
         hostname = "cribl-stream"
+        vlan     = "pipeline"
         tags     = ["terraform", "cribl", "stream", "pipeline", "container"]
       }
     }
@@ -394,6 +418,7 @@ run "idrac_tagged_container_in_idrac_kvm_container_ids" {
       "idrac-kvm" = {
         vm_id    = 251
         hostname = "idrac-kvm"
+        vlan     = "apps"
         tags     = ["terraform", "container", "idrac", "oob", "management", "docker"]
       }
     }
@@ -418,6 +443,7 @@ run "non_idrac_container_not_in_idrac_kvm_container_ids" {
       "mailpit" = {
         vm_id    = 110
         hostname = "mailpit"
+        vlan     = "apps"
         tags     = ["terraform", "container", "notifications", "docker"]
       }
     }

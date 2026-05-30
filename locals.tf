@@ -1,31 +1,56 @@
 # Local values for common computed expressions
 locals {
-  # DRY Network Configuration - Single Source of Truth
-  # IPs are derived from VM IDs: network_prefix.vm_id (e.g., 192.168.0.200 for VM ID 200)
-  network_gateway = "${var.network_prefix}.1"
+  # DRY per-VLAN Network Configuration - Single Source of Truth.
+  # Every guest IP is derived from its VLAN's CIDR (network-form, from Doppler)
+  # and its VM ID: cidrhost(network_cidrs[vlan], vm_id). The gateway is the .1
+  # host of that same subnet. Masks come from the CIDR itself, so this repo
+  # holds zero literal IP octets.
+  #
+  # var.network_cidrs is `sensitive` so the full subnet map never leaks via a
+  # stray `tofu output`/log. Individual resolved values below are wrapped in
+  # nonsensitive(): a single host address (<vlan subnet>.<vmid>) or a guest's
+  # own gateway is not independently secret, and these must flow into the
+  # ansible_inventory output and module inputs (which are non-sensitive),
+  # exactly as the terraform-unifi reference resolves its Doppler CIDRs.
 
-  # Helper function to derive IP from VM ID
-  # Usage: local.derive_ip[100] => "192.168.0.100/24"
-  derive_ip = { for id in range(1, 1000) : id => "${var.network_prefix}.${id}${var.network_cidr_mask}" }
+  # Splunk lives on the siem VLAN (per network/architecture.md). The siem CIDR
+  # is the only VLAN referenced by name here; all other guests resolve via their
+  # own `vlan` field below.
+  splunk_derived_ip      = nonsensitive("${cidrhost(var.network_cidrs["siem"], var.splunk_vm_id)}/${split("/", var.network_cidrs["siem"])[1]}")
+  splunk_network_gateway = nonsensitive(cidrhost(var.network_cidrs["siem"], 1))
 
-  # Derived Splunk IP from VM ID (eliminates redundant splunk_vm_ip_address variable)
-  splunk_derived_ip = "${var.network_prefix}.${var.splunk_vm_id}${var.network_cidr_mask}"
-
-  # Splunk network gateway - derived from network_prefix (DRY)
-  splunk_network_gateway = local.network_gateway
+  # Per-guest IPv4 (CIDR notation) and gateway, keyed by resource name. IP is
+  # cidrhost(<guest VLAN CIDR>, vm_id); gateway is the .1 of that subnet.
+  container_ipv4 = {
+    for k, v in var.containers : k =>
+    nonsensitive("${cidrhost(var.network_cidrs[v.vlan], v.vm_id)}/${split("/", var.network_cidrs[v.vlan])[1]}")
+  }
+  container_gateway = {
+    for k, v in var.containers : k => nonsensitive(cidrhost(var.network_cidrs[v.vlan], 1))
+  }
+  vm_ipv4 = {
+    for k, v in var.vms : k =>
+    nonsensitive("${cidrhost(var.network_cidrs[v.vlan], v.vm_id)}/${split("/", var.network_cidrs[v.vlan])[1]}")
+  }
+  vm_gateway = {
+    for k, v in var.vms : k => nonsensitive(cidrhost(var.network_cidrs[v.vlan], 1))
+  }
 
   # VGA type validation helper
   valid_vga_types = ["std", "cirrus", "vmware", "qxl"]
 
-  # DRY: Derive management_network from network_prefix (eliminates redundant variable)
-  management_network = "${var.network_prefix}.0${var.network_cidr_mask}"
+  # Management network for the host firewall module: the compute VLAN CIDR
+  # (Proxmox hosts live on compute). Inter-VLAN policy is enforced at UniFi;
+  # the Proxmox host firewall keeps host-local protection only.
+  management_network = nonsensitive(var.network_cidrs["compute"])
 
-  # DRY: Derive splunk_network_ips from VM IDs (eliminates redundant variable)
-  # Combines splunk VM IP + any containers tagged "splunk"
-  splunk_network_ips = concat(
-    ["${var.network_prefix}.${var.splunk_vm_id}"],
-    [for k, v in var.containers : "${var.network_prefix}.${v.vm_id}" if contains(coalesce(v.tags, []), "splunk")]
-  )
+  # Splunk cluster IPs (host-form, no mask) for the firewall splunk-cluster
+  # rules: the Splunk VM on siem + any containers tagged "splunk" (e.g.
+  # splunk-mgmt), each at its own VLAN address.
+  splunk_network_ips = nonsensitive(concat(
+    [cidrhost(var.network_cidrs["siem"], var.splunk_vm_id)],
+    [for k, v in var.containers : cidrhost(var.network_cidrs[v.vlan], v.vm_id) if contains(coalesce(v.tags, []), "splunk")]
+  ))
 
   # Pipeline containers: HAProxy (haproxy tag) and Cribl Edge (cribl + edge tags)
   # These receive syslog and NetFlow data from network devices

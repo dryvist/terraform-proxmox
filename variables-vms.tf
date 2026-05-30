@@ -9,6 +9,11 @@ variable "vms" {
     tags        = optional(list(string), ["terraform"])
     pool_id     = optional(string)
 
+    # Service VLAN name (required). Selects the guest's subnet + 802.1Q tag:
+    # IP = cidrhost(network_cidrs[vlan], vm_id), NIC vlan_id = vlan_ids[vlan].
+    # Must be a key in both var.network_cidrs and var.vlan_ids.
+    vlan = string
+
     # Node placement (optional). When unset, main.tf defaults to var.proxmox_node
     # (the primary node). Set to "pve2"/"pve3" to place a VM on another cluster node.
     node_name = optional(string)

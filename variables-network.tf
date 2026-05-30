@@ -1,4 +1,4 @@
-# Network variables: bridge, addressing, and firewall network ranges
+# Network variables: bridge, per-VLAN addressing, and firewall network ranges
 
 variable "bridge" {
   description = "Network bridge for Splunk VM network interface"
@@ -10,20 +10,47 @@ variable "bridge" {
   }
 }
 
-variable "network_prefix" {
-  description = "Network prefix for IP address derivation (e.g., '192.168.0' - IPs derived as prefix.vm_id)"
-  type        = string
-  default     = "192.168.0"
+# Per-VLAN network CIDRs (SENSITIVE — real subnets are not committed).
+# Canonical source is Doppler `NETWORK_CIDR_<KEY>` (network-form CIDRs such as
+# 192.168.20.0/24), injected by terragrunt.hcl and shared one-way with
+# terraform-unifi. No default: a missing key fails loudly instead of silently
+# selecting the wrong subnet. Each guest's IP is derived as
+# cidrhost(network_cidrs[guest.vlan], guest.vm_id) and its gateway as
+# cidrhost(network_cidrs[guest.vlan], 1) — zero literal IP octets in this repo.
+variable "network_cidrs" {
+  description = "Map of VLAN name => network-form CIDR (e.g. siem => 192.168.20.0/24). Sourced from Doppler NETWORK_CIDR_* (sensitive). IPs are derived via cidrhost(cidr, vm_id); masks are taken from the CIDR itself."
+  type        = map(string)
+  sensitive   = true
+
   validation {
-    condition     = can(regex("^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$", var.network_prefix))
-    error_message = "Network prefix must be in format 'x.x.x' where each octet is 0-255 (e.g., '192.168.0')."
+    condition = alltrue([
+      for k, c in var.network_cidrs : can(cidrhost(c, 1))
+    ])
+    error_message = "Each network_cidrs entry must be a valid network-form CIDR (e.g. 192.168.20.0/24)."
   }
 }
 
-variable "network_cidr_mask" {
-  description = "CIDR mask for network IPs (use /24 for standard LAN, /32 only for point-to-point)"
-  type        = string
-  default     = "/24"
+# VLAN name => 802.1Q tag id. Non-secret topology structure (matches
+# int_homelab network/architecture.md), so it lives in the committed var file.
+# Drives each guest NIC's vlan_id = vlan_ids[guest.vlan].
+variable "vlan_ids" {
+  description = "Map of VLAN name => 802.1Q VLAN id. Non-secret topology from int_homelab network/architecture.md."
+  type        = map(number)
+  default = {
+    lan_main  = 1
+    dns       = 2
+    lan_mgmt  = 5
+    bmc       = 8
+    compute   = 10
+    siem      = 20
+    pipeline  = 25
+    data      = 30
+    ai        = 40
+    apps      = 50
+    media_svc = 55
+    homeauto  = 60
+    nonprod   = 90
+  }
 }
 
 # Firewall configuration
