@@ -155,6 +155,8 @@
     }
   },
 
+  "_media_comment": "The 5 media LXCs (210-214: download-vpn, sonarr, radarr, plex, jellyseerr) are created by Terraform as plain SHELLS only. Root-only container features — host bind-mounts of /rpool/data/{downloads,media} (mp type), the keyctl feature, and /dev/net/tun device_passthrough — are applied by ansible-proxmox (role: lxc_media_features) over native root@pam SSH. Proxmox restricts those three concerns to root@pam *ticket* auth; the BPG API token (even root@pam privsep=0) gets HTTP 403, so they cannot live in this token-driven Terraform. The desired mount targets stay DRY in node_storage.pve1.rpool.datasets above. `nesting` is token-legal and remains on the guests that need it.",
+
   "containers": {
     "ansible": {
       "vm_id": 100,
@@ -534,7 +536,7 @@
       "vm_id": 210,
       "vlan": "media_svc",
       "hostname": "download-vpn",
-      "description": "VPN-locked downloader: qBittorrent-nox + Prowlarr behind Proton WireGuard with an nftables killswitch (wg0 down => no egress). Configured by ansible-proxmox-apps download_vpn role. Pinned to pve1 (always-on; v1 placement per JAC-69; v2 = pve2).",
+      "description": "VPN-locked downloader: qBittorrent-nox + Prowlarr behind Proton WireGuard with an nftables killswitch (wg0 down => no egress). Configured by ansible-proxmox-apps download_vpn role. Pinned to pve1 (always-on; v1 placement per JAC-69; v2 = pve2). Shell only: bind-mounts (/rpool/data/{downloads,media}), keyctl, and /dev/net/tun are applied by ansible-proxmox (root@pam) — see _media_comment.",
       "node_name": "pve1",
       "cpu_cores": 2,
       "memory_dedicated": 2048,
@@ -543,20 +545,13 @@
       "pool_id": "media",
       "unprivileged": true,
       "root_disk": { "size": 16 },
-      "mount_points": [
-        { "volume": "/rpool/data/downloads", "path": "/mnt/downloads" },
-        { "volume": "/rpool/data/media", "path": "/mnt/media" }
-      ],
-      "features": { "nesting": true, "keyctl": true },
-      "device_passthrough": [
-        { "path": "/dev/net/tun", "mode": "0666" }
-      ]
+      "features": { "nesting": true }
     },
     "sonarr": {
       "vm_id": 211,
       "vlan": "media_svc",
       "hostname": "sonarr",
-      "description": "Sonarr TV series PVR/management. LAN-only (no VPN); reaches Prowlarr+qBittorrent on download-vpn over the LAN. Configured by ansible-proxmox-apps sonarr role. Pinned to pve1 (always-on; v1 placement per JAC-69; v2 = pve2).",
+      "description": "Sonarr TV series PVR/management. LAN-only (no VPN); reaches Prowlarr+qBittorrent on download-vpn over the LAN. Configured by ansible-proxmox-apps sonarr role. Pinned to pve1 (always-on; v1 placement per JAC-69; v2 = pve2). Shell only: bind-mounts (/rpool/data/{downloads,media}) are applied by ansible-proxmox (root@pam) — see _media_comment.",
       "node_name": "pve1",
       "cpu_cores": 2,
       "memory_dedicated": 1024,
@@ -564,17 +559,13 @@
       "tags": ["terraform", "container", "media", "sonarr", "pvr"],
       "pool_id": "media",
       "unprivileged": true,
-      "root_disk": { "size": 16 },
-      "mount_points": [
-        { "volume": "/rpool/data/downloads", "path": "/mnt/downloads" },
-        { "volume": "/rpool/data/media", "path": "/mnt/media" }
-      ]
+      "root_disk": { "size": 16 }
     },
     "radarr": {
       "vm_id": 212,
       "vlan": "media_svc",
       "hostname": "radarr",
-      "description": "Radarr movie PVR/management. LAN-only (no VPN); reaches Prowlarr+qBittorrent on download-vpn over the LAN. Configured by ansible-proxmox-apps radarr role. Pinned to pve1 (always-on; v1 placement per JAC-69; v2 = pve2).",
+      "description": "Radarr movie PVR/management. LAN-only (no VPN); reaches Prowlarr+qBittorrent on download-vpn over the LAN. Configured by ansible-proxmox-apps radarr role. Pinned to pve1 (always-on; v1 placement per JAC-69; v2 = pve2). Shell only: bind-mounts (/rpool/data/{downloads,media}) are applied by ansible-proxmox (root@pam) — see _media_comment.",
       "node_name": "pve1",
       "cpu_cores": 2,
       "memory_dedicated": 1024,
@@ -582,17 +573,13 @@
       "tags": ["terraform", "container", "media", "radarr", "pvr"],
       "pool_id": "media",
       "unprivileged": true,
-      "root_disk": { "size": 16 },
-      "mount_points": [
-        { "volume": "/rpool/data/downloads", "path": "/mnt/downloads" },
-        { "volume": "/rpool/data/media", "path": "/mnt/media" }
-      ]
+      "root_disk": { "size": 16 }
     },
     "plex": {
       "vm_id": 213,
       "vlan": "media_svc",
       "hostname": "plex",
-      "description": "Plex Media Server. LAN-only (no VPN); streams from rpool/data/media. Configured by ansible-proxmox-apps plex role. Pinned to pve1 (always-on; v1 placement per JAC-69; v2 = pve2).",
+      "description": "Plex Media Server. LAN-only (no VPN); streams from rpool/data/media. Configured by ansible-proxmox-apps plex role. Pinned to pve1 (always-on; v1 placement per JAC-69; v2 = pve2). Shell only: the /rpool/data/media bind-mount is applied by ansible-proxmox (root@pam) — see _media_comment.",
       "node_name": "pve1",
       "cpu_cores": 4,
       "memory_dedicated": 4096,
@@ -600,16 +587,13 @@
       "tags": ["terraform", "container", "media", "plex", "streaming"],
       "pool_id": "media",
       "unprivileged": true,
-      "root_disk": { "size": 16 },
-      "mount_points": [
-        { "volume": "/rpool/data/media", "path": "/mnt/media" }
-      ]
+      "root_disk": { "size": 16 }
     },
     "jellyseerr": {
       "vm_id": 214,
       "vlan": "media_svc",
       "hostname": "jellyseerr",
-      "description": "Jellyseerr request UI (Docker in LXC). Self-service movie/TV request front-end that wires to Sonarr, Radarr, and Plex. Config-only: no bind-mounts (reaches *arr + Plex over the LAN). Configured by ansible-proxmox-apps jellyseerr role. Pinned to pve1 (always-on; v1 placement per JAC-69; v2 = pve2).",
+      "description": "Jellyseerr request UI (Docker in LXC). Self-service movie/TV request front-end that wires to Sonarr, Radarr, and Plex. Config-only: no bind-mounts (reaches *arr + Plex over the LAN). Configured by ansible-proxmox-apps jellyseerr role. Pinned to pve1 (always-on; v1 placement per JAC-69; v2 = pve2). Shell only: keyctl is applied by ansible-proxmox (root@pam) — see _media_comment.",
       "node_name": "pve1",
       "cpu_cores": 1,
       "memory_dedicated": 1024,
@@ -618,7 +602,7 @@
       "pool_id": "media",
       "unprivileged": true,
       "root_disk": { "size": 8 },
-      "features": { "nesting": true, "keyctl": true }
+      "features": { "nesting": true }
     }
   }
 }
