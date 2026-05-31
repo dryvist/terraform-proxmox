@@ -27,8 +27,6 @@ data "proxmox_virtual_environment_datastores" "available" {
 
 # TODO: Re-enable this resource once the datastore issues are resolved.
 # This is currently disabled to allow for the initial deployment of the environment.
-# See the following for more details:
-# https://github.com/JevonM/int_homelab/pull/1
 # Cloud-init configuration file for VMs
 resource "proxmox_virtual_environment_file" "cloud_init_config" {
   count = var.enable_cloud_init_config ? 1 : 0

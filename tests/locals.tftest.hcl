@@ -3,8 +3,9 @@
 # All runs use mock providers (no real infrastructure needed).
 # command = plan is sufficient since locals are evaluated at plan time.
 #
-# network_cidrs fixture uses the homelab VLAN layout from
-# int_homelab network/architecture.md (test data, not committed secrets).
+# network_cidrs fixture uses RFC 5737 TEST-NET addresses (192.0.2.0/24,
+# 198.51.100.0/24, 203.0.113.0/24). These are documentation-only addresses
+# that must never be routed on a real network.
 # Every guest IP is cidrhost(network_cidrs[vlan], vm_id); gateway is the .1.
 
 mock_provider "proxmox" {
@@ -70,19 +71,34 @@ override_module {
 
 variables {
   network_cidrs = {
-    lan_main  = "192.168.0.0/22"
-    lan_mgmt  = "192.168.1.0/24"
-    dns       = "192.168.2.0/24"
-    bmc       = "192.168.8.0/24"
-    compute   = "192.168.10.0/24"
-    siem      = "192.168.20.0/24"
-    pipeline  = "192.168.25.0/24"
-    data      = "192.168.30.0/24"
-    ai        = "192.168.40.0/24"
-    apps      = "192.168.50.0/24"
-    media_svc = "192.168.55.0/24"
-    homeauto  = "192.168.60.0/24"
-    nonprod   = "192.168.90.0/24"
+    lan_main  = "192.0.2.0/22"
+    lan_mgmt  = "192.0.2.0/24"
+    dns       = "192.0.3.0/24"
+    bmc       = "192.0.4.0/24"
+    compute   = "192.0.5.0/24"
+    siem      = "198.51.100.0/24"
+    pipeline  = "198.51.101.0/24"
+    data      = "198.51.102.0/24"
+    ai        = "198.51.103.0/24"
+    apps      = "203.0.113.0/24"
+    media_svc = "203.0.114.0/24"
+    homeauto  = "203.0.115.0/24"
+    nonprod   = "203.0.116.0/24"
+  }
+  vlan_ids = {
+    lan_main  = 1
+    dns       = 2
+    lan_mgmt  = 5
+    bmc       = 8
+    compute   = 10
+    siem      = 20
+    pipeline  = 25
+    data      = 30
+    ai        = 40
+    apps      = 50
+    media_svc = 55
+    homeauto  = 60
+    nonprod   = 90
   }
 }
 
@@ -99,18 +115,18 @@ run "container_ipv4_uses_vlan_cidr" {
   }
 
   assert {
-    condition     = local.container_ipv4["technitium-dns"] == "192.168.2.103/24"
-    error_message = "dns-VLAN container 103 should be 192.168.2.103/24, got ${local.container_ipv4["technitium-dns"]}"
+    condition     = local.container_ipv4["technitium-dns"] == "192.0.3.103/24"
+    error_message = "dns-VLAN container 103 should be 192.0.3.103/24, got ${local.container_ipv4["technitium-dns"]}"
   }
 
   assert {
-    condition     = local.container_gateway["technitium-dns"] == "192.168.2.1"
-    error_message = "dns-VLAN gateway should be 192.168.2.1, got ${local.container_gateway["technitium-dns"]}"
+    condition     = local.container_gateway["technitium-dns"] == "192.0.3.1"
+    error_message = "dns-VLAN gateway should be 192.0.3.1, got ${local.container_gateway["technitium-dns"]}"
   }
 
   assert {
-    condition     = local.container_ipv4["haproxy"] == "192.168.25.175/24"
-    error_message = "pipeline-VLAN container 175 should be 192.168.25.175/24, got ${local.container_ipv4["haproxy"]}"
+    condition     = local.container_ipv4["haproxy"] == "198.51.101.175/24"
+    error_message = "pipeline-VLAN container 175 should be 198.51.101.175/24, got ${local.container_ipv4["haproxy"]}"
   }
 }
 
@@ -125,18 +141,18 @@ run "vm_ipv4_uses_vlan_cidr" {
   }
 
   assert {
-    condition     = local.vm_ipv4["docker-host"] == "192.168.90.250/24"
-    error_message = "nonprod-VLAN VM 250 should be 192.168.90.250/24, got ${local.vm_ipv4["docker-host"]}"
+    condition     = local.vm_ipv4["docker-host"] == "203.0.116.250/24"
+    error_message = "nonprod-VLAN VM 250 should be 203.0.116.250/24, got ${local.vm_ipv4["docker-host"]}"
   }
 
   assert {
-    condition     = local.vm_gateway["docker-host"] == "192.168.90.1"
-    error_message = "nonprod-VLAN gateway should be 192.168.90.1, got ${local.vm_gateway["docker-host"]}"
+    condition     = local.vm_gateway["docker-host"] == "203.0.116.1"
+    error_message = "nonprod-VLAN gateway should be 203.0.116.1, got ${local.vm_gateway["docker-host"]}"
   }
 
   assert {
-    condition     = local.vm_ipv4["idrac-kvm"] == "192.168.50.251/24"
-    error_message = "apps-VLAN VM 251 should be 192.168.50.251/24, got ${local.vm_ipv4["idrac-kvm"]}"
+    condition     = local.vm_ipv4["idrac-kvm"] == "203.0.113.251/24"
+    error_message = "apps-VLAN VM 251 should be 203.0.113.251/24, got ${local.vm_ipv4["idrac-kvm"]}"
   }
 }
 
@@ -146,13 +162,13 @@ run "splunk_derived_ip_uses_siem_vlan" {
   command = plan
 
   assert {
-    condition     = local.splunk_derived_ip == "192.168.20.200/24"
-    error_message = "splunk_derived_ip should be siem-VLAN 192.168.20.200/24, got ${local.splunk_derived_ip}"
+    condition     = local.splunk_derived_ip == "198.51.100.200/24"
+    error_message = "splunk_derived_ip should be siem-VLAN 198.51.100.200/24, got ${local.splunk_derived_ip}"
   }
 
   assert {
-    condition     = local.splunk_network_gateway == "192.168.20.1"
-    error_message = "splunk_network_gateway should be siem-VLAN .1 (192.168.20.1), got ${local.splunk_network_gateway}"
+    condition     = local.splunk_network_gateway == "198.51.100.1"
+    error_message = "splunk_network_gateway should be siem-VLAN .1 (198.51.100.1), got ${local.splunk_network_gateway}"
   }
 }
 
@@ -164,7 +180,7 @@ run "splunk_derived_ip_different_id" {
   }
 
   assert {
-    condition     = local.splunk_derived_ip == "192.168.20.205/24"
+    condition     = local.splunk_derived_ip == "198.51.100.205/24"
     error_message = "splunk_derived_ip should track splunk_vm_id (205), got ${local.splunk_derived_ip}"
   }
 }
@@ -175,8 +191,8 @@ run "management_network_is_compute_cidr" {
   command = plan
 
   assert {
-    condition     = local.management_network == "192.168.10.0/24"
-    error_message = "management_network should be the compute VLAN CIDR 192.168.10.0/24, got ${local.management_network}"
+    condition     = local.management_network == "192.0.5.0/24"
+    error_message = "management_network should be the compute VLAN CIDR 192.0.5.0/24, got ${local.management_network}"
   }
 }
 
@@ -195,8 +211,8 @@ run "splunk_network_ips_default_no_containers" {
   }
 
   assert {
-    condition     = contains(local.splunk_network_ips, "192.168.20.200")
-    error_message = "splunk_network_ips should contain splunk VM IP 192.168.20.200"
+    condition     = contains(local.splunk_network_ips, "198.51.100.200")
+    error_message = "splunk_network_ips should contain splunk VM IP 198.51.100.200"
   }
 }
 
@@ -215,12 +231,12 @@ run "splunk_network_ips_includes_splunk_tagged_container" {
   }
 
   assert {
-    condition     = contains(local.splunk_network_ips, "192.168.20.200")
+    condition     = contains(local.splunk_network_ips, "198.51.100.200")
     error_message = "splunk_network_ips must include splunk VM IP"
   }
 
   assert {
-    condition     = contains(local.splunk_network_ips, "192.168.20.199")
+    condition     = contains(local.splunk_network_ips, "198.51.100.199")
     error_message = "splunk_network_ips must include splunk-tagged container IP on siem VLAN"
   }
 

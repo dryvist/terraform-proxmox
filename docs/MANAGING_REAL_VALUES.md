@@ -40,7 +40,7 @@ vms = {
 }
 
 # Your real file should have:
-proxmox_api_endpoint = "https://pve.your-real-domain.local:8006/api2/json"
+proxmox_api_endpoint = "https://<proxmox-host>.<your-domain>.local:8006/api2/json"
 vms = {
   "splunk-idx1" = {
     vm_id = 100
@@ -212,8 +212,8 @@ fi
 All documentation uses **example values only**:
 
 - IPs: 192.168.1.x (RFC 1918 private range)
-- Domains: example.com, pve.example.com
-- Hostnames: Generic names (proxmox, pve)
+- Domains: example.com, proxmox-1.example.com
+- Hostnames: Generic names (proxmox-1, proxmox-2)
 
 ### Real Values Documentation
 

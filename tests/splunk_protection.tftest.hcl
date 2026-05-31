@@ -67,19 +67,34 @@ override_module {
 
 variables {
   network_cidrs = {
-    lan_main  = "192.168.0.0/22"
-    lan_mgmt  = "192.168.1.0/24"
-    dns       = "192.168.2.0/24"
-    bmc       = "192.168.8.0/24"
-    compute   = "192.168.10.0/24"
-    siem      = "192.168.20.0/24"
-    pipeline  = "192.168.25.0/24"
-    data      = "192.168.30.0/24"
-    ai        = "192.168.40.0/24"
-    apps      = "192.168.50.0/24"
-    media_svc = "192.168.55.0/24"
-    homeauto  = "192.168.60.0/24"
-    nonprod   = "192.168.90.0/24"
+    lan_main  = "192.0.2.0/22"
+    lan_mgmt  = "192.0.2.0/24"
+    dns       = "192.0.3.0/24"
+    bmc       = "192.0.4.0/24"
+    compute   = "192.0.5.0/24"
+    siem      = "198.51.100.0/24"
+    pipeline  = "198.51.101.0/24"
+    data      = "198.51.102.0/24"
+    ai        = "198.51.103.0/24"
+    apps      = "203.0.113.0/24"
+    media_svc = "203.0.114.0/24"
+    homeauto  = "203.0.115.0/24"
+    nonprod   = "203.0.116.0/24"
+  }
+  vlan_ids = {
+    lan_main  = 1
+    dns       = 2
+    lan_mgmt  = 5
+    bmc       = 8
+    compute   = 10
+    siem      = 20
+    pipeline  = 25
+    data      = 30
+    ai        = 40
+    apps      = 50
+    media_svc = 55
+    homeauto  = 60
+    nonprod   = 90
   }
 }
 
@@ -118,7 +133,7 @@ run "splunk_ip_derived_from_vm_id" {
   }
 
   assert {
-    condition     = local.splunk_derived_ip == "192.168.20.205/24"
+    condition     = local.splunk_derived_ip == "198.51.100.205/24"
     error_message = "splunk_derived_ip must track splunk_vm_id (205) on the siem VLAN, got ${local.splunk_derived_ip}"
   }
 }

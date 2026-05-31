@@ -7,9 +7,9 @@
 mock_provider "proxmox" {}
 
 variables {
-  node_name          = "pve"
-  management_network = "192.168.0.0/24"
-  splunk_network     = "192.168.0.200"
+  node_name          = "proxmox-1"
+  management_network = "192.0.2.0/24"
+  splunk_network     = "192.0.2.200"
   pipeline_constants = {
     service_ports = {
       haproxy_stats     = 8404

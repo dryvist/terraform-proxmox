@@ -129,16 +129,16 @@ Via Proxmox UI, create the following containers:
 terragrunt state list
 
 # Verify VMs via Proxmox API
-ssh root@pve.your-domain 'qm list'
+ssh root@<proxmox-host> 'qm list'
 
 # Verify containers
-ssh root@pve.your-domain 'pct list'
+ssh root@<proxmox-host> 'pct list'
 
 # Test SSH access to VMs
-ssh -i ~/.ssh/id_rsa_vm debian@192.168.1.100  # splunk-idx1
+ssh -i ~/.ssh/id_rsa_vm debian@<vm-ip>
 
 # Check container access
-ssh root@192.168.1.200  # ansible (if configured)
+ssh root@<container-ip>
 ```
 
 ## Updates and Changes

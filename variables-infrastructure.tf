@@ -15,7 +15,7 @@ variable "environment" {
 variable "proxmox_node" {
   description = "The name of the Proxmox node to deploy resources on"
   type        = string
-  default     = "pve"
+  default     = "proxmox-1"
 }
 
 variable "proxmox_ssh_username" {
@@ -41,11 +41,12 @@ variable "proxmox_ssh_host" {
   default     = ""
 }
 
-# Proxmox cluster nodes. Keyed by Proxmox node_name (e.g. "pve", "pve2", "pve3").
+# Proxmox cluster nodes. Keyed by Proxmox node_name (e.g. "proxmox-1", "proxmox-2", "proxmox-3").
 # Non-secret identity only — real management/BMC IPs live in terraform.sops.json
 # (see the rack_server_cluster module). A node with commissioned = false is
 # declared but not yet installed: no workloads are placed on it and its
 # node_storage is not applied until it is brought online.
+# See deployment.json.example for a full example with multiple nodes.
 variable "nodes" {
   description = "Proxmox cluster node inventory (non-secret identity), surfaced to ansible-proxmox via ansible_inventory."
   type = map(object({
@@ -53,7 +54,5 @@ variable "nodes" {
     hardware     = optional(string)     # e.g. amd-desktop, dell-r410, dell-r710
     commissioned = optional(bool, true) # false = declared but not yet installed
   }))
-  default = {
-    pve = { role = "pve1", hardware = "amd-desktop" }
-  }
+  default = {}
 }

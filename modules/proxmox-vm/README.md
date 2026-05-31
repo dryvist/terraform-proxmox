@@ -24,7 +24,7 @@ module "vms" {
       vm_id       = 201
       name        = "web-server"
       description = "Web server VM"
-      node_name   = "pve"
+      node_name   = "proxmox-1"
 
       cpu_cores        = 2
       memory_dedicated = 2048
@@ -61,7 +61,7 @@ module "vms" {
     "database-server" = {
       vm_id       = 301
       name        = "database-server"
-      node_name   = "pve"
+      node_name   = "proxmox-1"
       pool_id     = "database-pool"
 
       cpu_cores        = 4
