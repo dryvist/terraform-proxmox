@@ -589,6 +589,21 @@
       "mount_points": [
         { "volume": "/tank/media", "path": "/mnt/media" }
       ]
+    },
+    "jellyseerr": {
+      "vm_id": 214,
+      "vlan": "media_svc",
+      "hostname": "jellyseerr",
+      "description": "Jellyseerr request UI (Docker in LXC). Self-service movie/TV request front-end that wires to Sonarr, Radarr, and Plex. Config-only: no /tank bind-mounts (reaches *arr + Plex over the LAN). Configured by ansible-proxmox-apps jellyseerr role. Pinned to pve2.",
+      "node_name": "pve2",
+      "cpu_cores": 1,
+      "memory_dedicated": 1024,
+      "memory_swap": 1024,
+      "tags": ["terraform", "container", "media", "request", "jellyseerr"],
+      "pool_id": "media",
+      "unprivileged": true,
+      "root_disk": { "size": 8 },
+      "features": { "nesting": true, "keyctl": true }
     }
   }
 }
