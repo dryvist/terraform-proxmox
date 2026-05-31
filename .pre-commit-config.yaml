@@ -48,6 +48,13 @@ repos:
         args: ['-d', '.', '--framework', 'terraform', '--quiet']
         pass_filenames: false
 
+  # Secret scanning — official gitleaks hook, driven by the committed
+  # value-free .gitleaks.toml. The same scan runs in CI (ci-gate.yml).
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.1
+    hooks:
+      - id: gitleaks
+
   # Local hooks using nix+doppler toolchain
   - repo: local
     hooks:
