@@ -466,15 +466,17 @@ run "ansible_inventory_node_storage_propagated" {
   }
 }
 
-# JAC-69 v1: pve carries rpool/data datasets for the media stack. register=false
+# JAC-69 v1: pve1 carries rpool/data datasets for the media stack. register=false
 # because rpool is already PVE-registered as `local-zfs`; ansible-proxmox just
-# creates the datasets, not a duplicate `pvesm add`.
-run "ansible_inventory_node_storage_pve_media_datasets" {
+# creates the datasets, not a duplicate `pvesm add`. The key is "pve1" (ansible's
+# proxmox_node_name inventory label), not "pve" (PVE cluster member name) —
+# playbooks/load_terraform.yml looks up node_storage[hostvars[item].proxmox_node_name].
+run "ansible_inventory_node_storage_pve1_media_datasets" {
   command = plan
 
   variables {
     node_storage = {
-      pve = {
+      pve1 = {
         pools = {
           rpool = {
             raid     = "mirror"
@@ -490,23 +492,23 @@ run "ansible_inventory_node_storage_pve_media_datasets" {
   }
 
   assert {
-    condition     = output.ansible_inventory.node_storage["pve"].pools["rpool"].datasets["data/downloads"].quota == "500G"
-    error_message = "node_storage.pve.rpool must declare data/downloads with quota 500G for the media stack"
+    condition     = output.ansible_inventory.node_storage["pve1"].pools["rpool"].datasets["data/downloads"].quota == "500G"
+    error_message = "node_storage.pve1.rpool must declare data/downloads with quota 500G for the media stack"
   }
 
   assert {
-    condition     = output.ansible_inventory.node_storage["pve"].pools["rpool"].datasets["data/media"].quota == "1.5T"
-    error_message = "node_storage.pve.rpool must declare data/media with quota 1.5T for the media stack"
+    condition     = output.ansible_inventory.node_storage["pve1"].pools["rpool"].datasets["data/media"].quota == "1.5T"
+    error_message = "node_storage.pve1.rpool must declare data/media with quota 1.5T for the media stack"
   }
 
   assert {
-    condition     = output.ansible_inventory.node_storage["pve"].pools["rpool"].register == false
-    error_message = "node_storage.pve.rpool must set register=false (rpool is already PVE-registered as local-zfs)"
+    condition     = output.ansible_inventory.node_storage["pve1"].pools["rpool"].register == false
+    error_message = "node_storage.pve1.rpool must set register=false (rpool is already PVE-registered as local-zfs)"
   }
 
   assert {
-    condition     = output.ansible_inventory.node_storage["pve"].pools["rpool"].protected == true
-    error_message = "node_storage.pve.rpool must default to protected=true"
+    condition     = output.ansible_inventory.node_storage["pve1"].pools["rpool"].protected == true
+    error_message = "node_storage.pve1.rpool must default to protected=true"
   }
 }
 

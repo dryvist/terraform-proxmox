@@ -175,9 +175,10 @@ Authoritative list lives in `deployment.json` `containers.*`. Summary by pool:
 - **`logging`** — `haproxy`, `cribl-edge-01/02`, `cribl-stream-01/02`,
   `splunk-mgmt` (SH + DS + LM + MC + CM)
 - **`ai`** — `claude-code-01/02`, `gemini-01/02`, `qdrant`, `llamaindex`
-- **`media`** (v1 pinned to `pve` via `node_name` per JAC-69; v2 = `pve2`) — `download-vpn`
-  (qBittorrent + Prowlarr behind Proton WireGuard with an nftables killswitch),
-  `sonarr`, `radarr`, `plex`, `jellyseerr`
+- **`media`** (v1 pinned to pve1 — `node_name: "pve"` for the BPG provider,
+  `node_storage` and ansible inventory label `pve1` — per JAC-69; v2 = `pve2`) —
+  `download-vpn` (qBittorrent + Prowlarr behind Proton WireGuard with an
+  nftables killswitch), `sonarr`, `radarr`, `plex`, `jellyseerr`
 
 Notable per-container facts:
 

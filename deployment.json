@@ -31,9 +31,9 @@
 
   "datastores": {},
 
-  "_node_storage_comment": "Per-node ZFS storage DECLARATION. Terraform does NOT create ZFS pools (zpool create is OS-level). ansible-proxmox reads this via the ansible_inventory output to create pools/datasets/quotas and (when register=true) `pvesm add zfspool`. pve carries rpool/data datasets for the media stack v1 placement (per JAC-69) — register=false because rpool is already PVE-registered as `local-zfs`, we only want the datasets. pve2 reflects the LIVE pool `tank` (3-drive raidz1) + tank/backups (v2 target for media migration). pve3 is provisional from ADR-0001 and stays register=false until commissioned.",
+  "_node_storage_comment": "Per-node ZFS storage DECLARATION. Terraform does NOT create ZFS pools (zpool create is OS-level). ansible-proxmox reads this via the ansible_inventory output to create pools/datasets/quotas and (when register=true) `pvesm add zfspool`. NOTE: keys here are ansible's `proxmox_node_name` (the inventory host label: pve1/pve2/pve3), NOT the PVE cluster member name — playbooks/load_terraform.yml looks up `node_storage[hostvars[item].proxmox_node_name]`. The PVE cluster member name on the live host is still `pve` (used by Terraform's bpg/proxmox provider as `node_name`). pve1 carries rpool/data datasets for the media stack v1 placement (per JAC-69) — register=false because rpool is already PVE-registered as `local-zfs`, we only want the datasets. pve2 reflects the LIVE pool `tank` (3-drive raidz1) + tank/backups (v2 target for media migration). pve3 is provisional from ADR-0001 and stays register=false until commissioned.",
   "node_storage": {
-    "pve": {
+    "pve1": {
       "pools": {
         "rpool": {
           "type": "zfspool",
