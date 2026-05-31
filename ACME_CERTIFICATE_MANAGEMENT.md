@@ -57,7 +57,7 @@ Before applying, configure the following secrets in Doppler:
 | `ROUTE53_SECRET_KEY` | AWS IAM secret key |
 | `ROUTE53_ZONE_ID` | Route53 hosted zone ID for the target domain |
 | `ACME_EMAIL` | Email address for Let's Encrypt account notifications |
-| `ACME_DOMAIN` | FQDN for the certificate (e.g., `pve.example.com`) |
+| `ACME_DOMAIN` | FQDN for the certificate (e.g., `proxmox-1.example.com`) |
 
 Minimum required IAM policy for Route53:
 
@@ -120,9 +120,9 @@ acme_accounts = {
 # }
 
 acme_certificates = {
-  "pve-cert" = {
-    node_name     = "pve"
-    domain        = "pve.example.com"
+  "proxmox-1-cert" = {
+    node_name     = "proxmox-1"
+    domain        = "proxmox-1.example.com"
     account_id    = "letsencrypt"
     dns_plugin_id = "myroute53"
   }
@@ -190,7 +190,7 @@ If Route53 IAM credentials are rotated:
 
    ```bash
    # Confirm the node references the right ACME account + domains
-   pvesh get /nodes/pve/config --output-format=json | jq '.acme'
+   pvesh get /nodes/proxmox-1/config --output-format=json | jq '.acme'
 
    # Verify the DNS plugin (cluster-wide resource — credentials are masked)
    pvesh get /cluster/acme/plugins/myroute53 --output-format=json
@@ -218,8 +218,8 @@ terragrunt run -- terraform import \
 
 # Import certificate (node name as the ID)
 terragrunt run -- terraform import \
-  'module.acme_certificates[0].proxmox_virtual_environment_acme_certificate.certificates["pve-cert"]' \
-  'pve'
+  'module.acme_certificates[0].proxmox_virtual_environment_acme_certificate.certificates["proxmox-1-cert"]' \
+  'proxmox-1'
 ```
 
 After import, run `terraform plan` and verify zero drift. If the plan shows changes, align
@@ -242,7 +242,7 @@ it cannot find the `_acme-challenge` TXT record.
 3. Check DNS propagation:
 
    ```bash
-   dig -t TXT _acme-challenge.pve.example.com @8.8.8.8
+   dig -t TXT _acme-challenge.proxmox-1.example.com @8.8.8.8
    ```
 
 4. Review Proxmox certificate logs:

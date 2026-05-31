@@ -34,13 +34,13 @@ source "proxmox-clone" "splunk" {
   scsi_controller = "virtio-scsi-pci"
   os              = "l26"
 
-  # SSH configuration: Use the VM-specific SSH key (id_rsa_vm) that matches
+  # SSH configuration: Use the VM-specific SSH key (id_ed25519) that matches
   # the public key configured in the base template's cloud-init.
   # Packer automatically detects the VM's IP address from Proxmox API.
   ssh_username         = "debian"
   ssh_timeout          = "300s"
   ssh_agent_auth       = false
-  ssh_private_key_file = pathexpand("~/.ssh/id_rsa_vm")
+  ssh_private_key_file = pathexpand("~/.ssh/id_ed25519")
 
   cloud_init              = true
   cloud_init_storage_pool = "local-zfs"

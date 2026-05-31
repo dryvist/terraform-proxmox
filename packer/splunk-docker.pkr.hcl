@@ -32,11 +32,11 @@ source "proxmox-clone" "splunk-docker" {
   scsi_controller = "virtio-scsi-pci"
   os              = "l26"
 
-  # SSH configuration: Use the VM-specific SSH key (id_rsa_vm)
+  # SSH configuration: Use the VM-specific SSH key (id_ed25519)
   ssh_username         = "debian"
   ssh_timeout          = "300s"
   ssh_agent_auth       = false
-  ssh_private_key_file = pathexpand("~/.ssh/id_rsa_vm")
+  ssh_private_key_file = pathexpand("~/.ssh/id_ed25519")
 
   cloud_init              = true
   cloud_init_storage_pool = "local-zfs"

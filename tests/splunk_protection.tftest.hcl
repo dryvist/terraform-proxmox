@@ -66,21 +66,9 @@ override_module {
 }
 
 variables {
-  network_cidrs = {
-    lan_main  = "192.168.0.0/22"
-    lan_mgmt  = "192.168.1.0/24"
-    dns       = "192.168.2.0/24"
-    bmc       = "192.168.8.0/24"
-    compute   = "192.168.10.0/24"
-    siem      = "192.168.20.0/24"
-    pipeline  = "192.168.25.0/24"
-    data      = "192.168.30.0/24"
-    ai        = "192.168.40.0/24"
-    apps      = "192.168.50.0/24"
-    media_svc = "192.168.55.0/24"
-    homeauto  = "192.168.60.0/24"
-    nonprod   = "192.168.90.0/24"
-  }
+  # vlan_ids uses its variable default (single source of truth); network_cidrs is
+  # derived from it as 192.168.<vlan_id>.0/24 — no duplicated VLAN/CIDR list.
+  network_cidrs = { for name, id in var.vlan_ids : name => "192.168.${id}.0/24" }
 }
 
 # --- Test: no Splunk credentials required at Terraform level ---

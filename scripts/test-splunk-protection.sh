@@ -137,7 +137,7 @@ if [[ "${LIVE}" == "true" ]]; then
   if [[ -z "${SPLUNK_IP}" ]]; then
     fail "cannot determine Splunk VM IP for live checks"
   else
-    SSH_KEY="${PROXMOX_SSH_KEY_PATH:-${HOME}/.ssh/id_rsa_vm}"
+    SSH_KEY="${PROXMOX_SSH_KEY_PATH:-${HOME}/.ssh/id_ed25519}"
     SSH_USER="debian"
     SSH_OPTS=(-i "${SSH_KEY}" -o StrictHostKeyChecking=no -o ConnectTimeout=10)
 

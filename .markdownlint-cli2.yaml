@@ -6,4 +6,3 @@ ignores:
   - ".docs/**"
   - ".direnv/**"
   - ".github/aw/**"
-  - "docs/TERRAFORM_REFERENCE.md"

@@ -16,7 +16,7 @@ module "route53_records" {
 
   route53_zone_id    = "Z0123456789ABCDEFGHIJ"
   proxmox_domain     = "pve.example.com"
-  proxmox_ip_address = "192.0.2.10"
+  proxmox_ip_address = "192.168.10.10"
   environment        = "homelab"
 }
 ```
