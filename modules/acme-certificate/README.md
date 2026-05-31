@@ -50,9 +50,9 @@ module "acme_certificates" {
   }
 
   acme_certificates = {
-    pve = {
-      node_name     = "pve"
-      domain        = "pve.example.com"
+    proxmox-1 = {
+      node_name     = "proxmox-1"
+      domain        = "proxmox-1.example.com"
       account_id    = "default"
       dns_plugin_id = "AWS"
       sans = [
@@ -111,7 +111,7 @@ delivery to LXCs/VMs after issuance.
 | --- | --- | --- |
 | `kind` | yes | `"lxc"` or `"vm"` |
 | `target_id` | yes | vm_id of the LXC or VM |
-| `target_ip` | when kind = `"vm"` | SSH host for `scp` (pve node SSHes to this IP) |
+| `target_ip` | when kind = `"vm"` | SSH host for `scp` (Proxmox node SSHes to this IP) |
 | `bundle_path` | one of... | Combined cert+key PEM (HAProxy, Caddy, nginx) |
 | `cert_path` | ...these... | Cert+chain PEM only (Splunk, Elasticsearch) |
 | `key_path` | ...combos | Private key (required alongside `cert_path`) |
@@ -174,8 +174,8 @@ doppler run -- terragrunt run -- import \
 
 # 3. Certificate — ID is the node name
 doppler run -- terragrunt run -- import \
-  'module.acme_certificates[0].proxmox_acme_certificate.certificates["pve"]' \
-  'pve'
+  'module.acme_certificates[0].proxmox_acme_certificate.certificates["proxmox-1"]' \
+  'proxmox-1'
 ```
 
 After import, run `terragrunt plan`. Expected diff:

@@ -264,13 +264,13 @@ resource "null_resource" "ansible_ssh_key_setup" {
 
   provisioner "file" {
     source      = pathexpand(var.vm_ssh_private_key_path)
-    destination = "/home/${var.vms["ansible"].user_account.username}/.ssh/id_rsa_vm"
+    destination = "/home/${var.vms["ansible"].user_account.username}/.ssh/id_ed25519"
   }
 
   provisioner "remote-exec" {
     inline = [
-      "chmod 600 /home/${var.vms["ansible"].user_account.username}/.ssh/id_rsa_vm",
-      "chown ${var.vms["ansible"].user_account.username}:${var.vms["ansible"].user_account.username} /home/${var.vms["ansible"].user_account.username}/.ssh/id_rsa_vm"
+      "chmod 600 /home/${var.vms["ansible"].user_account.username}/.ssh/id_ed25519",
+      "chown ${var.vms["ansible"].user_account.username}:${var.vms["ansible"].user_account.username} /home/${var.vms["ansible"].user_account.username}/.ssh/id_ed25519"
     ]
   }
 

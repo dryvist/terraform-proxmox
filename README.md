@@ -79,7 +79,6 @@ The full suite runs automatically in CI on every PR.
 | --- | ------- |
 | [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) | Pipeline architecture, downstream repos, IP derivation |
 | [docs/SOPS_SETUP.md](./docs/SOPS_SETUP.md) | SOPS + age setup, Doppler integration |
-| [docs/TERRAFORM_REFERENCE.md](./docs/TERRAFORM_REFERENCE.md) | Auto-generated inputs/outputs/providers reference |
 | [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) | Operational guidance, timeout/debug logging |
 
 ## License

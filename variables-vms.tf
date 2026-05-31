@@ -15,7 +15,7 @@ variable "vms" {
     vlan = string
 
     # Node placement (optional). When unset, main.tf defaults to var.proxmox_node
-    # (the primary node). Set to "pve2"/"pve3" to place a VM on another cluster node.
+    # (the primary node). Set to "proxmox-2"/"proxmox-3" to place a VM on another cluster node.
     node_name = optional(string)
 
     # Resource configuration
@@ -120,9 +120,9 @@ variable "vms" {
 
 # SSH Key Configuration for VMs
 variable "vm_ssh_public_key_path" {
-  description = "Path to the SSH public key for VM authentication (e.g., ~/.ssh/id_rsa_vm.pub)"
+  description = "Path to the SSH public key for VM authentication (e.g., ~/.ssh/id_ed25519.pub)"
   type        = string
-  default     = "~/.ssh/id_rsa_vm.pub"
+  default     = "~/.ssh/id_ed25519.pub"
   validation {
     condition     = can(regex("^(~/.ssh/|/).*\\.pub$", var.vm_ssh_public_key_path))
     error_message = "SSH public key path must be a valid file path ending with .pub"
@@ -130,9 +130,9 @@ variable "vm_ssh_public_key_path" {
 }
 
 variable "vm_ssh_private_key_path" {
-  description = "Path to the SSH private key for VM authentication (e.g., ~/.ssh/id_rsa_vm)"
+  description = "Path to the SSH private key for VM authentication (e.g., ~/.ssh/id_ed25519)"
   type        = string
-  default     = "~/.ssh/id_rsa_vm"
+  default     = "~/.ssh/id_ed25519"
   sensitive   = true
   validation {
     condition     = can(regex("^(~/.ssh/|/)", var.vm_ssh_private_key_path))

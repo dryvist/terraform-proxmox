@@ -49,7 +49,7 @@ variable "acme_certificates" {
     See README.md for the full schema and import procedure.
   EOT
   type = map(object({
-    node_name     = string                     # Proxmox node name (e.g., "pve")
+    node_name     = string                     # Proxmox node name (e.g., "proxmox-1")
     domain        = string                     # Primary domain (CN)
     account_id    = string                     # ACME account name (key in var.acme_accounts)
     dns_plugin_id = string                     # DNS plugin name (key in var.dns_plugins)
