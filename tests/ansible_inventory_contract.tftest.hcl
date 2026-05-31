@@ -222,7 +222,7 @@ run "ansible_inventory_docker_vms_exists" {
   }
 }
 
-# --- per-container node placement (media stack pins to pve2) ---
+# --- per-container node placement (media stack pins to pve1 in v1; v2 = pve2 per JAC-69) ---
 
 run "ansible_inventory_container_node_override_propagated" {
   command = plan
@@ -241,7 +241,7 @@ run "ansible_inventory_container_node_override_propagated" {
           { path = "/dev/net/tun", mode = "0666" }
         ]
         mount_points = [
-          { volume = "/tank/downloads", path = "/mnt/downloads" }
+          { volume = "/rpool/data/downloads", path = "/mnt/downloads" }
         ]
       }
       "lan-default-node" = {
@@ -463,6 +463,52 @@ run "ansible_inventory_node_storage_propagated" {
   assert {
     condition     = output.ansible_inventory.node_storage["pve2"].pools["tank"].protected == true
     error_message = "node_storage pool protected must default to true (storage-safety)"
+  }
+}
+
+# JAC-69 v1: pve1 carries rpool/data datasets for the media stack. register=false
+# because rpool is already PVE-registered as `local-zfs`; ansible-proxmox just
+# creates the datasets, not a duplicate `pvesm add`. The key is "pve1" (ansible's
+# proxmox_node_name inventory label), not "pve" (PVE cluster member name) —
+# playbooks/load_terraform.yml looks up node_storage[hostvars[item].proxmox_node_name].
+run "ansible_inventory_node_storage_pve1_media_datasets" {
+  command = plan
+
+  variables {
+    node_storage = {
+      pve1 = {
+        pools = {
+          rpool = {
+            raid     = "mirror"
+            register = false
+            datasets = {
+              "data/downloads" = { quota = "500G", mountpoint = "/rpool/data/downloads" }
+              "data/media"     = { quota = "1.5T", mountpoint = "/rpool/data/media" }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  assert {
+    condition     = output.ansible_inventory.node_storage["pve1"].pools["rpool"].datasets["data/downloads"].quota == "500G"
+    error_message = "node_storage.pve1.rpool must declare data/downloads with quota 500G for the media stack"
+  }
+
+  assert {
+    condition     = output.ansible_inventory.node_storage["pve1"].pools["rpool"].datasets["data/media"].quota == "1.5T"
+    error_message = "node_storage.pve1.rpool must declare data/media with quota 1.5T for the media stack"
+  }
+
+  assert {
+    condition     = output.ansible_inventory.node_storage["pve1"].pools["rpool"].register == false
+    error_message = "node_storage.pve1.rpool must set register=false (rpool is already PVE-registered as local-zfs)"
+  }
+
+  assert {
+    condition     = output.ansible_inventory.node_storage["pve1"].pools["rpool"].protected == true
+    error_message = "node_storage.pve1.rpool must default to protected=true"
   }
 }
 
