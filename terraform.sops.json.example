@@ -8,17 +8,17 @@
   "rack_servers": {
     "node-a": {
       "chassis": "r410",
-      "bmc_ip": "192.168.0.10",
+      "bmc_ip": "192.0.2.10",
       "bmc_mac": "00:00:00:00:00:00",
       "service_tag": "EXAMPLE1",
-      "mgmt_ip": "192.168.0.11"
+      "mgmt_ip": "192.0.2.11"
     },
     "node-b": {
       "chassis": "r710",
-      "bmc_ip": "192.168.0.20",
+      "bmc_ip": "192.0.2.20",
       "bmc_mac": "00:00:00:00:00:00",
       "service_tag": "EXAMPLE2",
-      "mgmt_ip": "192.168.0.21"
+      "mgmt_ip": "192.0.2.21"
     }
   }
 }

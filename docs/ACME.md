@@ -41,7 +41,7 @@ AWS_SECRET_ACCESS_KEY=<YOUR_SECRET_ACCESS_KEY>
 Edit `/etc/pve/nodes/<node>/config`:
 
 ```ini
-acmedomain0: pve.example.com,plugin=AWS
+acmedomain0: proxmox-1.example.com,plugin=AWS
 ```
 
 **Key points:**
@@ -82,7 +82,7 @@ pvenode acme cert renew
 
 ### Certificate Hostname Mismatch
 
-**Symptom:** Browser shows certificate error for wrong hostname (e.g., `CN=pve.mgmt` when accessing `pve.example.com`)
+**Symptom:** Browser shows certificate error for wrong hostname (e.g., `CN=proxmox-1.mgmt` when accessing `proxmox-1.example.com`)
 
 **Cause:** Certificate was generated with old hostname configuration
 

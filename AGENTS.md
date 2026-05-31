@@ -83,8 +83,8 @@ See [`docs/SOPS_SETUP.md`](./docs/SOPS_SETUP.md) for full setup and usage.
 This repo is the **single source of truth** for infrastructure: VMs,
 containers, IPs, ports, and firewall rules.
 
-- **IP derivation**: every IP is `network_prefix.vm_id` (e.g. VM 250 →
-  `192.168.0.250`). Never hardcode IPs in any repo — they come from
+- **IP derivation**: every IP is `cidrhost(network_cidrs[vlan], vm_id)` (e.g. VM 42 →
+  `192.0.2.42`). Never hardcode IPs in any repo — they come from
   terraform output.
 - **Pipeline constants**: `locals.tf` defines `pipeline_constants` with
   service / syslog / netflow / notification / vector-db port mappings,

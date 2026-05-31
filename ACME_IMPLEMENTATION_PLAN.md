@@ -20,7 +20,7 @@ This document outlines the implementation plan for:
 ## Target Outcome
 
 - All ACME resources managed via Terraform modules
-- Proxmox accessible via `https://pve.example.com` (standard port)
+- Proxmox accessible via `https://proxmox-1.example.com` (standard port)
 - Automatic certificate renewal via Proxmox + Route53
 - Backward compatibility with port 8006 maintained
 
@@ -130,4 +130,4 @@ See `.claude/plans/quizzical-herding-fountain.md` for detailed issue templates.
 
 ---
 
-**For detailed implementation steps, see:** `/Users/jevans/.claude/plans/quizzical-herding-fountain.md`
+**For detailed implementation steps, see:** the GitHub issue linked above.

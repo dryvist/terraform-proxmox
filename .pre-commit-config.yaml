@@ -10,30 +10,15 @@ repos:
       - id: check-added-large-files
 
   # Terraform static checks - run on every commit via direnv-provided tools
-  # (Nix shell at .envrc supplies terraform, tflint, terraform-docs).
+  # (Nix shell at .envrc supplies opentofu, tflint, terraform-docs).
   # Same checks run in CI via .github/workflows/ci-gate.yml as a safety net.
+  # terraform_fmt uses the pre-commit-terraform hook directly (no binary lookup).
+  # terraform_validate and terraform_tflint need the nix-provided binary, so they
+  # are local hooks that use direnv exec to enter the nix shell first.
   - repo: https://github.com/antonbabenko/pre-commit-terraform
     rev: v1.92.0
     hooks:
       - id: terraform_fmt
-      - id: terraform_validate
-      - id: terraform_tflint
-        args:
-          # Fail the hook on errors; surface (do not block on) warnings such as
-          # the repo's deliberate variables-*.tf split (terraform_standard_module_structure).
-          - --args=--minimum-failure-severity=error
-          - --args=--only=terraform_deprecated_interpolation
-          - --args=--only=terraform_deprecated_index
-          - --args=--only=terraform_unused_declarations
-          - --args=--only=terraform_comment_syntax
-          - --args=--only=terraform_documented_outputs
-          - --args=--only=terraform_documented_variables
-          - --args=--only=terraform_typed_variables
-          - --args=--only=terraform_module_pinned_source
-          - --args=--only=terraform_naming_convention
-          - --args=--only=terraform_required_version
-          - --args=--only=terraform_required_providers
-          - --args=--only=terraform_standard_module_structure
 
   # Checkov - Terraform IaC security scanner
   - repo: https://github.com/bridgecrewio/checkov.git
@@ -46,6 +31,18 @@ repos:
   # Local hooks using nix+doppler toolchain
   - repo: local
     hooks:
+      - id: terraform-validate
+        name: Terraform validate
+        entry: direnv exec . bash -c 'tofu init -backend=false -no-color && tofu validate -no-color'
+        language: system
+        files: '\.(tf|hcl)$'
+        pass_filenames: false
+      - id: terraform-tflint
+        name: Terraform tflint
+        entry: direnv exec . bash -c 'tflint --init && tflint --minimum-failure-severity=error --only=terraform_deprecated_interpolation --only=terraform_deprecated_index --only=terraform_unused_declarations --only=terraform_comment_syntax --only=terraform_documented_outputs --only=terraform_documented_variables --only=terraform_typed_variables --only=terraform_module_pinned_source --only=terraform_naming_convention --only=terraform_required_version --only=terraform_required_providers --only=terraform_standard_module_structure'
+        language: system
+        files: '\.(tf|hcl)$'
+        pass_filenames: false
       - id: tofu-test
         name: tofu test (mock providers)
         entry: direnv exec . bash -c 'tofu init -backend=false -no-color && tofu test -no-color'

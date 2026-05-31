@@ -30,27 +30,13 @@ variable "network_cidrs" {
   }
 }
 
-# VLAN name => 802.1Q tag id. Non-secret topology structure (matches
-# int_homelab network/architecture.md), so it lives in the committed var file.
+# VLAN name => 802.1Q tag id. Non-secret topology structure — adapt VLAN IDs
+# to match your own network design. See deployment.json.example for example values.
 # Drives each guest NIC's vlan_id = vlan_ids[guest.vlan].
 variable "vlan_ids" {
-  description = "Map of VLAN name => 802.1Q VLAN id. Non-secret topology from int_homelab network/architecture.md."
+  description = "Map of VLAN name => 802.1Q VLAN id. Adapt to your network topology; see deployment.json.example for example values."
   type        = map(number)
-  default = {
-    lan_main  = 1
-    dns       = 2
-    lan_mgmt  = 5
-    bmc       = 8
-    compute   = 10
-    siem      = 20
-    pipeline  = 25
-    data      = 30
-    ai        = 40
-    apps      = 50
-    media_svc = 55
-    homeauto  = 60
-    nonprod   = 90
-  }
+  default     = {}
 }
 
 # Firewall configuration

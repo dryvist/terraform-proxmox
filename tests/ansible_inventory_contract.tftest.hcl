@@ -68,19 +68,34 @@ override_module {
 
 variables {
   network_cidrs = {
-    lan_main  = "192.168.0.0/22"
-    lan_mgmt  = "192.168.1.0/24"
-    dns       = "192.168.2.0/24"
-    bmc       = "192.168.8.0/24"
-    compute   = "192.168.10.0/24"
-    siem      = "192.168.20.0/24"
-    pipeline  = "192.168.25.0/24"
-    data      = "192.168.30.0/24"
-    ai        = "192.168.40.0/24"
-    apps      = "192.168.50.0/24"
-    media_svc = "192.168.55.0/24"
-    homeauto  = "192.168.60.0/24"
-    nonprod   = "192.168.90.0/24"
+    lan_main  = "192.0.2.0/22"
+    lan_mgmt  = "192.0.2.0/24"
+    dns       = "192.0.3.0/24"
+    bmc       = "192.0.4.0/24"
+    compute   = "192.0.5.0/24"
+    siem      = "198.51.100.0/24"
+    pipeline  = "198.51.101.0/24"
+    data      = "198.51.102.0/24"
+    ai        = "198.51.103.0/24"
+    apps      = "203.0.113.0/24"
+    media_svc = "203.0.114.0/24"
+    homeauto  = "203.0.115.0/24"
+    nonprod   = "203.0.116.0/24"
+  }
+  vlan_ids = {
+    lan_main  = 1
+    dns       = 2
+    lan_mgmt  = 5
+    bmc       = 8
+    compute   = 10
+    siem      = 20
+    pipeline  = 25
+    data      = 30
+    ai        = 40
+    apps      = 50
+    media_svc = 55
+    homeauto  = 60
+    nonprod   = 90
   }
 }
 
@@ -217,7 +232,7 @@ run "ansible_inventory_docker_vms_exists" {
   }
 }
 
-# --- per-container node placement (media stack pins to pve2) ---
+# --- per-container node placement (example pins a container to proxmox-2) ---
 
 run "ansible_inventory_container_node_override_propagated" {
   command = plan
@@ -228,7 +243,7 @@ run "ansible_inventory_container_node_override_propagated" {
         vm_id      = 210
         hostname   = "download-vpn"
         vlan       = "media_svc"
-        node_name  = "pve2"
+        node_name  = "proxmox-2"
         pool_id    = "media"
         protection = true # has mount_points -> satisfies storage_guest_protection check
         tags       = ["terraform", "container", "media", "vpn"]
@@ -236,7 +251,7 @@ run "ansible_inventory_container_node_override_propagated" {
           { path = "/dev/net/tun", mode = "0666" }
         ]
         mount_points = [
-          { volume = "/tank/downloads", path = "/mnt/downloads" }
+          { volume = "/example-pool/downloads", path = "/mnt/downloads" }
         ]
       }
       "lan-default-node" = {
@@ -249,7 +264,7 @@ run "ansible_inventory_container_node_override_propagated" {
 
   # node_name set on the container is honored end-to-end in the inventory output.
   assert {
-    condition     = output.ansible_inventory.containers["download-vpn"].node == "pve2"
+    condition     = output.ansible_inventory.containers["download-vpn"].node == "proxmox-2"
     error_message = "container node_name override must propagate to ansible_inventory.containers[*].node"
   }
 
@@ -413,18 +428,18 @@ run "ansible_inventory_nodes_commissioned_propagated" {
 
   variables {
     nodes = {
-      pve  = { role = "pve1" }
-      pve3 = { role = "pve3", commissioned = false }
+      proxmox-1 = { role = "pve1" }
+      proxmox-3 = { role = "pve3", commissioned = false }
     }
   }
 
   assert {
-    condition     = output.ansible_inventory.nodes["pve"].commissioned == true
+    condition     = output.ansible_inventory.nodes["proxmox-1"].commissioned == true
     error_message = "nodes commissioned must default to true"
   }
 
   assert {
-    condition     = output.ansible_inventory.nodes["pve3"].commissioned == false
+    condition     = output.ansible_inventory.nodes["proxmox-3"].commissioned == false
     error_message = "nodes commissioned=false must propagate (gates apply on un-commissioned nodes)"
   }
 }
@@ -434,9 +449,9 @@ run "ansible_inventory_node_storage_propagated" {
 
   variables {
     node_storage = {
-      pve2 = {
+      proxmox-2 = {
         pools = {
-          tank = {
+          example-pool = {
             raid     = "raidz1"
             datasets = { backups = { quota = "1T" } }
           }
@@ -446,17 +461,17 @@ run "ansible_inventory_node_storage_propagated" {
   }
 
   assert {
-    condition     = output.ansible_inventory.node_storage["pve2"].pools["tank"].datasets["backups"].quota == "1T"
+    condition     = output.ansible_inventory.node_storage["proxmox-2"].pools["example-pool"].datasets["backups"].quota == "1T"
     error_message = "node_storage pool/dataset/quota must propagate to ansible_inventory for ansible-proxmox"
   }
 
   assert {
-    condition     = output.ansible_inventory.node_storage["pve2"].pools["tank"].register == true
+    condition     = output.ansible_inventory.node_storage["proxmox-2"].pools["example-pool"].register == true
     error_message = "node_storage pool register must default to true"
   }
 
   assert {
-    condition     = output.ansible_inventory.node_storage["pve2"].pools["tank"].protected == true
+    condition     = output.ansible_inventory.node_storage["proxmox-2"].pools["example-pool"].protected == true
     error_message = "node_storage pool protected must default to true (storage-safety)"
   }
 }
@@ -477,7 +492,7 @@ run "vm_node_placement_defaults_to_primary" {
   }
 
   assert {
-    condition     = output.ansible_inventory.vms["placement"].node == "pve"
+    condition     = output.ansible_inventory.vms["placement"].node == "proxmox-1"
     error_message = "a VM without node_name must default to the primary node (var.proxmox_node)"
   }
 }
@@ -489,15 +504,15 @@ run "vm_node_placement_override" {
     vms = {
       placement = {
         vm_id     = 211
-        name      = "placement-pve2"
+        name      = "placement-proxmox-2"
         vlan      = "apps"
-        node_name = "pve2"
+        node_name = "proxmox-2"
       }
     }
   }
 
   assert {
-    condition     = output.ansible_inventory.vms["placement"].node == "pve2"
+    condition     = output.ansible_inventory.vms["placement"].node == "proxmox-2"
     error_message = "a VM with node_name set must be placed on that node"
   }
 }

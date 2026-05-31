@@ -124,3 +124,7 @@ scripts/timing-results.txt
 # contributor without review or version pinning. Contributors who want MCP
 # tooling in this repo should create their own .mcp.json locally.
 .mcp.json
+
+# Live deployment config — contains real node names, VM inventory, and ZFS pool names.
+# Populate from deployment.json.example and keep locally only.
+deployment.json

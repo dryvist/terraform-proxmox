@@ -47,7 +47,7 @@ variable "acme_certificates" {
   EOT
   type = map(object({
     node_name     = string
-    domain        = string                     # primary CN (e.g., "pve.example.com")
+    domain        = string                     # primary CN (e.g., "proxmox-1.example.com")
     account_id    = string                     # ACME account name (key in var.acme_accounts)
     dns_plugin_id = string                     # DNS plugin name (key in var.dns_plugins)
     sans          = optional(list(string), []) # Additional SANs (each uses dns_plugin_id)
