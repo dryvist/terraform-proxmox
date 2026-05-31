@@ -103,34 +103,14 @@ inputs = merge(
   local.env_var_defaults,
 )
 
-# Generate provider.tf — required_providers block + SSH credentials from Doppler env vars.
+# Generate provider.tf — SSH credentials from Doppler env vars.
+# Provider version constraints live solely in main.tf (single source of truth);
+# this block intentionally declares no required_providers to avoid drift.
 # BPG provider reads API auth (endpoint, token) from PROXMOX_VE_* env vars set by Doppler.
 generate "provider" {
   path      = "provider_override.tf"
   if_exists = "overwrite"
   contents  = <<EOF
-terraform {
-  required_version = ">= 1.10"
-  required_providers {
-    tls = {
-      source  = "hashicorp/tls"
-      version = "~> 4.1"
-    }
-    random = {
-      source  = "hashicorp/random"
-      version = "~> 3.7"
-    }
-    proxmox = {
-      source  = "bpg/proxmox"
-      version = "~> 0.101"
-    }
-    local = {
-      source  = "hashicorp/local"
-      version = "~> 2.5"
-    }
-  }
-}
-
 # BPG provider reads API auth from PROXMOX_VE_* env vars (set by Doppler).
 # See: https://registry.terraform.io/providers/bpg/proxmox/latest/docs
 provider "proxmox" {
