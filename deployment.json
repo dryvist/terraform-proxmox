@@ -26,13 +26,28 @@
     "logging": { "comment": "Logging and observability infrastructure" },
     "ai": { "comment": "AI development environments" },
     "infrastructure": { "comment": "Core infrastructure services" },
-    "media": { "comment": "Media stack: VPN-locked downloaders + *arr + Plex (pve2)" }
+    "media": { "comment": "Media stack: VPN-locked downloaders + *arr + Plex (v1 pinned to pve1 per JAC-69; v2 = pve2)" }
   },
 
   "datastores": {},
 
-  "_node_storage_comment": "Per-node ZFS storage DECLARATION. Terraform does NOT create ZFS pools (zpool create is OS-level). ansible-proxmox reads this via the ansible_inventory output to create pools/datasets/quotas and (when register=true) `pvesm add zfspool`. pve2 reflects the LIVE pool `tank` (3-drive raidz1) + tank/backups. pve3 is provisional from ADR-0001 and stays register=false until commissioned.",
+  "_node_storage_comment": "Per-node ZFS storage DECLARATION. Terraform does NOT create ZFS pools (zpool create is OS-level). ansible-proxmox reads this via the ansible_inventory output to create pools/datasets/quotas and (when register=true) `pvesm add zfspool`. pve carries rpool/data datasets for the media stack v1 placement (per JAC-69) — register=false because rpool is already PVE-registered as `local-zfs`, we only want the datasets. pve2 reflects the LIVE pool `tank` (3-drive raidz1) + tank/backups (v2 target for media migration). pve3 is provisional from ADR-0001 and stays register=false until commissioned.",
   "node_storage": {
+    "pve": {
+      "pools": {
+        "rpool": {
+          "type": "zfspool",
+          "raid": "mirror",
+          "protected": true,
+          "register": false,
+          "content": ["images", "rootdir"],
+          "datasets": {
+            "data/downloads": { "quota": "500G", "mountpoint": "/rpool/data/downloads" },
+            "data/media": { "quota": "1.5T", "mountpoint": "/rpool/data/media" }
+          }
+        }
+      }
+    },
     "pve2": {
       "pools": {
         "tank": {
@@ -519,8 +534,8 @@
       "vm_id": 210,
       "vlan": "media_svc",
       "hostname": "download-vpn",
-      "description": "VPN-locked downloader: qBittorrent-nox + Prowlarr behind Proton WireGuard with an nftables killswitch (wg0 down => no egress). Configured by ansible-proxmox-apps download_vpn role. Pinned to pve2 (always-on NAS/media host).",
-      "node_name": "pve2",
+      "description": "VPN-locked downloader: qBittorrent-nox + Prowlarr behind Proton WireGuard with an nftables killswitch (wg0 down => no egress). Configured by ansible-proxmox-apps download_vpn role. Pinned to pve1 (always-on; v1 placement per JAC-69; v2 = pve2).",
+      "node_name": "pve",
       "cpu_cores": 2,
       "memory_dedicated": 2048,
       "memory_swap": 2048,
@@ -529,8 +544,8 @@
       "unprivileged": true,
       "root_disk": { "size": 16 },
       "mount_points": [
-        { "volume": "/tank/downloads", "path": "/mnt/downloads" },
-        { "volume": "/tank/media", "path": "/mnt/media" }
+        { "volume": "/rpool/data/downloads", "path": "/mnt/downloads" },
+        { "volume": "/rpool/data/media", "path": "/mnt/media" }
       ],
       "features": { "nesting": true, "keyctl": true },
       "device_passthrough": [
@@ -541,8 +556,8 @@
       "vm_id": 211,
       "vlan": "media_svc",
       "hostname": "sonarr",
-      "description": "Sonarr TV series PVR/management. LAN-only (no VPN); reaches Prowlarr+qBittorrent on download-vpn over the LAN. Configured by ansible-proxmox-apps sonarr role. Pinned to pve2.",
-      "node_name": "pve2",
+      "description": "Sonarr TV series PVR/management. LAN-only (no VPN); reaches Prowlarr+qBittorrent on download-vpn over the LAN. Configured by ansible-proxmox-apps sonarr role. Pinned to pve1 (always-on; v1 placement per JAC-69; v2 = pve2).",
+      "node_name": "pve",
       "cpu_cores": 2,
       "memory_dedicated": 1024,
       "memory_swap": 1024,
@@ -551,16 +566,16 @@
       "unprivileged": true,
       "root_disk": { "size": 16 },
       "mount_points": [
-        { "volume": "/tank/downloads", "path": "/mnt/downloads" },
-        { "volume": "/tank/media", "path": "/mnt/media" }
+        { "volume": "/rpool/data/downloads", "path": "/mnt/downloads" },
+        { "volume": "/rpool/data/media", "path": "/mnt/media" }
       ]
     },
     "radarr": {
       "vm_id": 212,
       "vlan": "media_svc",
       "hostname": "radarr",
-      "description": "Radarr movie PVR/management. LAN-only (no VPN); reaches Prowlarr+qBittorrent on download-vpn over the LAN. Configured by ansible-proxmox-apps radarr role. Pinned to pve2.",
-      "node_name": "pve2",
+      "description": "Radarr movie PVR/management. LAN-only (no VPN); reaches Prowlarr+qBittorrent on download-vpn over the LAN. Configured by ansible-proxmox-apps radarr role. Pinned to pve1 (always-on; v1 placement per JAC-69; v2 = pve2).",
+      "node_name": "pve",
       "cpu_cores": 2,
       "memory_dedicated": 1024,
       "memory_swap": 1024,
@@ -569,16 +584,16 @@
       "unprivileged": true,
       "root_disk": { "size": 16 },
       "mount_points": [
-        { "volume": "/tank/downloads", "path": "/mnt/downloads" },
-        { "volume": "/tank/media", "path": "/mnt/media" }
+        { "volume": "/rpool/data/downloads", "path": "/mnt/downloads" },
+        { "volume": "/rpool/data/media", "path": "/mnt/media" }
       ]
     },
     "plex": {
       "vm_id": 213,
       "vlan": "media_svc",
       "hostname": "plex",
-      "description": "Plex Media Server. LAN-only (no VPN); streams from tank/media. Configured by ansible-proxmox-apps plex role. Pinned to pve2.",
-      "node_name": "pve2",
+      "description": "Plex Media Server. LAN-only (no VPN); streams from rpool/data/media. Configured by ansible-proxmox-apps plex role. Pinned to pve1 (always-on; v1 placement per JAC-69; v2 = pve2).",
+      "node_name": "pve",
       "cpu_cores": 4,
       "memory_dedicated": 4096,
       "memory_swap": 4096,
@@ -587,15 +602,15 @@
       "unprivileged": true,
       "root_disk": { "size": 16 },
       "mount_points": [
-        { "volume": "/tank/media", "path": "/mnt/media" }
+        { "volume": "/rpool/data/media", "path": "/mnt/media" }
       ]
     },
     "jellyseerr": {
       "vm_id": 214,
       "vlan": "media_svc",
       "hostname": "jellyseerr",
-      "description": "Jellyseerr request UI (Docker in LXC). Self-service movie/TV request front-end that wires to Sonarr, Radarr, and Plex. Config-only: no /tank bind-mounts (reaches *arr + Plex over the LAN). Configured by ansible-proxmox-apps jellyseerr role. Pinned to pve2.",
-      "node_name": "pve2",
+      "description": "Jellyseerr request UI (Docker in LXC). Self-service movie/TV request front-end that wires to Sonarr, Radarr, and Plex. Config-only: no bind-mounts (reaches *arr + Plex over the LAN). Configured by ansible-proxmox-apps jellyseerr role. Pinned to pve1 (always-on; v1 placement per JAC-69; v2 = pve2).",
+      "node_name": "pve",
       "cpu_cores": 1,
       "memory_dedicated": 1024,
       "memory_swap": 1024,

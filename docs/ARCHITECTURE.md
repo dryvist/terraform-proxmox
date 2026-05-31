@@ -175,9 +175,9 @@ Authoritative list lives in `deployment.json` `containers.*`. Summary by pool:
 - **`logging`** — `haproxy`, `cribl-edge-01/02`, `cribl-stream-01/02`,
   `splunk-mgmt` (SH + DS + LM + MC + CM)
 - **`ai`** — `claude-code-01/02`, `gemini-01/02`, `qdrant`, `llamaindex`
-- **`media`** (pinned to `pve2` via `node_name`) — `download-vpn`
+- **`media`** (v1 pinned to `pve` via `node_name` per JAC-69; v2 = `pve2`) — `download-vpn`
   (qBittorrent + Prowlarr behind Proton WireGuard with an nftables killswitch),
-  `sonarr`, `radarr`, `plex`
+  `sonarr`, `radarr`, `plex`, `jellyseerr`
 
 Notable per-container facts:
 
@@ -192,14 +192,16 @@ Notable per-container facts:
   internal notifications.
 - `download-vpn` is an unprivileged LXC with `/dev/net/tun` passed through
   (`device_passthrough`) so WireGuard can create `wg0` inside the container.
-  `tank/downloads` and `tank/media` are bind-mounted from the pve2 host
-  (size-less `mount_points`). Egress is locked to the VPN by an in-LXC nftables
-  killswitch (config + continuous validation owned by `ansible-proxmox-apps`
-  `download_vpn` role); Proxmox-level firewall is intentionally not applied to
-  the media pool — the killswitch is the security boundary.
+  `rpool/data/downloads` and `rpool/data/media` are bind-mounted from the pve1 host
+  (size-less `mount_points`); the `ansible-proxmox` `zfs_pools` role provisions
+  these datasets ahead of LXC creation. Egress is locked to the VPN by an in-LXC
+  nftables killswitch (config + continuous validation owned by
+  `ansible-proxmox-apps` `download_vpn` role); Proxmox-level firewall is
+  intentionally not applied to the media pool — the killswitch is the security
+  boundary.
 - `sonarr`, `radarr`, `plex` are LAN-only (no VPN); they reach Prowlarr +
   qBittorrent on `download-vpn` over the LAN and read/write the same
-  bind-mounted `tank/*` datasets.
+  bind-mounted `rpool/data/*` datasets.
 
 #### Notification Services
 
