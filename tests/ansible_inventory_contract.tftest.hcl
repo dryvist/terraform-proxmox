@@ -157,6 +157,11 @@ run "ansible_inventory_constants_media_ports_exists" {
     condition     = output.ansible_inventory.constants.media_ports.prowlarr_web == 9696
     error_message = "media_ports.prowlarr_web must be 9696"
   }
+
+  assert {
+    condition     = output.ansible_inventory.constants.media_ports.jellyseerr_web == 5055
+    error_message = "media_ports.jellyseerr_web must be 5055"
+  }
 }
 
 # --- key port value tests ---

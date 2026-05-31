@@ -171,6 +171,7 @@ locals {
       sonarr_web      = 8989
       radarr_web      = 7878
       plex_web        = 32400
+      jellyseerr_web  = 5055
     }
   }
 }

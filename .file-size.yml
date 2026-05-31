@@ -4,3 +4,4 @@ extended:
   limit: 32768
   files:
     - TROUBLESHOOTING
+    - TERRAFORM_REFERENCE

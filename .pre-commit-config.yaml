@@ -17,6 +17,11 @@ repos:
     hooks:
       - id: terraform_fmt
       - id: terraform_validate
+      - id: terraform_docs
+        args:
+          - --hook-config=--path-to-file=docs/TERRAFORM_REFERENCE.md
+          - --hook-config=--add-to-existing-file=true
+          - --hook-config=--create-file-if-not-exist=true
       - id: terraform_tflint
         args:
           # Fail the hook on errors; surface (do not block on) warnings such as
