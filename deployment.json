@@ -533,7 +533,7 @@
       "root_disk": { "size": 100 }
     },
     "download-vpn": {
-      "vm_id": 210,
+      "vm_id": 214,
       "vlan": "media_svc",
       "hostname": "download-vpn",
       "description": "VPN-locked downloader: qBittorrent-nox + Prowlarr behind Proton WireGuard with an nftables killswitch (wg0 down => no egress). Configured by ansible-proxmox-apps download_vpn role. Pinned to pve1 (always-on; v1 placement per JAC-69; v2 = pve2). Shell only: bind-mounts (/rpool/data/{downloads,media}), keyctl, and /dev/net/tun are applied by ansible-proxmox (root@pam) — see _media_comment.",
@@ -548,7 +548,7 @@
       "features": { "nesting": true }
     },
     "sonarr": {
-      "vm_id": 211,
+      "vm_id": 212,
       "vlan": "media_svc",
       "hostname": "sonarr",
       "description": "Sonarr TV series PVR/management. LAN-only (no VPN); reaches Prowlarr+qBittorrent on download-vpn over the LAN. Configured by ansible-proxmox-apps sonarr role. Pinned to pve1 (always-on; v1 placement per JAC-69; v2 = pve2). Shell only: bind-mounts (/rpool/data/{downloads,media}) are applied by ansible-proxmox (root@pam) — see _media_comment.",
@@ -562,7 +562,7 @@
       "root_disk": { "size": 16 }
     },
     "radarr": {
-      "vm_id": 212,
+      "vm_id": 213,
       "vlan": "media_svc",
       "hostname": "radarr",
       "description": "Radarr movie PVR/management. LAN-only (no VPN); reaches Prowlarr+qBittorrent on download-vpn over the LAN. Configured by ansible-proxmox-apps radarr role. Pinned to pve1 (always-on; v1 placement per JAC-69; v2 = pve2). Shell only: bind-mounts (/rpool/data/{downloads,media}) are applied by ansible-proxmox (root@pam) — see _media_comment.",
@@ -576,7 +576,7 @@
       "root_disk": { "size": 16 }
     },
     "plex": {
-      "vm_id": 213,
+      "vm_id": 210,
       "vlan": "media_svc",
       "hostname": "plex",
       "description": "Plex Media Server. LAN-only (no VPN); streams from rpool/data/media. Configured by ansible-proxmox-apps plex role. Pinned to pve1 (always-on; v1 placement per JAC-69; v2 = pve2). Shell only: the /rpool/data/media bind-mount is applied by ansible-proxmox (root@pam) — see _media_comment.",
@@ -590,7 +590,7 @@
       "root_disk": { "size": 16 }
     },
     "jellyseerr": {
-      "vm_id": 214,
+      "vm_id": 211,
       "vlan": "media_svc",
       "hostname": "jellyseerr",
       "description": "Jellyseerr request UI (Docker in LXC). Self-service movie/TV request front-end that wires to Sonarr, Radarr, and Plex. Config-only: no bind-mounts (reaches *arr + Plex over the LAN). Configured by ansible-proxmox-apps jellyseerr role. Pinned to pve1 (always-on; v1 placement per JAC-69; v2 = pve2). Shell only: keyctl is applied by ansible-proxmox (root@pam) — see _media_comment.",
