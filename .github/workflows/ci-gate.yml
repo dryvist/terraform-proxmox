@@ -99,23 +99,25 @@ jobs:
     uses: JacobPEvans-personal/.github/.github/workflows/_file-size.yml@main
 
   # Secrets can appear in ANY file, so this runs on every PR (no path filter,
-  # never skipped). gitleaks via its official container (no org-license needed),
-  # driven by the committed value-free .gitleaks.toml.
+  # never skipped). Official gitleaks-action; org GITLEAKS_LICENSE is seeded.
+  # Auto-detects the committed value-free .gitleaks.toml at the repo root.
   secret-scan:
     name: Secret Scan
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
       contents: read
+      pull-requests: write
     steps:
       - name: Checkout
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - name: gitleaks
-        run: >
-          docker run --rm -v "$PWD:/repo" ghcr.io/gitleaks/gitleaks:v8.30.1
-          dir --config=/repo/.gitleaks.toml --redact --no-banner --exit-code=1 /repo
+        uses: gitleaks/gitleaks-action@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
 
   # ==========================================================================
   # MERGE GATE - The ONLY required check in branch protection
