@@ -91,7 +91,7 @@ resource "proxmox_virtual_environment_container" "containers" {
 
   # Additional mount points
   # `size` is only set for managed-volume mounts. Host-directory bind-mounts
-  # (volume = "/tank/media") must omit size — passing a size to a bind-mount
+  # (volume = "/example-pool/media") must omit size — passing a size to a bind-mount
   # is rejected by the Proxmox API.
   dynamic "mount_point" {
     for_each = each.value.mount_points

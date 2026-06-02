@@ -6,9 +6,9 @@
 
   "_nodes_comment": "Proxmox cluster nodes (non-secret identity). proxmox_node above is the primary/default placement. Real mgmt/BMC IPs live in terraform.sops.json. commissioned=false => declared but not yet installed (no workloads, storage not applied).",
   "nodes": {
-    "proxmox-1": { "role": "pve1", "hardware": "amd-desktop" },
-    "proxmox-2": { "role": "pve2", "hardware": "dell-r410" },
-    "proxmox-3": { "role": "pve3", "hardware": "dell-r710", "commissioned": false }
+    "proxmox-1": { "role": "node-1", "hardware": "amd-desktop" },
+    "proxmox-2": { "role": "node-2", "hardware": "dell-r410" },
+    "proxmox-3": { "role": "node-3", "hardware": "dell-r710", "commissioned": false }
   },
 
   "proxmox_iso_debian": "debian-13.2.0-amd64-netinst.iso",

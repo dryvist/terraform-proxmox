@@ -25,7 +25,7 @@ variable "containers" {
 
     # Mount points
     # `size` is optional: omit it for host-directory bind-mounts (volume is a
-    # host path like "/tank/media"), set it to allocate a new managed volume.
+    # host path like "/example-pool/media"), set it to allocate a new managed volume.
     mount_points = optional(list(object({
       volume = string
       size   = optional(string)

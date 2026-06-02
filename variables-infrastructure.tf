@@ -50,7 +50,7 @@ variable "proxmox_ssh_host" {
 variable "nodes" {
   description = "Proxmox cluster node inventory (non-secret identity), surfaced to ansible-proxmox via ansible_inventory."
   type = map(object({
-    role         = string               # role label: pve1 | pve2 | pve3
+    role         = string               # role label: node-1 | node-2 | node-3
     hardware     = optional(string)     # e.g. amd-desktop, dell-r410, dell-r710
     commissioned = optional(bool, true) # false = declared but not yet installed
   }))

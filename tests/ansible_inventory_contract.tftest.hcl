@@ -406,8 +406,8 @@ run "ansible_inventory_nodes_commissioned_propagated" {
 
   variables {
     nodes = {
-      proxmox-1 = { role = "pve1" }
-      proxmox-3 = { role = "pve3", commissioned = false }
+      proxmox-1 = { role = "node-1" }
+      proxmox-3 = { role = "node-3", commissioned = false }
     }
   }
 
