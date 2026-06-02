@@ -1,0 +1,41 @@
+# Gitleaks config — STRUCTURAL (value-free) secret detection.
+#
+# Committed to a PUBLIC repo, so it holds only PATTERNS, never real values.
+# Runs at pre-commit (official gitleaks hook) and in CI (gitleaks container,
+# .github/workflows/ci-gate.yml → Secret Scan job). gitleaks' default ruleset
+# catches private keys, cloud tokens, and common credential shapes; the rules
+# below add this repo's AWS-account-ID-bearing patterns.
+
+[extend]
+useDefault = true # PEM/SSH private keys, cloud tokens, common credential shapes
+
+[[rules]]
+id = "aws-account-id"
+description = "Bare 12-digit AWS account ID"
+regex = '''\b[0-9]{12}\b'''
+keywords = []
+[rules.allowlist]
+regexes = [
+  '''\d{4}-\d{2}-\d{2}''', # ISO dates
+  '''\b0{12}\b''',         # 000000000000 placeholder used in docs/fixtures
+]
+
+[[rules]]
+id = "aws-state-bucket-with-account"
+description = "Terraform state bucket name embedding a 12-digit account ID"
+regex = '''[a-z0-9-]*-(state|tfstate|locks)-[a-z0-9-]*\b[0-9]{12}\b'''
+keywords = ["state", "tfstate", "locks"]
+
+[[rules]]
+id = "aws-iam-role-arn"
+description = "IAM role ARN embedding a 12-digit account ID"
+regex = '''arn:aws:iam::[0-9]{12}:'''
+keywords = ["arn:aws:iam"]
+
+[allowlist]
+description = "Paths exempt from structural scanning"
+paths = [
+  '''\.gitleaks\.toml''',      # this config (contains the patterns themselves)
+  '''(^|/)CHANGELOG\.md$''',   # release-please generated
+  '''\.direnv/''',             # gitignored nix-direnv cache (not in CI checkout)
+]

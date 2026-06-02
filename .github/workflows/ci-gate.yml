@@ -98,12 +98,33 @@ jobs:
     if: needs.changes.outputs.terraform == 'true' || needs.changes.outputs.markdown == 'true'
     uses: JacobPEvans-personal/.github/.github/workflows/_file-size.yml@main
 
+  # Secrets can appear in ANY file, so this runs on every PR (no path filter,
+  # never skipped). Official gitleaks-action; org GITLEAKS_LICENSE is seeded.
+  # Auto-detects the committed value-free .gitleaks.toml at the repo root.
+  secret-scan:
+    name: Secret Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: gitleaks
+        uses: gitleaks/gitleaks-action@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE_KEY }}
+
   # ==========================================================================
   # MERGE GATE - The ONLY required check in branch protection
   # ==========================================================================
   gate:
     name: Merge Gate
-    needs: [changes, terraform, markdown-lint, file-size]
+    needs: [changes, terraform, markdown-lint, file-size, secret-scan]
     if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     steps:
