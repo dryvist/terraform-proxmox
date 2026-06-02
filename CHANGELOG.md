@@ -1,5 +1,24 @@
 # Changelog
 
+## [1.12.0](https://github.com/dryvist/terraform-proxmox/compare/v1.11.0...v1.12.0) (2026-06-01)
+
+
+### Features
+
+* **idrac:** manage idrac-kvm (251) as Docker-in-LXC on ports 5410/5710 ([#324](https://github.com/dryvist/terraform-proxmox/issues/324)) ([7d9d19e](https://github.com/dryvist/terraform-proxmox/commit/7d9d19ec3e3fad43a9b6ca94fa6911340cc7c133))
+* **media:** add Jellyseerr request UI (LXC 214) on media_svc ([#336](https://github.com/dryvist/terraform-proxmox/issues/336)) ([3bd4d5f](https://github.com/dryvist/terraform-proxmox/commit/3bd4d5f2333d1391e12343c8edd785d1b17bebe9))
+* **media:** redirect stack to pve1 + declare rpool node_storage ([e39a02c](https://github.com/dryvist/terraform-proxmox/commit/e39a02c712302108632c1c696cd83ce4f854f163))
+* **media:** VPN-locked media stack LXCs on pve2 (download-vpn/sonarr/radarr/plex) ([#327](https://github.com/dryvist/terraform-proxmox/issues/327)) ([4673dc8](https://github.com/dryvist/terraform-proxmox/commit/4673dc8f34cd94f818ae5445a1824e43ee8c5340))
+* **multi-node:** node placement, pve2/pve3 storage, safety gates ([#325](https://github.com/dryvist/terraform-proxmox/issues/325)) ([6b3277f](https://github.com/dryvist/terraform-proxmox/commit/6b3277f4e8764f27f0cdc3bb1f62e1a0c1cb3c4b))
+* **network:** per-VLAN CIDR model replacing flat network_prefix ([#331](https://github.com/dryvist/terraform-proxmox/issues/331)) ([72b292d](https://github.com/dryvist/terraform-proxmox/commit/72b292d1b11181ef3b2c68c77b9e935d4b7ff99a))
+
+
+### Bug Fixes
+
+* **ci:** repoint release-please caller to org-native reusable workflow ([#342](https://github.com/dryvist/terraform-proxmox/issues/342)) ([31b8e07](https://github.com/dryvist/terraform-proxmox/commit/31b8e07dddecee33ce123b32d3437bbfe929b1b3))
+* **ci:** retarget reusable-workflow uses: refs to current org homes ([#326](https://github.com/dryvist/terraform-proxmox/issues/326)) ([c7b2def](https://github.com/dryvist/terraform-proxmox/commit/c7b2def173e2d7ce16db4cf1d2a70e547d573f21))
+* **media:** align node_name with live PVE member name pve1 ([6420bdd](https://github.com/dryvist/terraform-proxmox/commit/6420bdd0839d5a187ef89cb90794201682be5ca5))
+
 ## [1.11.0](https://github.com/JacobPEvans/terraform-proxmox/compare/v1.10.1...v1.11.0) (2026-05-25)
 
 
