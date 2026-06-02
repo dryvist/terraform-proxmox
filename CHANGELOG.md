@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.13.0](https://github.com/dryvist/terraform-proxmox/compare/v1.12.0...v1.13.0) (2026-06-02)
+
+
+### Features
+
+* **ci:** multi-layer secret scanning (gitleaks + private denylist) ([#339](https://github.com/dryvist/terraform-proxmox/issues/339)) ([1cb3e35](https://github.com/dryvist/terraform-proxmox/commit/1cb3e351f4c6b460d82d0eb3e3b66dca23c56b78))
+* **sops:** add plex_claim_token to terraform.sops.json ([#347](https://github.com/dryvist/terraform-proxmox/issues/347)) ([63a901f](https://github.com/dryvist/terraform-proxmox/commit/63a901feae00a543b33249f9f704c663b2be2a29))
+
 ## [1.12.0](https://github.com/dryvist/terraform-proxmox/compare/v1.11.0...v1.12.0) (2026-06-01)
 
 
