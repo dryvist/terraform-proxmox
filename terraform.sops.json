@@ -3,6 +3,7 @@
 	"vm_ssh_public_key_path": "ENC[AES256_GCM,data:VXFFu5N5zeH8Lp0BFR02iWQbU+4=,iv:c+o6Wh2uPjZdkgxmutm4vrnmOLuQWRkplM+5zoEj+Gs=,tag:BK7rF42PBDaefPgFkTSpmg==,type:str]",
 	"vm_ssh_private_key_path": "ENC[AES256_GCM,data:viaPT9Fy17DTsrnX96ZWLw==,iv:LNsu2QY4FlA5vEd2sSLoCWdqZSFyJjJKkNDfJMQpbQg=,tag:IDaUmVZweuIaNVxxOJQtxQ==,type:str]",
 	"proxmox_ssh_username": "ENC[AES256_GCM,data:J0I4nw==,iv:hsHkoBHBrKemNmxagPOgR+lvcMrATcDRUmxheNCVJa0=,tag:ebYHcF3G65t4MPuT5m5fxA==,type:str]",
+	"plex_claim_token": "ENC[AES256_GCM,data:Wb485D7BHcVCkJNR1vxkKR89aZM3D4xWMB4=,iv:jjf5XvdW900u+v094BoywRoQjLyD4+H6yOoXZU7qD4A=,tag:Wr4n6JUpoMdkrLk6Q3e8UQ==,type:str]",
 	"sops": {
 		"age": [
 			{
@@ -10,8 +11,8 @@
 				"enc": "-----BEGIN AGE ENCRYPTED FILE-----\nYWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBuODVPV1pIQ21vMFg2WXhU\nd2piN3Vtc3d2eFYyMzNLcUl1RGVLendCTzAwCmRJNWQzbWtwUnMvRE9OOWYrU09T\nTzhnWThnU3pUc2Y3UFZIS0FsMktWUUkKLS0tIGJRdVpVTGFSMmNLYnhkYndCNmxk\nVEJrRUFoSFQwbFhLUlM0Qyt6MFVBd0UKbDcikfaO1Wi+2qq2mU7mTMT82vdAGc1f\nXu4RW3uNMn4Otoj2reDLPhToGsJUxEuo5wUy4q/0VmLTqviHo2fqIQ==\n-----END AGE ENCRYPTED FILE-----\n"
 			}
 		],
-		"lastmodified": "2026-05-29T20:01:14Z",
-		"mac": "ENC[AES256_GCM,data:cicQOFF+Mm0oNA1tgyNjRGTfOSaWxmLMz+oV4tZ2+0vICeGs3i1DPG/dbtJQgQox0Gz2peFGWXUvIFEmGRwW1pGG05iLKRcm04awsUxwsum3PJ5q23QMeeSB7BMXp2EGX3Qd13UZqL/Oal38lw2cnWmOJCE5qKbVhOucLZwi9yw=,iv:vxdVlI8mCQtPJ3L1/E9LBCVVH4HZu38iaXU1Rh5GHbM=,tag:O7X55y256N+mN6N5shj9Vw==,type:str]",
+		"lastmodified": "2026-06-01T19:25:28Z",
+		"mac": "ENC[AES256_GCM,data:9NDRtFdmw3VO1Gwc93Ukg8id3UimBvVKtZ+H+62LDOshrQyIgBHCsXUIGEqLAlbbwHBRssdqzMnK/8Msq6VBG2Mhb9oiEga0XN/4WaTcpIo/ZjizdOoz8xZ5Qj6c/GLMMoP42ZTEo0DndvyX3AcoPxy5XqeeUIB7qhQtIZsnUcM=,iv:8O1Mf9zWL5LqRHjXctIIsctP/atr6f3pZH0784qBbbw=,tag:jrFg/P6KypHISrDrX34TXg==,type:str]",
 		"unencrypted_suffix": "_unencrypted",
 		"version": "3.12.1"
 	}
