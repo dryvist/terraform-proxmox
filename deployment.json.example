@@ -1,0 +1,94 @@
+{
+  "_comment": "EXAMPLE FILE — copy to deployment.json for live use (see .gitignore). Non-secret deployment config. Committed to git, plain JSON, readable in PRs. Edit directly—no SOPS needed. Each guest carries a non-secret `vlan` name selecting its subnet+802.1Q tag; the per-VLAN CIDRs are sensitive and injected from Doppler NETWORK_CIDR_* by terragrunt.hcl. SSH paths/domain are in terraform.sops.json. See docs/SOPS_SETUP.md.",
+
+  "proxmox_node": "proxmox-1",
+  "environment": "homelab",
+
+  "_nodes_comment": "Proxmox cluster nodes (non-secret identity). proxmox_node above is the primary/default placement. Real mgmt/BMC IPs live in terraform.sops.json. commissioned=false => declared but not yet installed (no workloads, storage not applied).",
+  "nodes": {
+    "proxmox-1": { "role": "node-1", "hardware": "amd-desktop" },
+    "proxmox-2": { "role": "node-2", "hardware": "dell-r410" },
+    "proxmox-3": { "role": "node-3", "hardware": "dell-r710", "commissioned": false }
+  },
+
+  "proxmox_iso_debian": "debian-13.2.0-amd64-netinst.iso",
+  "proxmox_ct_template_debian": "debian-13-standard_13.1-2_amd64.tar.zst",
+  "ansible_cloud_init_file": "cloud-init/ansible-server-example.yml",
+
+  "splunk_vm_id": 200,
+  "splunk_vm_name": "splunk-aio",
+  "splunk_vm_pool_id": "logging",
+  "template_id": 9200,
+  "splunk_boot_disk_size": 25,
+  "splunk_data_disk_size": 200,
+
+  "pools": {
+    "logging": { "comment": "Logging and observability infrastructure" },
+    "infrastructure": { "comment": "Core infrastructure services" }
+  },
+
+  "datastores": {},
+
+  "_node_storage_comment": "Per-node ZFS storage DECLARATION. Terraform does NOT create ZFS pools (zpool create is OS-level). ansible-proxmox reads this via the ansible_inventory output to create pools/datasets/quotas and (when register=true) `pvesm add zfspool`. Adapt pool names and RAID levels for your hardware.",
+  "node_storage": {
+    "proxmox-2": {
+      "pools": {
+        "example-pool": {
+          "type": "zfspool",
+          "raid": "raidz1",
+          "protected": true,
+          "register": true,
+          "content": ["images", "rootdir"],
+          "datasets": {
+            "backups": { "quota": "1T" }
+          }
+        }
+      }
+    },
+    "proxmox-3": {
+      "pools": {
+        "example-bulk-pool": {
+          "type": "zfspool",
+          "raid": "raidz2",
+          "register": false,
+          "content": ["images", "rootdir"],
+          "datasets": {
+            "backups": { "quota": "1T" }
+          }
+        }
+      }
+    }
+  },
+
+  "host_services": {},
+
+  "vms": {
+    "example-vm": {
+      "vm_id": 250,
+      "vlan": "nonprod",
+      "name": "example-vm",
+      "description": "Example VM entry — replace with your own",
+      "cpu_cores": 2,
+      "memory_dedicated": 2048,
+      "tags": ["terraform"],
+      "boot_disk": { "datastore_id": "local-zfs", "size": 32 },
+      "clone_template": { "template_id": 9000 },
+      "user_account": { "username": "debian", "password": "", "keys": [] }
+    }
+  },
+
+  "containers": {
+    "example-container": {
+      "vm_id": 100,
+      "vlan": "apps",
+      "hostname": "example-container",
+      "description": "Example LXC container entry — replace with your own",
+      "cpu_cores": 1,
+      "memory_dedicated": 512,
+      "memory_swap": 1536,
+      "tags": ["terraform", "container"],
+      "pool_id": "infrastructure",
+      "root_disk": { "size": 8 }
+    }
+  }
+}

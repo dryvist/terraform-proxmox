@@ -29,7 +29,7 @@ Resource allocations (cores, RAM, disk) are defined in `deployment.json`.
 
 ### Network Configuration
 
-- Domain: `pve.example.com`
+- Domain: `proxmox-1.example.com`
 - Network: 192.168.x.0/24
 - Gateway: 192.168.x.1
 - Bridge: vmbr0
@@ -103,10 +103,10 @@ Splunk-to-Splunk communication deferred to post-deployment (tracked in GitHub is
 
 ### Already Staged
 
-- Splunk Package on pve host
+- Splunk Package on proxmox host
 - Network config in `terraform.tfvars`
 - "logging" pool exists
-- Domain: `pve.example.com`
+- Domain: `proxmox-1.example.com`
 
 ### User Must Provide
 

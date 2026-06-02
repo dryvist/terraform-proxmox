@@ -169,20 +169,20 @@ After Proxmox upgrades, hostname changes, or domain migrations, certificates may
 **Symptoms:**
 
 - Browser shows `NET::ERR_CERT_COMMON_NAME_INVALID`
-- Certificate shows wrong CN (e.g., `CN=pve.mgmt` when accessing `pve.example.com`)
+- Certificate shows wrong CN (e.g., `CN=proxmox-1.mgmt` when accessing `proxmox-1.example.com`)
 - `curl -vk` shows unexpected subject/issuer
 
 **Diagnosis:**
 
 ```bash
 # Check what certificate is being served
-curl -vk https://pve.example.com:8006/ 2>&1 | grep -E "(subject|issuer)"
+curl -vk https://proxmox-1.example.com:8006/ 2>&1 | grep -E "(subject|issuer)"
 
 # Check certificate on server
-ssh pve "openssl x509 -in /etc/pve/local/pveproxy-ssl.pem -noout -subject -ext subjectAltName"
+ssh proxmox-1 "openssl x509 -in /etc/pve/local/pveproxy-ssl.pem -noout -subject -ext subjectAltName"
 
 # Check hostname configuration
-ssh pve "hostname && hostname -f && grep -E '^[^#]*\bpve\b' /etc/hosts"
+ssh proxmox-1 "hostname && hostname -f && cat /etc/hosts"
 ```
 
 **Root Cause:**
@@ -195,20 +195,20 @@ Certificate was generated before hostname/domain configuration was corrected. Th
 ```bash
 # Ensure /etc/hosts is correct first:
 # <IP> <FQDN> <short-hostname>
-# Example: 192.168.1.14 pve.example.com pve
+# Example: 192.168.10.14 proxmox-1.example.com proxmox-1
 
-ssh pve "pvecm updatecerts --force && systemctl restart pveproxy"
+ssh proxmox-1 "pvecm updatecerts --force && systemctl restart pveproxy"
 ```
 
 **Fix for ACME/Let's Encrypt Certificates:**
 
 ```bash
 # Configure ACME with correct domain
-ssh pve "cat /etc/pve/nodes/pve/config"
-# Should show: acmedomain0: pve.example.com,plugin=AWS
+ssh proxmox-1 "cat /etc/pve/nodes/proxmox-1/config"
+# Should show: acmedomain0: proxmox-1.example.com,plugin=AWS
 
 # Order new certificate
-ssh pve "pvenode acme cert order --force"
+ssh proxmox-1 "pvenode acme cert order --force"
 ```
 
 See [docs/ACME.md](./docs/ACME.md) for detailed ACME configuration.

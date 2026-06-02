@@ -54,7 +54,7 @@ locals {
   # Fallback defaults from Doppler for values that may vary per environment.
   # These override deployment.json and SOPS via merge() order.
   env_var_defaults = {
-    proxmox_node            = get_env("PROXMOX_VE_NODE", "pve")
+    proxmox_node            = get_env("PROXMOX_VE_NODE", "proxmox-1")
     proxmox_ssh_private_key = get_env("PROXMOX_SSH_PRIVATE_KEY", "")
     proxmox_ssh_host        = get_env("PROXMOX_VE_HOSTNAME", "")
     # Keep in sync with local.proxmox_ssh_user (SOPS-first, env fallback)

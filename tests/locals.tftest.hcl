@@ -3,9 +3,11 @@
 # All runs use mock providers (no real infrastructure needed).
 # command = plan is sufficient since locals are evaluated at plan time.
 #
-# network_cidrs fixture uses the homelab VLAN layout from
-# int_homelab network/architecture.md (test data, not committed secrets).
-# Every guest IP is cidrhost(network_cidrs[vlan], vm_id); gateway is the .1.
+# network_cidrs fixture is DERIVED from vlan_ids as 192.168.<vlan_id>.0/24, so the
+# third octet always equals the VLAN id (RFC1918 192.168/16, never the real range).
+# Real subnets come from Doppler NETWORK_CIDR_* at runtime; these fakes exercise the
+# cidrhost() math identically. Every guest IP is cidrhost(network_cidrs[vlan], vm_id);
+# gateway is the .1.
 
 mock_provider "proxmox" {
   mock_data "proxmox_virtual_environment_datastores" {
@@ -69,21 +71,9 @@ override_module {
 }
 
 variables {
-  network_cidrs = {
-    lan_main  = "192.168.0.0/22"
-    lan_mgmt  = "192.168.1.0/24"
-    dns       = "192.168.2.0/24"
-    bmc       = "192.168.8.0/24"
-    compute   = "192.168.10.0/24"
-    siem      = "192.168.20.0/24"
-    pipeline  = "192.168.25.0/24"
-    data      = "192.168.30.0/24"
-    ai        = "192.168.40.0/24"
-    apps      = "192.168.50.0/24"
-    media_svc = "192.168.55.0/24"
-    homeauto  = "192.168.60.0/24"
-    nonprod   = "192.168.90.0/24"
-  }
+  # vlan_ids uses its variable default (single source of truth); network_cidrs is
+  # derived from it as 192.168.<vlan_id>.0/24 — no duplicated VLAN/CIDR list.
+  network_cidrs = { for name, id in var.vlan_ids : name => "192.168.${id}.0/24" }
 }
 
 # --- per-guest IP derivation tests ---

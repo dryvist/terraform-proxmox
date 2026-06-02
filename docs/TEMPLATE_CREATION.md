@@ -8,7 +8,7 @@ This guide creates a reusable Debian 13 (Trixie) template (VM ID 9001) optimized
 
 ```bash
 # SSH to Proxmox host
-ssh root@pve.your-domain
+ssh root@<proxmox-host>
 
 # Download Debian cloud image
 wget https://cloud.debian.org/images/cloud/trixie/latest/debian-13-generic-amd64.qcow2
@@ -210,7 +210,7 @@ ip_config = {
 user_account = {
   username = "debian"
   password = "your-secure-password"
-  keys     = [file("~/.ssh/id_rsa_vm.pub")]
+  keys     = [file("~/.ssh/id_ed25519.pub")]
 }
 ```
 

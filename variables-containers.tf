@@ -15,7 +15,7 @@ variable "containers" {
     vlan = string
 
     # Node placement (optional). When unset, main.tf defaults to var.proxmox_node
-    # (the primary node). Set to "pve2"/"pve3" to place an LXC on another cluster node.
+    # (the primary node). Set to "proxmox-2"/"proxmox-3" to place an LXC on another cluster node.
     node_name = optional(string)
 
     # Resource configuration
@@ -31,7 +31,7 @@ variable "containers" {
 
     # Mount points (additional volumes mounted into the container)
     # Omit `size` for host-directory bind-mounts (volume = host path such as
-    # "/tank/media"); set it to allocate a new managed volume.
+    # "/example-pool/media"); set it to allocate a new managed volume.
     mount_points = optional(list(object({
       volume = string
       size   = optional(string)

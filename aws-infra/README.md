@@ -49,7 +49,7 @@ terraform-proxmox/
    doppler secrets set AWS_ROUTE53_SECRET_KEY=...
    doppler secrets set ROUTE53_ZONE_ID=Z0123456789ABCDEFGHIJ
    doppler secrets set PROXMOX_DOMAIN=pve.example.com
-   doppler secrets set PROXMOX_IP_ADDRESS=192.0.2.10
+   doppler secrets set PROXMOX_IP_ADDRESS=192.168.10.10
    ```
 
 2. Run from this directory:
