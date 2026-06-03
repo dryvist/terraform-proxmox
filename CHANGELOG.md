@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.17.0](https://github.com/dryvist/terraform-proxmox/compare/v1.16.0...v1.17.0) (2026-06-03)
+
+
+### Features
+
+* **network:** untagged-native NIC support + static IP override ([fa50592](https://github.com/dryvist/terraform-proxmox/commit/fa5059252a133b2f798bc986a0528d8954fac36c))
+
 ## [1.16.0](https://github.com/dryvist/terraform-proxmox/compare/v1.15.0...v1.16.0) (2026-06-03)
 
 
