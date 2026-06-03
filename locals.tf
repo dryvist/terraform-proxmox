@@ -21,9 +21,14 @@ locals {
 
   # Per-guest IPv4 (CIDR notation) and gateway, keyed by resource name. IP is
   # cidrhost(<guest VLAN CIDR>, vm_id); gateway is the .1 of that subnet.
+  # A container MAY pin a static ipv4_address (CIDR form, e.g. "192.168.5.10/24") to
+  # override the vm_id-derived address — for fixed low-number hosts (e.g. a DNS server
+  # at .10) whose address must not follow the vm_id. Otherwise derived as usual.
   container_ipv4 = {
-    for k, v in var.containers : k =>
-    nonsensitive("${cidrhost(var.network_cidrs[v.vlan], v.vm_id)}/${split("/", var.network_cidrs[v.vlan])[1]}")
+    for k, v in var.containers : k => nonsensitive(coalesce(
+      try(v.ip_config.ipv4_address, null),
+      "${cidrhost(var.network_cidrs[v.vlan], v.vm_id)}/${split("/", var.network_cidrs[v.vlan])[1]}"
+    ))
   }
   container_gateway = {
     for k, v in var.containers : k => nonsensitive(cidrhost(var.network_cidrs[v.vlan], 1))

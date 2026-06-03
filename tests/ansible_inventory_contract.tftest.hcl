@@ -337,6 +337,50 @@ run "ansible_inventory_domain_field_exists" {
   }
 }
 
+# --- untagged-native vlan key + static IP override ---
+#
+# A vlan key present in network_cidrs but ABSENT from vlan_ids yields an untagged NIC
+# (native VLAN). A container MAY also pin a static ipv4_address overriding the
+# vm_id-derived address (e.g. a fixed DNS server at .10). Both feed the inventory.
+
+run "ansible_inventory_untagged_native_and_static_ip" {
+  command = plan
+
+  variables {
+    # Add an untagged native-Management key (intentionally NOT in vlan_ids).
+    network_cidrs = merge(
+      { for name, id in var.vlan_ids : name => "192.168.${id}.0/24" },
+      { mgmt_native = "192.168.5.0/24" }
+    )
+    containers = {
+      # On an untagged key; planning at all proves lookup(var.vlan_ids, vlan, null)
+      # avoids the missing-key error. IP derives from vm_id.
+      "dns-derived" = {
+        vm_id    = 110
+        hostname = "dns-derived"
+        vlan     = "mgmt_native"
+      }
+      # Static ipv4_address must override the vm_id-derived address.
+      "dns-static" = {
+        vm_id     = 111
+        hostname  = "dns-static"
+        vlan      = "mgmt_native"
+        ip_config = { ipv4_address = "192.168.5.10/24" }
+      }
+    }
+  }
+
+  assert {
+    condition     = output.ansible_inventory.containers["dns-derived"].ip == "192.168.5.110"
+    error_message = "container on a vlan key absent from vlan_ids must plan (untagged) and derive ip from vm_id"
+  }
+
+  assert {
+    condition     = output.ansible_inventory.containers["dns-static"].ip == "192.168.5.10"
+    error_message = "ip_config.ipv4_address must override the vm_id-derived address in the inventory"
+  }
+}
+
 run "ansible_inventory_domain_default_empty" {
   command = plan
 

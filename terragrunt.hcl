@@ -32,6 +32,9 @@ locals {
   network_cidrs = {
     lan_main  = get_env("NETWORK_CIDR_LAN_MAIN")
     mgmt      = get_env("NETWORK_CIDR_MGMT")
+    # Native/untagged Management subnet (gateway + DNS servers). No vlan_ids entry
+    # => NICs on this key are untagged (native VLAN), matching haproxy/Technitium.
+    mgmt_native = get_env("NETWORK_CIDR_LAN_MGMT")
     dns       = get_env("NETWORK_CIDR_DNS")
     bmc       = get_env("NETWORK_CIDR_BMC")
     compute   = get_env("NETWORK_CIDR_COMPUTE")
