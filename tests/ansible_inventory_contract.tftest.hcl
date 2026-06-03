@@ -253,6 +253,45 @@ run "ansible_inventory_container_node_override_propagated" {
   }
 }
 
+# --- ingress: traefik reverse-proxy container contract ---
+#
+# The ansible-proxmox-apps `traefik` role auto-generates its routers/services
+# from this inventory: it needs the ingress LXC to surface with a derived IP,
+# its node, and the "ingress" tag so the role can find it. Pin that contract.
+
+run "ansible_inventory_traefik_ingress_container" {
+  command = plan
+
+  variables {
+    containers = {
+      "traefik" = {
+        vm_id     = 215
+        hostname  = "traefik"
+        vlan      = "media_svc"
+        node_name = "proxmox-2"
+        pool_id   = "media"
+        tags      = ["terraform", "container", "ingress", "traefik"]
+      }
+    }
+  }
+
+  # IP derives from the media_svc CIDR (192.168.55.0/24) + vm_id last octet.
+  assert {
+    condition     = output.ansible_inventory.containers["traefik"].ip == "192.168.55.215"
+    error_message = "traefik ingress IP must derive to 192.168.55.215 (cidrhost(media_svc, 215))"
+  }
+
+  assert {
+    condition     = output.ansible_inventory.containers["traefik"].node == "proxmox-2"
+    error_message = "traefik must land on its declared media node"
+  }
+
+  assert {
+    condition     = contains(output.ansible_inventory.containers["traefik"].tags, "ingress")
+    error_message = "traefik must carry the 'ingress' tag the traefik role selects on"
+  }
+}
+
 # --- host_services structure tests ---
 
 run "ansible_inventory_host_services_exists" {
