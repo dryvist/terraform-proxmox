@@ -253,42 +253,56 @@ run "ansible_inventory_container_node_override_propagated" {
   }
 }
 
-# --- ingress: traefik reverse-proxy container contract ---
+# --- ingress: Traefik route table contract ---
 #
-# The ansible-proxmox-apps `traefik` role auto-generates its routers/services
-# from this inventory: it needs the ingress LXC to surface with a derived IP,
-# its node, and the "ingress" tag so the role can find it. Pin that contract.
+# `ansible_inventory.ingress` is the SINGLE source the ansible-proxmox-apps
+# `traefik` (routers) and `technitium_dns` (aliases) roles consume instead of
+# hand-listing hosts/ports. Pin: each fronted service surfaces as {name, ip,
+# port} with the IP derived via cidrhost + the port from pipeline_constants, and
+# a service whose backend container isn't deployed is skipped (no dangling route).
 
-run "ansible_inventory_traefik_ingress_container" {
+run "ansible_inventory_ingress_route_table" {
   command = plan
 
   variables {
+    # Only two of the fronted backends are deployed in this fixture; the rest of
+    # the ingress_services map must be filtered out.
     containers = {
-      "traefik" = {
-        vm_id     = 215
-        hostname  = "traefik"
-        vlan      = "media_svc"
-        node_name = "proxmox-2"
-        pool_id   = "media"
-        tags      = ["terraform", "container", "ingress", "traefik"]
+      "plex" = {
+        vm_id    = 210
+        hostname = "plex"
+        vlan     = "media_svc"
+      }
+      "jellyseerr" = {
+        vm_id    = 211
+        hostname = "jellyseerr"
+        vlan     = "media_svc"
       }
     }
   }
 
-  # IP derives from the media_svc CIDR (192.168.55.0/24) + vm_id last octet.
+  # plex: backend "plex" (192.168.55.210) on media_ports.plex_web (32400).
   assert {
-    condition     = output.ansible_inventory.containers["traefik"].ip == "192.168.55.215"
-    error_message = "traefik ingress IP must derive to 192.168.55.215 (cidrhost(media_svc, 215))"
+    condition = length([
+      for r in output.ansible_inventory.ingress :
+      r if r.name == "plex" && r.ip == "192.168.55.210" && r.port == 32400
+    ]) == 1
+    error_message = "ingress must front plex at 192.168.55.210:32400 (derived IP + constant port)"
   }
 
+  # seerr: route name != backend container ("jellyseerr") -> 192.168.55.211:5055.
   assert {
-    condition     = output.ansible_inventory.containers["traefik"].node == "proxmox-2"
-    error_message = "traefik must land on its declared media node"
+    condition = length([
+      for r in output.ansible_inventory.ingress :
+      r if r.name == "seerr" && r.ip == "192.168.55.211" && r.port == 5055
+    ]) == 1
+    error_message = "ingress must front seerr via the jellyseerr backend at 192.168.55.211:5055"
   }
 
+  # Services whose backend container is absent are skipped (sonarr not deployed).
   assert {
-    condition     = contains(output.ansible_inventory.containers["traefik"].tags, "ingress")
-    error_message = "traefik must carry the 'ingress' tag the traefik role selects on"
+    condition     = length([for r in output.ansible_inventory.ingress : r if r.name == "sonarr"]) == 0
+    error_message = "ingress must skip services whose backend container is not defined"
   }
 }
 

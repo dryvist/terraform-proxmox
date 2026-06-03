@@ -140,6 +140,15 @@ locals {
       ntp               = 123
       idrac_kvm_r410    = 5410
       idrac_kvm_r710    = 5710
+      # Web UIs fronted by Traefik that have no other constant home. Kept here so
+      # every port lives in one place and the ingress table (below) references
+      # constants, never literals.
+      technitium_web    = 5380
+      pihole_web        = 80
+      phpipam_web       = 80
+      homeassistant_web = 8123
+      openproject_web   = 80
+      prometheus_web    = 9090
     }
     syslog_ports = {
       default   = 514
@@ -174,4 +183,47 @@ locals {
       jellyseerr_web  = 5055
     }
   }
+}
+
+# Traefik HTTPS ingress route table — the SINGLE source for every service the
+# reverse proxy fronts. The ansible-proxmox-apps `traefik` and `technitium_dns`
+# roles consume `ansible_inventory.ingress` instead of each hand-listing hosts
+# (the previous DRY violation). Add/remove a fronted service in ONE place here.
+locals {
+  # name = the hostname label -> https://<name>.<domain>.
+  # backend = the container key whose IP is resolved from the inventory.
+  # port = a pipeline_constants reference (never a literal, so ports stay DRY).
+  ingress_services = {
+    plex            = { backend = "plex", port = local.pipeline_constants.media_ports.plex_web }
+    seerr           = { backend = "jellyseerr", port = local.pipeline_constants.media_ports.jellyseerr_web }
+    sonarr          = { backend = "sonarr", port = local.pipeline_constants.media_ports.sonarr_web }
+    radarr          = { backend = "radarr", port = local.pipeline_constants.media_ports.radarr_web }
+    qbittorrent     = { backend = "download-vpn", port = local.pipeline_constants.media_ports.qbittorrent_web }
+    prowlarr        = { backend = "download-vpn", port = local.pipeline_constants.media_ports.prowlarr_web }
+    technitium      = { backend = "technitium-dns", port = local.pipeline_constants.service_ports.technitium_web }
+    pihole          = { backend = "pi-hole", port = local.pipeline_constants.service_ports.pihole_web }
+    phpipam         = { backend = "phpipam", port = local.pipeline_constants.service_ports.phpipam_web }
+    minio           = { backend = "minio", port = local.pipeline_constants.service_ports.minio_console }
+    infisical       = { backend = "infisical", port = local.pipeline_constants.service_ports.infisical_api }
+    mailpit         = { backend = "mailpit", port = local.pipeline_constants.notification_ports.mailpit_web }
+    ntfy            = { backend = "ntfy", port = local.pipeline_constants.notification_ports.ntfy_http }
+    homeassistant   = { backend = "homeassistant", port = local.pipeline_constants.service_ports.homeassistant_web }
+    openproject     = { backend = "openproject", port = local.pipeline_constants.service_ports.openproject_web }
+    prometheus      = { backend = "prometheus", port = local.pipeline_constants.service_ports.prometheus_web }
+    qdrant          = { backend = "qdrant", port = local.pipeline_constants.vector_db_ports.qdrant_http }
+    "haproxy-stats" = { backend = "haproxy", port = local.pipeline_constants.service_ports.haproxy_stats }
+  }
+
+  # Assembled routes: one {name, ip, port} per fronted service whose backend
+  # container is actually defined (others are skipped, so a partial deployment
+  # never emits a dangling route). IP resolves via container_ipv4 (cidrhost),
+  # already nonsensitive; strip the CIDR mask for the proxy backend URL.
+  ingress = [
+    for name, svc in local.ingress_services : {
+      name = name
+      ip   = split("/", local.container_ipv4[svc.backend])[0]
+      port = svc.port
+    }
+    if contains(keys(var.containers), svc.backend)
+  ]
 }
