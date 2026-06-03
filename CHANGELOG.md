@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.15.0](https://github.com/dryvist/terraform-proxmox/compare/v1.14.0...v1.15.0) (2026-06-03)
+
+
+### Features
+
+* **inventory:** validate ansible_inventory against the schema before sync ([#356](https://github.com/dryvist/terraform-proxmox/issues/356)) ([402c5c9](https://github.com/dryvist/terraform-proxmox/commit/402c5c903f4841a980bc52161e423c9cbc45e027))
+
 ## [1.14.0](https://github.com/dryvist/terraform-proxmox/compare/v1.13.0...v1.14.0) (2026-06-03)
 
 
