@@ -179,7 +179,7 @@ Authoritative list lives in `deployment.json` `containers.*`. Summary by pool:
   `node_storage`, and ansible inventory label all aligned on that node;
   v2 lives on the secondary media node) — `download-vpn` (qBittorrent +
   Prowlarr behind Proton WireGuard with an nftables killswitch), `sonarr`,
-  `radarr`, `plex`, `jellyseerr`, `traefik` (HTTPS/TLS ingress)
+  `radarr`, `plex`, `seerr`, `traefik` (HTTPS/TLS ingress)
 
 Notable per-container facts:
 

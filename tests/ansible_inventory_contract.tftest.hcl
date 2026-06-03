@@ -147,8 +147,8 @@ run "ansible_inventory_constants_media_ports_exists" {
   }
 
   assert {
-    condition     = output.ansible_inventory.constants.media_ports.jellyseerr_web == 5055
-    error_message = "media_ports.jellyseerr_web must be 5055"
+    condition     = output.ansible_inventory.constants.media_ports.seerr_web == 5055
+    error_message = "media_ports.seerr_web must be 5055"
   }
 }
 
@@ -273,9 +273,9 @@ run "ansible_inventory_ingress_route_table" {
         hostname = "plex"
         vlan     = "media_svc"
       }
-      "jellyseerr" = {
+      "seerr" = {
         vm_id    = 211
-        hostname = "jellyseerr"
+        hostname = "seerr"
         vlan     = "media_svc"
       }
     }
@@ -290,13 +290,13 @@ run "ansible_inventory_ingress_route_table" {
     error_message = "ingress must front plex at 192.168.55.210:32400 (derived IP + constant port)"
   }
 
-  # seerr: route name != backend container ("jellyseerr") -> 192.168.55.211:5055.
+  # seerr: backend "seerr" (192.168.55.211) on media_ports.seerr_web (5055).
   assert {
     condition = length([
       for r in output.ansible_inventory.ingress :
       r if r.name == "seerr" && r.ip == "192.168.55.211" && r.port == 5055
     ]) == 1
-    error_message = "ingress must front seerr via the jellyseerr backend at 192.168.55.211:5055"
+    error_message = "ingress must front seerr at 192.168.55.211:5055"
   }
 
   # Services whose backend container is absent are skipped (sonarr not deployed).
