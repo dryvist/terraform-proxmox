@@ -247,12 +247,9 @@ Both containers run Docker-in-LXC (`nesting: true`, `keyctl: true`) and are tagg
 terraform-proxmox produces `ansible_inventory` output consumed by Ansible repos:
 
 ```bash
-# Regenerate after terragrunt apply
-terragrunt output -json ansible_inventory > \
-  ~/git/ansible-proxmox-apps/main/inventory/terraform_inventory.json
-
-terragrunt output -json ansible_inventory > \
-  ~/git/ansible-splunk/main/inventory/terraform_inventory.json
+# Regenerate, validate, and distribute (writes tofu_inventory.json to each
+# downstream repo + a versioned commit to int_homelab; rejects a partial output)
+./scripts/sync-inventory.sh
 ```
 
 The inventory includes:

@@ -100,10 +100,12 @@ containers, IPs, ports, and firewall rules.
 
 ### Inventory sync (automatic)
 
-`terragrunt.hcl` runs an `after_hook` post-apply that writes
-`terraform_inventory.json` to each downstream repo's `inventory/`
-directory under `~/git/<repo>/main/`. Repos not cloned locally are
-skipped with a stderr warning.
+`terragrunt.hcl` runs an `after_hook` post-apply (`scripts/sync-inventory.sh`)
+that validates the `ansible_inventory` output against the schema, then commits a
+versioned copy to the private `int_homelab` repo and writes `tofu_inventory.json`
+to each downstream repo's `inventory/` directory under `$GIT_HOME/<repo>/main/`.
+A partial/invalid output is rejected (nothing written). Repos not cloned locally
+are skipped with a stderr warning.
 
 To sync manually after importing state without applying, see
 `docs/ARCHITECTURE.md`.
