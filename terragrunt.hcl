@@ -65,11 +65,15 @@ locals {
 terraform {
   source = "."
 
-  # Automatically sync ansible_inventory to downstream Ansible repos after every apply.
-  # Writes terraform_inventory.json to ansible-proxmox, ansible-proxmox-apps, and ansible-splunk.
+  # Render, VALIDATE, then distribute ansible_inventory after every apply: a
+  # versioned commit into the private int_homelab repo, plus the transitional
+  # gitignored copy each Ansible repo reads today. A partial/invalid output (e.g.
+  # from a `-target` apply, where replace-pending media containers drop whole
+  # sections) is REJECTED and nothing is written — the guard the previous inline
+  # one-liner lacked. Logic lives in scripts/sync-inventory.sh (no-scripts rule).
   after_hook "sync_inventory" {
     commands     = ["apply"]
-    execute      = ["bash", "-c", "INV=$(tofu output -json ansible_inventory) && for repo in ansible-proxmox ansible-proxmox-apps ansible-splunk; do TARGET=\"\"; for root in \"$GIT_HOME_PUBLIC\" \"$GIT_HOME\"; do [ -n \"$root\" ] && [ -d \"$root/$repo/main/inventory\" ] && TARGET=\"$root/$repo/main/inventory/terraform_inventory.json\" && break; done; if [ -n \"$TARGET\" ]; then printf \"%s\\n\" \"$INV\" > \"$TARGET\" && echo \"Synced inventory -> $TARGET\" >&2; else echo \"Skipped $repo (no main worktree found)\" >&2; fi; done"]
+    execute      = ["bash", "${get_terragrunt_dir()}/scripts/sync-inventory.sh"]
     run_on_error = false
   }
 }

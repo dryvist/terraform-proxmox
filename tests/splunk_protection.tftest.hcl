@@ -81,7 +81,7 @@ run "plan_succeeds_without_splunk_credentials" {
 }
 
 # --- Test: ansible_inventory output contains splunk_vm at root level ---
-# Downstream Ansible repos load this output and access terraform_data.splunk_vm.
+# Downstream Ansible repos load this output and access tofu_data.splunk_vm.
 # Any nesting change here breaks ansible-splunk inventory loading.
 
 run "ansible_inventory_splunk_vm_at_root" {
