@@ -179,7 +179,7 @@ Authoritative list lives in `deployment.json` `containers.*`. Summary by pool:
   `node_storage`, and ansible inventory label all aligned on that node;
   v2 lives on the secondary media node) — `download-vpn` (qBittorrent +
   Prowlarr behind Proton WireGuard with an nftables killswitch), `sonarr`,
-  `radarr`, `plex`, `jellyseerr`
+  `radarr`, `plex`, `jellyseerr`, `traefik` (HTTPS/TLS ingress)
 
 Notable per-container facts:
 
@@ -204,6 +204,14 @@ Notable per-container facts:
 - `sonarr`, `radarr`, `plex` are LAN-only (no VPN); they reach Prowlarr +
   qBittorrent on `download-vpn` over the LAN and read/write the same
   bind-mounted `rpool/data/*` datasets.
+- `traefik` (VMID 215) is the HTTPS reverse-proxy / TLS ingress, on the media
+  VLAN so it reaches the media UIs at layer 2 (other VLANs' UIs route in). It
+  fronts every service web UI at `https://<name>.pve.<domain>` (no ports) and
+  fetches + auto-renews a wildcard `*.pve.<domain>` Let's Encrypt certificate
+  itself via the Route53 DNS-01 challenge (lego) — no inbound internet required.
+  Install, dynamic routers (generated from this inventory), and the cert
+  lifecycle are owned by the `ansible-proxmox-apps` `traefik` role; it
+  supersedes the legacy `nginx-proxy-manager` LXC.
 
 #### Notification Services
 
