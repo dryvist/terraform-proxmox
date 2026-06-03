@@ -208,8 +208,8 @@ Notable per-container facts:
 - `traefik` (VMID 101) is the HTTPS reverse-proxy / TLS ingress on the
   management VLAN (VLAN 5), co-located with `haproxy`; backends on other VLANs
   are reached via inter-VLAN routing (UniFi allow rules per UI port). It
-  fronts every service web UI at `https://<name>.pve.<domain>` (no ports) and
-  fetches + auto-renews a wildcard `*.pve.<domain>` Let's Encrypt certificate
+  fronts every service web UI at `https://<name>.<subdomain>` (no ports) and
+  fetches + auto-renews a wildcard `*.<subdomain>` Let's Encrypt certificate
   itself via the Route53 DNS-01 challenge (lego) — no inbound internet required.
   Install, dynamic routers (generated from this inventory), and the cert
   lifecycle are owned by the `ansible-proxmox-apps` `traefik` role; it
