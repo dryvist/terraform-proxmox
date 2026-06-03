@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.14.0](https://github.com/dryvist/terraform-proxmox/compare/v1.13.0...v1.14.0) (2026-06-03)
+
+
+### Features
+
+* **ingress:** single inventory-derived ingress route table (DRY) ([#352](https://github.com/dryvist/terraform-proxmox/issues/352)) ([c4bd8f8](https://github.com/dryvist/terraform-proxmox/commit/c4bd8f83d1316aff20caf712e2f14a418b4e4e74))
+* **media:** declare Traefik TLS ingress LXC (215) on media VLAN ([#351](https://github.com/dryvist/terraform-proxmox/issues/351)) ([c2b9913](https://github.com/dryvist/terraform-proxmox/commit/c2b9913c0bab63914d91435f7121e3c347fabd17))
+
+
+### Bug Fixes
+
+* **terragrunt:** resolve inventory sync to public worktree layout ([#349](https://github.com/dryvist/terraform-proxmox/issues/349)) ([a84ae73](https://github.com/dryvist/terraform-proxmox/commit/a84ae73955db914db4d9f5bd5816536b5baa2abf))
+
 ## [1.13.0](https://github.com/dryvist/terraform-proxmox/compare/v1.12.0...v1.13.0) (2026-06-02)
 
 
