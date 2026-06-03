@@ -180,7 +180,7 @@ locals {
       sonarr_web      = 8989
       radarr_web      = 7878
       plex_web        = 32400
-      jellyseerr_web  = 5055
+      seerr_web       = 5055
     }
   }
 }
@@ -195,7 +195,7 @@ locals {
   # port = a pipeline_constants reference (never a literal, so ports stay DRY).
   ingress_services = {
     plex            = { backend = "plex", port = local.pipeline_constants.media_ports.plex_web }
-    seerr           = { backend = "jellyseerr", port = local.pipeline_constants.media_ports.jellyseerr_web }
+    seerr           = { backend = "seerr", port = local.pipeline_constants.media_ports.seerr_web }
     sonarr          = { backend = "sonarr", port = local.pipeline_constants.media_ports.sonarr_web }
     radarr          = { backend = "radarr", port = local.pipeline_constants.media_ports.radarr_web }
     qbittorrent     = { backend = "download-vpn", port = local.pipeline_constants.media_ports.qbittorrent_web }
