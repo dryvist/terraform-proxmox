@@ -39,7 +39,7 @@ variable "vlan_ids" {
   default = {
     lan_main  = 1
     dns       = 2
-    lan_mgmt  = 5
+    mgmt      = 5
     bmc       = 8
     compute   = 10
     siem      = 20

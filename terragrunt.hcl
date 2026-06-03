@@ -31,7 +31,7 @@ locals {
   # shared one-way with terraform-unifi — single source, no magic numbers.
   network_cidrs = {
     lan_main  = get_env("NETWORK_CIDR_LAN_MAIN")
-    lan_mgmt  = get_env("NETWORK_CIDR_LAN_MGMT")
+    mgmt      = get_env("NETWORK_CIDR_MGMT")
     dns       = get_env("NETWORK_CIDR_DNS")
     bmc       = get_env("NETWORK_CIDR_BMC")
     compute   = get_env("NETWORK_CIDR_COMPUTE")
