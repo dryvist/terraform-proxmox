@@ -171,7 +171,8 @@ Authoritative list lives in `deployment.json` `containers.*`. Summary by pool:
 
 - **`infrastructure`** — `ansible`, `pve-scripts-local`, `technitium-dns`,
   `pi-hole`, `phpipam`, `apt-cacher-ng`, `minio`, `mailpit`, `ntfy`,
-  `homeassistant`, `mssql`, `nginx-proxy-manager`, `prometheus`
+  `homeassistant`, `mssql`, `nginx-proxy-manager`, `prometheus`, `traefik`
+  (HTTPS/TLS ingress)
 - **`logging`** — `haproxy`, `cribl-edge-01/02`, `cribl-stream-01/02`,
   `splunk-mgmt` (SH + DS + LM + MC + CM)
 - **`ai`** — `claude-code-01/02`, `gemini-01/02`, `qdrant`, `llamaindex`
@@ -179,7 +180,7 @@ Authoritative list lives in `deployment.json` `containers.*`. Summary by pool:
   `node_storage`, and ansible inventory label all aligned on that node;
   v2 lives on the secondary media node) — `download-vpn` (qBittorrent +
   Prowlarr behind Proton WireGuard with an nftables killswitch), `sonarr`,
-  `radarr`, `plex`, `seerr`, `traefik` (HTTPS/TLS ingress)
+  `radarr`, `plex`, `seerr`
 
 Notable per-container facts:
 
@@ -204,10 +205,11 @@ Notable per-container facts:
 - `sonarr`, `radarr`, `plex` are LAN-only (no VPN); they reach Prowlarr +
   qBittorrent on `download-vpn` over the LAN and read/write the same
   bind-mounted `rpool/data/*` datasets.
-- `traefik` (VMID 215) is the HTTPS reverse-proxy / TLS ingress, on the media
-  VLAN so it reaches the media UIs at layer 2 (other VLANs' UIs route in). It
-  fronts every service web UI at `https://<name>.pve.<domain>` (no ports) and
-  fetches + auto-renews a wildcard `*.pve.<domain>` Let's Encrypt certificate
+- `traefik` (VMID 101) is the HTTPS reverse-proxy / TLS ingress on the
+  management VLAN (VLAN 5), co-located with `haproxy`; backends on other VLANs
+  are reached via inter-VLAN routing (UniFi allow rules per UI port). It
+  fronts every service web UI at `https://<name>.<subdomain>` (no ports) and
+  fetches + auto-renews a wildcard `*.<subdomain>` Let's Encrypt certificate
   itself via the Route53 DNS-01 challenge (lego) — no inbound internet required.
   Install, dynamic routers (generated from this inventory), and the cert
   lifecycle are owned by the `ansible-proxmox-apps` `traefik` role; it
