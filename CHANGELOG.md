@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.16.0](https://github.com/dryvist/terraform-proxmox/compare/v1.15.0...v1.16.0) (2026-06-03)
+
+
+### Features
+
+* **network:** rename lan_mgmt→mgmt; place Traefik ingress on mgmt VLAN ([#358](https://github.com/dryvist/terraform-proxmox/issues/358)) ([428d3da](https://github.com/dryvist/terraform-proxmox/commit/428d3da174a147cea7ae95e20e230a2ac74ca736))
+
 ## [1.15.0](https://github.com/dryvist/terraform-proxmox/compare/v1.14.0...v1.15.0) (2026-06-03)
 
 
