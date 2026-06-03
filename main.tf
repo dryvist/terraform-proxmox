@@ -68,7 +68,7 @@ module "vms" {
       }
       # Tag every NIC onto the VM's service VLAN (802.1Q id from var.vlan_ids).
       network_interfaces = [
-        for ni in v.network_interfaces : merge(ni, { vlan_id = var.vlan_ids[v.vlan] })
+        for ni in v.network_interfaces : merge(ni, { vlan_id = lookup(var.vlan_ids, v.vlan, null) })
       ]
       user_account = {
         username = v.user_account.username
@@ -103,13 +103,14 @@ module "containers" {
       node_name        = coalesce(try(v.node_name, null), var.proxmox_node)
       template_file_id = "${var.datastore_iso}:vztmpl/${var.proxmox_ct_template_debian}"
       # DRY: IP/gateway derived from the LXC's VLAN CIDR + vm_id (see locals.tf).
+      # local.container_ipv4 already honors a per-container static ipv4_address override.
       ip_config = {
         ipv4_address = local.container_ipv4[k]
         ipv4_gateway = local.container_gateway[k]
       }
       # Tag every NIC onto the LXC's service VLAN (802.1Q id from var.vlan_ids).
       network_interfaces = [
-        for ni in v.network_interfaces : merge(ni, { vlan_id = var.vlan_ids[v.vlan] })
+        for ni in v.network_interfaces : merge(ni, { vlan_id = lookup(var.vlan_ids, v.vlan, null) })
       ]
       # DRY: Always inject SSH key for Ansible access
       # Uses container's password/keys if specified, otherwise empty password with SSH key only

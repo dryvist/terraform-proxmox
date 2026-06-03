@@ -10,8 +10,9 @@ variable "containers" {
     pool_id     = optional(string)
 
     # Service VLAN name (required). Selects the guest's subnet + 802.1Q tag:
-    # IP = cidrhost(network_cidrs[vlan], vm_id), NIC vlan_id = vlan_ids[vlan].
-    # Must be a key in both var.network_cidrs and var.vlan_ids.
+    # IP = cidrhost(network_cidrs[vlan], vm_id) (unless ip_config.ipv4_address pins a
+    # static address); NIC vlan_id = vlan_ids[vlan]. Must be a key in network_cidrs;
+    # a key ABSENT from vlan_ids yields an UNTAGGED NIC (native VLAN, e.g. mgmt_native).
     vlan = string
 
     # Node placement (optional). When unset, main.tf defaults to var.proxmox_node
