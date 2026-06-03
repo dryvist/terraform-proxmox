@@ -69,7 +69,7 @@ terraform {
   # Writes terraform_inventory.json to ansible-proxmox, ansible-proxmox-apps, and ansible-splunk.
   after_hook "sync_inventory" {
     commands     = ["apply"]
-    execute      = ["bash", "-c", "INV=$(tofu output -json ansible_inventory) && for repo in ansible-proxmox ansible-proxmox-apps ansible-splunk; do TARGET=\"$HOME/git/$repo/main/inventory/terraform_inventory.json\"; if [ -d \"$(dirname \"$TARGET\")\" ]; then printf \"%s\\n\" \"$INV\" > \"$TARGET\" && echo \"Synced inventory -> $repo\" >&2; else echo \"Skipped $repo (not cloned at ~/git/$repo/main)\" >&2; fi; done"]
+    execute      = ["bash", "-c", "INV=$(tofu output -json ansible_inventory) && for repo in ansible-proxmox ansible-proxmox-apps ansible-splunk; do TARGET=\"\"; for root in \"$GIT_HOME_PUBLIC\" \"$GIT_HOME\"; do [ -n \"$root\" ] && [ -d \"$root/$repo/main/inventory\" ] && TARGET=\"$root/$repo/main/inventory/terraform_inventory.json\" && break; done; if [ -n \"$TARGET\" ]; then printf \"%s\\n\" \"$INV\" > \"$TARGET\" && echo \"Synced inventory -> $TARGET\" >&2; else echo \"Skipped $repo (no main worktree found)\" >&2; fi; done"]
     run_on_error = false
   }
 }
