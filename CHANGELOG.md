@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.19.0](https://github.com/dryvist/terraform-proxmox/compare/v1.18.1...v1.19.0) (2026-06-04)
+
+
+### Features
+
+* **splunk:** tag splunk NIC onto siem VLAN + front via Traefik ([#369](https://github.com/dryvist/terraform-proxmox/issues/369)) ([6c98875](https://github.com/dryvist/terraform-proxmox/commit/6c9887567900b5fcfa6c3dbaa6ec4895baba489b))
+
 ## [1.18.1](https://github.com/dryvist/terraform-proxmox/compare/v1.18.0...v1.18.1) (2026-06-04)
 
 
