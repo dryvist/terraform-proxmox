@@ -134,6 +134,10 @@ resource "proxmox_virtual_environment_vm" "splunk_vm" {
       # Ignore changes to user_data_file_id so cloud-init template updates
       # don't force VM replacement on an already-running VM.
       initialization[0].user_data_file_id,
+      # Same reason: a VLAN change alters cloud-init ip_config, which would make
+      # bpg rebuild the cloud-init drive — and that fails on the non-removable
+      # ide2 disk. Ansible owns post-boot networking, so ignore the drift.
+      initialization[0].ip_config,
     ]
   }
 }
