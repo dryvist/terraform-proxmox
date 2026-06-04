@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.22.2](https://github.com/dryvist/terraform-proxmox/compare/v1.22.1...v1.22.2) (2026-06-04)
+
+
+### Bug Fixes
+
+* **storage:** bump PBS ISO to 4.2-1, track via Renovate ([#381](https://github.com/dryvist/terraform-proxmox/issues/381)) ([e0c17bc](https://github.com/dryvist/terraform-proxmox/commit/e0c17bc4c5a73383f9b0d90f95dede4a7add17f5))
+
 ## [1.22.1](https://github.com/dryvist/terraform-proxmox/compare/v1.22.0...v1.22.1) (2026-06-04)
 
 
