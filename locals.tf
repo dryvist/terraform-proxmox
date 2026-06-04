@@ -154,6 +154,9 @@ locals {
       homeassistant_web = 8123
       openproject_web   = 80
       prometheus_web    = 9090
+      # Local LLM: Ollama API (CT 167 hermes-infer) + Open WebUI (CT 168 hermes-chat)
+      ollama_api     = 11434
+      open_webui_web = 8080
     }
     syslog_ports = {
       default   = 514
@@ -215,6 +218,7 @@ locals {
     homeassistant   = { backend = "homeassistant", port = local.pipeline_constants.service_ports.homeassistant_web }
     openproject     = { backend = "openproject", port = local.pipeline_constants.service_ports.openproject_web }
     prometheus      = { backend = "prometheus", port = local.pipeline_constants.service_ports.prometheus_web }
+    llm             = { backend = "hermes-chat", port = local.pipeline_constants.service_ports.open_webui_web }
     qdrant          = { backend = "qdrant", port = local.pipeline_constants.vector_db_ports.qdrant_http }
     "haproxy-stats" = { backend = "haproxy", port = local.pipeline_constants.service_ports.haproxy_stats }
   }
