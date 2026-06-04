@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.22.0](https://github.com/dryvist/terraform-proxmox/compare/v1.21.0...v1.22.0) (2026-06-04)
+
+
+### Features
+
+* **backup:** PBS appliance VM (ISO) declaration + ISO var ([#377](https://github.com/dryvist/terraform-proxmox/issues/377)) ([b1f753e](https://github.com/dryvist/terraform-proxmox/commit/b1f753e951b1d2031ab9fb4080264258264b33f5))
+
 ## [1.21.0](https://github.com/dryvist/terraform-proxmox/compare/v1.20.0...v1.21.0) (2026-06-04)
 
 
