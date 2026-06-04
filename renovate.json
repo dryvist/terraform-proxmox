@@ -11,7 +11,7 @@
       "matchStrings": [
         "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)\\s+default\\s*=\\s*\"(?<currentValue>[^\"]+)\""
       ],
-      "extractVersionTemplate": "^proxmox-backup-server_(?<version>.+)\\.iso$",
+      "extractVersionTemplate": "^proxmox-backup-server_(?<version>\\d+\\.\\d+-\\d+)\\.iso$",
       "versioningTemplate": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)-(?<build>\\d+)$"
     }
   ],
