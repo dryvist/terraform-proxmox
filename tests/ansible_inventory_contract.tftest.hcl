@@ -446,6 +446,7 @@ run "ansible_inventory_host_services_nas_propagated" {
             create_mask    = "0664"
             directory_mask = "0775"
             comment        = "Home Assistant backup storage"
+            time_machine   = true
           }
         ]
       }
@@ -475,6 +476,11 @@ run "ansible_inventory_host_services_nas_propagated" {
   assert {
     condition     = output.ansible_inventory.host_services.nas.shares[1].name == "ha-backups"
     error_message = "host_services.nas.shares must propagate to ansible_inventory output"
+  }
+
+  assert {
+    condition     = output.ansible_inventory.host_services.nas.shares[1].time_machine == true
+    error_message = "host_services.nas.shares time_machine must propagate to ansible_inventory output"
   }
 }
 
