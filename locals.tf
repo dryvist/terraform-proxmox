@@ -227,12 +227,23 @@ locals {
   # container is actually defined (others are skipped, so a partial deployment
   # never emits a dangling route). IP resolves via container_ipv4 (cidrhost),
   # already nonsensitive; strip the CIDR mask for the proxy backend URL.
-  ingress = [
-    for name, svc in local.ingress_services : {
-      name = name
-      ip   = split("/", local.container_ipv4[svc.backend])[0]
-      port = svc.port
-    }
-    if contains(keys(var.containers), svc.backend)
-  ]
+  # The Splunk VM is appended separately: it is a VM (not in var.containers), so
+  # its IP comes from splunk_derived_ip (siem VLAN) rather than container_ipv4.
+  ingress = concat(
+    [
+      for name, svc in local.ingress_services : {
+        name = name
+        ip   = split("/", local.container_ipv4[svc.backend])[0]
+        port = svc.port
+      }
+      if contains(keys(var.containers), svc.backend)
+    ],
+    [
+      {
+        name = "splunk"
+        ip   = split("/", local.splunk_derived_ip)[0]
+        port = local.pipeline_constants.service_ports.splunk_web
+      }
+    ]
+  )
 }

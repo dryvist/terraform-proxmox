@@ -104,6 +104,12 @@ variable "bridge" {
   }
 }
 
+variable "vlan_id" {
+  description = "802.1Q VLAN tag for the VM NIC. Null = untagged native VLAN."
+  type        = number
+  default     = null
+}
+
 variable "ssh_public_key" {
   description = "SSH public key content for VM access (optional)"
   type        = string
