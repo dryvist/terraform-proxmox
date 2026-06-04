@@ -161,6 +161,11 @@ resource "proxmox_virtual_environment_vm" "vms" {
     create_before_destroy = false
     ignore_changes = [
       initialization[0].user_account[0].password,
+      # Cloud-init runs only at first boot; Ansible owns post-boot networking.
+      # A VLAN change updates the qemu NIC live but also changes cloud-init
+      # ip_config — ignore it so bpg does not rebuild the cloud-init drive
+      # (which fails: the ide2 cloud-init disk is not removable on a running VM).
+      initialization[0].ip_config,
     ]
   }
 
