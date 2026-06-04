@@ -528,7 +528,7 @@ run "ansible_inventory_node_storage_propagated" {
         pools = {
           example-pool = {
             raid     = "raidz1"
-            datasets = { backups = { quota = "1T" } }
+            datasets = { backups = { quota = "1T", properties = { recordsize = "1M", compression = "zstd" } } }
           }
         }
       }
@@ -538,6 +538,11 @@ run "ansible_inventory_node_storage_propagated" {
   assert {
     condition     = output.ansible_inventory.node_storage["proxmox-2"].pools["example-pool"].datasets["backups"].quota == "1T"
     error_message = "node_storage pool/dataset/quota must propagate to ansible_inventory for ansible-proxmox"
+  }
+
+  assert {
+    condition     = output.ansible_inventory.node_storage["proxmox-2"].pools["example-pool"].datasets["backups"].properties["recordsize"] == "1M"
+    error_message = "node_storage dataset properties must propagate to ansible_inventory for ansible-proxmox"
   }
 
   assert {
