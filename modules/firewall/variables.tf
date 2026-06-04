@@ -63,6 +63,12 @@ variable "infisical_container_ids" {
   default     = {}
 }
 
+variable "openbao_container_ids" {
+  description = "Map of OpenBao secrets-management container names to their IDs"
+  type        = map(number)
+  default     = {}
+}
+
 variable "idrac_kvm_container_ids" {
   description = "Map of iDRAC KVM LXC names to IDs (tag-driven, set by root locals)"
   type        = map(number)

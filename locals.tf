@@ -102,6 +102,12 @@ locals {
     if contains(coalesce(try(v.tags, null), []), "infisical")
   }
 
+  # OpenBao secrets-management containers (openbao tag)
+  openbao_container_ids = {
+    for k, v in var.containers : k => v.vm_id
+    if contains(coalesce(try(v.tags, null), []), "openbao")
+  }
+
   # HAProxy LXCs (haproxy tag) — receive delivered ACME certs for HTTPS frontends.
   # Distinct from pipeline_container_ids (which also includes Cribl Edge); this
   # local is dedicated to cert-delivery targeting.
@@ -140,6 +146,8 @@ locals {
       minio_api         = 9000
       minio_console     = 9001
       infisical_api     = 8080
+      openbao_api       = 8200
+      openbao_cluster   = 8201
       postgres_default  = 5432
       redis_default     = 6379
       ntp               = 123
@@ -213,6 +221,7 @@ locals {
     phpipam         = { backend = "phpipam", port = local.pipeline_constants.service_ports.phpipam_web }
     minio           = { backend = "minio", port = local.pipeline_constants.service_ports.minio_console }
     infisical       = { backend = "infisical", port = local.pipeline_constants.service_ports.infisical_api }
+    openbao         = { backend = "openbao1", port = local.pipeline_constants.service_ports.openbao_api }
     mailpit         = { backend = "mailpit", port = local.pipeline_constants.notification_ports.mailpit_web }
     ntfy            = { backend = "ntfy", port = local.pipeline_constants.notification_ports.ntfy_http }
     homeassistant   = { backend = "homeassistant", port = local.pipeline_constants.service_ports.homeassistant_web }
