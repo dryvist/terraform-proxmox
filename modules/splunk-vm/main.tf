@@ -84,6 +84,10 @@ resource "proxmox_virtual_environment_vm" "splunk_vm" {
     bridge   = var.bridge
     model    = "virtio"
     firewall = true
+    # 802.1Q tag onto the service VLAN (siem). Null/0 = untagged native.
+    # Mirrors the container NIC pattern (vlan_id = vlan_ids[guest.vlan]); without
+    # this the VM sits on vmbr0's untagged native instead of its own VLAN.
+    vlan_id = var.vlan_id
   }
 
   clone {

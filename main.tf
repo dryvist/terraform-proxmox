@@ -146,6 +146,7 @@ module "splunk_vm" {
   template_id    = var.template_id
   datastore_id   = var.datastore_id
   bridge         = var.bridge
+  vlan_id        = lookup(var.vlan_ids, "siem", null) # tag the NIC onto siem; DRY with container pattern
   ssh_public_key = var.ssh_public_key != "" ? var.ssh_public_key : trimspace(data.local_file.vm_ssh_public_key.content)
   boot_disk_size = var.splunk_boot_disk_size
   data_disk_size = var.splunk_data_disk_size
