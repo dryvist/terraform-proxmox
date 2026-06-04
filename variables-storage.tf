@@ -96,6 +96,9 @@ variable "host_services" {
         create_mask    = optional(string)
         directory_mask = optional(string)
         comment        = optional(string)
+        # macOS Time Machine target (consumed by the nas_storage vfs_fruit role).
+        time_machine          = optional(bool)
+        time_machine_max_size = optional(string)
       })))
       description = optional(string)
     }))
