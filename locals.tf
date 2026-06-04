@@ -243,6 +243,11 @@ locals {
         name = "splunk"
         ip   = split("/", local.splunk_derived_ip)[0]
         port = local.pipeline_constants.service_ports.splunk_web
+        # Splunk Web serves HTTPS with a self-signed cert, unlike the HTTP
+        # container backends. Traefik must speak https to it and skip verify.
+        # Consumers default scheme=http / insecure_tls=false when absent.
+        scheme       = "https"
+        insecure_tls = true
       }
     ]
   )
