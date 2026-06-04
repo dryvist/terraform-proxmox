@@ -7,6 +7,26 @@ terraform {
   }
 }
 
+# =============================================================================
+# CRITICAL — SPLUNK INDEXER DATA IS NOT BACKED UP
+# =============================================================================
+# The Splunk indexer data on this VM's data disks (virtio0 = 25G, virtio1 =
+# 200G) is NOT backed up anywhere. Treat EVERY operation on this VM as
+# potentially data-destructive:
+#   - NEVER destroy/recreate the VM. `prevent_destroy = true` is set below for
+#     exactly this reason — do not remove it.
+#   - NEVER touch the data disks (virtio0/virtio1). Only the 4MB cloud-init
+#     drive is safe to modify.
+#   - AVOID `cloud-init clean` + reboot here. It re-runs cloud-init; it is only
+#     data-safe because the cloud-init user-data has no disk_setup/fs_setup/
+#     growpart today — re-verify that before ever relying on it.
+#   - The guest network/OS config is Ansible-owned post-boot (cloud-init is
+#     first-boot only); tofu manages the NIC VLAN tag, not the guest IP, which
+#     is why initialization[0].ip_config is in ignore_changes below.
+# ACTION NEEDED: stand up a real backup job (PBS / zfs-send) for virtio0+virtio1
+# BEFORE the next risky change. The disks carry backup=1 but no backup runs yet.
+# =============================================================================
+
 # Render cloud-init configuration with secrets and config files
 # Firewall is managed by Proxmox firewall module, not guest-level iptables
 locals {
