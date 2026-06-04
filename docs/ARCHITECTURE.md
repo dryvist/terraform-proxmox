@@ -215,6 +215,17 @@ Notable per-container facts:
   lifecycle are owned by the `ansible-proxmox-apps` `traefik` role; it
   supersedes the legacy `nginx-proxy-manager` LXC.
 
+#### Client reachability of `<name>.<subdomain>`
+
+For a client anywhere on the network to reach `https://<name>.<subdomain>`, name
+resolution has to point at Traefik. The gateway is each client's DNS resolver, so
+it **conditionally forwards the internal ingress `<subdomain>` to the internal DNS
+resolver** (Technitium) and resolves everything else (public names) itself. The
+internal resolver is authoritative for that subdomain and answers every
+`<name>.<subdomain>` with Traefik's address; Traefik then routes by `Host` header
+and serves the wildcard `*.<subdomain>` certificate. A single gateway forward rule
+covers every current and future service name, since they all resolve to Traefik.
+
 #### Notification Services
 
 Mailpit (VM ID 110) and ntfy (VM ID 111) provide internal notification delivery:
