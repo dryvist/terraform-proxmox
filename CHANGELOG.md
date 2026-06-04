@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.21.0](https://github.com/dryvist/terraform-proxmox/compare/v1.20.0...v1.21.0) (2026-06-04)
+
+
+### Features
+
+* **storage:** per-dataset ZFS properties in node_storage ([#374](https://github.com/dryvist/terraform-proxmox/issues/374)) ([1bd422b](https://github.com/dryvist/terraform-proxmox/commit/1bd422b98f884335ee34a8b945db91fa004e7a84))
+
 ## [1.20.0](https://github.com/dryvist/terraform-proxmox/compare/v1.19.0...v1.20.0) (2026-06-04)
 
 
