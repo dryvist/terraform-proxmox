@@ -40,7 +40,20 @@
           "register": true,
           "content": ["images", "rootdir"],
           "datasets": {
-            "backups": { "quota": "1T" }
+            "backups": { "quota": "1T", "properties": { "compression": "zstd" } },
+            "media/tv": { "quota": "2T", "properties": { "recordsize": "1M", "compression": "zstd" } },
+            "media/movies": { "quota": "2T", "properties": { "recordsize": "1M", "compression": "zstd" } }
+          }
+        },
+        "example-nvme": {
+          "type": "zfspool",
+          "raid": "mirror",
+          "protected": true,
+          "register": false,
+          "content": ["images", "rootdir"],
+          "datasets": {
+            "siem/splunk-hot": { "quota": "300G", "properties": { "recordsize": "128K", "compression": "lz4" } },
+            "siem/cribl-pq": { "quota": "50G", "properties": { "compression": "lz4", "com.sun:auto-snapshot": "false" } }
           }
         }
       }

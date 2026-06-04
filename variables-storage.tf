@@ -119,6 +119,10 @@ variable "node_storage" {
         quota      = optional(string)
         mountpoint = optional(string)
         nfs_export = optional(string)
+        # Arbitrary ZFS properties (recordsize, compression, readonly,
+        # com.sun:auto-snapshot, …) applied idempotently by ansible-proxmox.
+        # Use ZFS canonical forms as strings (e.g. "1M", "zstd", "false").
+        properties = optional(map(string), {})
       })), {})
     }))
   }))
