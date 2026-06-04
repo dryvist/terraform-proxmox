@@ -87,6 +87,22 @@
       "boot_disk": { "datastore_id": "local-zfs", "size": 32 },
       "clone_template": { "template_id": 9000 },
       "user_account": { "username": "debian", "password": "", "keys": [] }
+    },
+    "pbs": {
+      "vm_id": 240,
+      "vlan": "nonprod",
+      "name": "pbs",
+      "description": "Proxmox Backup Server appliance (ISO install). Boot the PBS ISO, install to the boot disk, then create a datastore on the additional disk (backup ZFS pool). Add a remote+sync job to a second PBS on the max-storage node once it is commissioned.",
+      "node_name": "proxmox-2",
+      "cpu_cores": 2,
+      "memory_dedicated": 4096,
+      "tags": ["terraform", "backup", "pbs"],
+      "boot_disk": { "datastore_id": "local-zfs", "size": 32 },
+      "additional_disks": [
+        { "interface": "scsi1", "datastore_id": "example-pool", "size": 1024 }
+      ],
+      "cdrom_file_id": "local:iso/proxmox-backup-server.iso",
+      "protection": true
     }
   },
 
