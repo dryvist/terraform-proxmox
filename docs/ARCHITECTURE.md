@@ -175,7 +175,9 @@ Authoritative list lives in `deployment.json` `containers.*`. Summary by pool:
   (HTTPS/TLS ingress)
 - **`logging`** — `haproxy`, `cribl-edge-01/02`, `cribl-stream-01/02`,
   `splunk-mgmt` (SH + DS + LM + MC + CM)
-- **`ai`** — `claude-code-01/02`, `gemini-01/02`, `qdrant`, `llamaindex`
+- **`ai`** — `claude-code-01/02`, `gemini-01/02`, `qdrant`, `llamaindex`,
+  `hermes-infer` (Ollama LLM inference on the RX 6800 GPU), `hermes-chat`
+  (Open WebUI chat frontend)
 - **`media`** (v1 pinned to the primary media node — `node_name`,
   `node_storage`, and ansible inventory label all aligned on that node;
   v2 lives on the secondary media node) — `download-vpn` (qBittorrent +
@@ -191,6 +193,13 @@ Notable per-container facts:
 - `splunk-mgmt` is the LXC search head + deployment server + license manager +
   monitoring console + cluster manager. The `splunk-aio` VM 200 is the
   dedicated indexing node.
+- `hermes-infer` is a **privileged** LXC with the AMD RX 6800 passed through
+  (`/dev/kfd` + `/dev/dri`, via the `ansible-proxmox` `lxc_gpu_features` role)
+  running Ollama on ROCm; it serves the `hermes4` model (NousResearch
+  Hermes-4-14B) on port 11434 from a 120 GB volume at `/var/lib/ollama`.
+  `hermes-chat` runs Open WebUI, fronted by Traefik via the `llm` ingress; the
+  `ollama` ingress exposes the raw API. Full write-up:
+  [docs.jacobpevans.com/infrastructure/local-llm](https://docs.jacobpevans.com/infrastructure/local-llm).
 - `mailpit` and `ntfy` run Docker-in-LXC (`nesting: true`, `keyctl: true`) for
   internal notifications.
 - `download-vpn` is an unprivileged LXC with `/dev/net/tun` passed through

@@ -44,6 +44,14 @@ Heavy I/O workloads run as full VMs:
 | 161 | gemini-01      | LXC  | 2     | 2GB  | 64GB    | ai   | Gemini development environment 1     |
 | 162 | gemini-02      | LXC  | 2     | 2GB  | 64GB    | ai   | Gemini development environment 2     |
 | 165 | qdrant         | LXC  | 2     | 8GB  | 108GB   | ai   | Qdrant vector database - AI RAG      |
+| 166 | llamaindex     | LXC  | 2     | 4GB  | 16GB    | ai   | LlamaIndex RAG engine (CPU)          |
+| 167 | hermes-infer   | LXC  | 6     | 6GB  | 144GB   | ai   | Ollama LLM inference (GPU RX 6800)   |
+| 168 | hermes-chat    | LXC  | 2     | 2GB  | 16GB    | ai   | Open WebUI chat frontend             |
+
+The GPU LLM stack (`hermes-infer` + `hermes-chat`) is documented end-to-end at
+[docs.jacobpevans.com/infrastructure/local-llm](https://docs.jacobpevans.com/infrastructure/local-llm).
+`hermes-infer` is a privileged LXC with the RX 6800 passed through (`/dev/kfd`,
+`/dev/dri`) and a 120 GB model volume at `/var/lib/ollama`.
 
 ### LXC Containers - Cribl Stream (171-179)
 
@@ -131,6 +139,9 @@ Example configuration uses 192.168.1.0/24:
 - 192.168.1.161/24 - gemini-01
 - 192.168.1.162/24 - gemini-02
 - 192.168.1.165/24 - qdrant
+- 192.168.1.166/24 - llamaindex
+- 192.168.1.167/24 - hermes-infer
+- 192.168.1.168/24 - hermes-chat
 
 ### Cribl Stream (171-179)
 
