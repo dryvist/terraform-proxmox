@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.22.1](https://github.com/dryvist/terraform-proxmox/compare/v1.22.0...v1.22.1) (2026-06-04)
+
+
+### Bug Fixes
+
+* **dev:** point nix-devenv flake ref at dryvist owner ([#379](https://github.com/dryvist/terraform-proxmox/issues/379)) ([f8a17b3](https://github.com/dryvist/terraform-proxmox/commit/f8a17b30fba87b1bb9cd39400d7f3cf30bc1b5f8))
+
 ## [1.22.0](https://github.com/dryvist/terraform-proxmox/compare/v1.21.0...v1.22.0) (2026-06-04)
 
 
