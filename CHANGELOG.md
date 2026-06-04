@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.18.0](https://github.com/dryvist/terraform-proxmox/compare/v1.17.0...v1.18.0) (2026-06-04)
+
+
+### Features
+
+* **ingress:** expose Open WebUI (llm) via Traefik + add LLM service ports ([#362](https://github.com/dryvist/terraform-proxmox/issues/362)) ([2607ca3](https://github.com/dryvist/terraform-proxmox/commit/2607ca340bddbde4c358796f897c17bf04c553ca))
+
 ## [1.17.0](https://github.com/dryvist/terraform-proxmox/compare/v1.16.0...v1.17.0) (2026-06-03)
 
 
