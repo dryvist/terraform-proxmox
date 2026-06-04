@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.20.0](https://github.com/dryvist/terraform-proxmox/compare/v1.19.0...v1.20.0) (2026-06-04)
+
+
+### Features
+
+* **splunk:** mark splunk ingress as https backend ([#372](https://github.com/dryvist/terraform-proxmox/issues/372)) ([0e4926f](https://github.com/dryvist/terraform-proxmox/commit/0e4926f93dbe11d59bc69ecebea319fc1a5bc978))
+
 ## [1.19.0](https://github.com/dryvist/terraform-proxmox/compare/v1.18.1...v1.19.0) (2026-06-04)
 
 
