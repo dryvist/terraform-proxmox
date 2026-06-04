@@ -596,3 +596,30 @@ run "vm_node_placement_override" {
     error_message = "a VM with node_name set must be placed on that node"
   }
 }
+
+# An ISO-appliance VM (cdrom_file_id, an extra datastore disk, and no
+# clone_template) must plan — this is the shape the PBS backup appliance uses.
+run "vm_iso_appliance_plans" {
+  command = plan
+
+  variables {
+    vms = {
+      pbs = {
+        vm_id            = 240
+        name             = "pbs"
+        vlan             = "compute"
+        node_name        = "proxmox-2"
+        cdrom_file_id    = "local:iso/proxmox-backup-server.iso"
+        boot_disk        = { datastore_id = "local-zfs", size = 32 }
+        additional_disks = [{ interface = "scsi1", datastore_id = "local-zfs", size = 1024 }]
+        protection       = true
+        tags             = ["terraform", "backup", "pbs"]
+      }
+    }
+  }
+
+  assert {
+    condition     = output.ansible_inventory.vms["pbs"].node == "proxmox-2"
+    error_message = "ISO-appliance VM (cdrom_file_id, extra disk, no clone_template) must plan and land on its node"
+  }
+}
