@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.22.3](https://github.com/dryvist/terraform-proxmox/compare/v1.22.2...v1.22.3) (2026-06-04)
+
+
+### Bug Fixes
+
+* **security:** constrain PBS ISO Renovate version regex ([#383](https://github.com/dryvist/terraform-proxmox/issues/383)) ([39aa2e0](https://github.com/dryvist/terraform-proxmox/commit/39aa2e0f2c1e5f946bc37b42594080d9cffafe84))
+
 ## [1.22.2](https://github.com/dryvist/terraform-proxmox/compare/v1.22.1...v1.22.2) (2026-06-04)
 
 
