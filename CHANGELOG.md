@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.18.1](https://github.com/dryvist/terraform-proxmox/compare/v1.18.0...v1.18.1) (2026-06-04)
+
+
+### Bug Fixes
+
+* **vm:** ignore cloud-init ip_config drift to avoid rebuilding the non-removable cloud-init drive ([#366](https://github.com/dryvist/terraform-proxmox/issues/366)) ([920f2a8](https://github.com/dryvist/terraform-proxmox/commit/920f2a8c63a1f18214b0e0bc20eca808c438d281))
+
 ## [1.18.0](https://github.com/dryvist/terraform-proxmox/compare/v1.17.0...v1.18.0) (2026-06-04)
 
 
