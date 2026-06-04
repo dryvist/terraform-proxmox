@@ -54,7 +54,8 @@ variable "proxmox_iso_debian" {
 variable "proxmox_iso_pbs" {
   description = "Proxmox Backup Server ISO filename (upload to datastore_iso; reference it as <datastore_iso>:iso/<filename> in a VM's cdrom_file_id)."
   type        = string
-  default     = "proxmox-backup-server_4.0-1.iso"
+  # renovate: datasource=custom.proxmox-iso depName=proxmox-backup-server
+  default = "proxmox-backup-server_4.2-1.iso"
 }
 
 variable "template_id" {

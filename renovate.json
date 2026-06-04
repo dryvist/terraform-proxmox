@@ -3,5 +3,28 @@
   "extends": [
     "config:recommended",
     "local>dryvist/.github"
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "fileMatch": ["variables-storage\\.tf$"],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)\\s+default\\s*=\\s*\"(?<currentValue>[^\"]+)\""
+      ],
+      "extractVersionTemplate": "^proxmox-backup-server_(?<version>.+)\\.iso$",
+      "versioningTemplate": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)-(?<build>\\d+)$"
+    }
+  ],
+  "customDatasources": {
+    "proxmox-iso": {
+      "defaultRegistryUrlTemplate": "http://download.proxmox.com/iso/",
+      "format": "html"
+    }
+  },
+  "packageRules": [
+    {
+      "matchDatasources": ["custom.proxmox-iso"],
+      "minimumReleaseAge": "30 days"
+    }
   ]
 }
