@@ -228,6 +228,7 @@ locals {
     openproject     = { backend = "openproject", port = local.pipeline_constants.service_ports.openproject_web }
     prometheus      = { backend = "prometheus", port = local.pipeline_constants.service_ports.prometheus_web }
     llm             = { backend = "hermes-chat", port = local.pipeline_constants.service_ports.open_webui_web }
+    ollama          = { backend = "hermes-infer", port = local.pipeline_constants.service_ports.ollama_api }
     qdrant          = { backend = "qdrant", port = local.pipeline_constants.vector_db_ports.qdrant_http }
     "haproxy-stats" = { backend = "haproxy", port = local.pipeline_constants.service_ports.haproxy_stats }
   }
