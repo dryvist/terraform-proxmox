@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.24.0](https://github.com/dryvist/terraform-proxmox/compare/v1.23.0...v1.24.0) (2026-06-05)
+
+
+### Features
+
+* **ingress:** expose Ollama API via Traefik ([#387](https://github.com/dryvist/terraform-proxmox/issues/387)) ([f489003](https://github.com/dryvist/terraform-proxmox/commit/f489003e2767a348f7b8bdd9668ab5d15282e5a9))
+
 ## [1.23.0](https://github.com/dryvist/terraform-proxmox/compare/v1.22.3...v1.23.0) (2026-06-05)
 
 
