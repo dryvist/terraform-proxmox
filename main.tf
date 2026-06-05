@@ -204,6 +204,9 @@ module "firewall" {
   # Infisical secrets-management containers (infisical tag)
   infisical_container_ids = local.infisical_container_ids
 
+  # OpenBao secrets-management containers (openbao tag)
+  openbao_container_ids = local.openbao_container_ids
+
   # iDRAC KVM LXC: tagged "idrac" (domistyle/idrac6-based viewers, Docker-in-LXC)
   idrac_kvm_container_ids = local.idrac_kvm_container_ids
 

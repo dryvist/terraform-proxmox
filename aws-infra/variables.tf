@@ -41,6 +41,14 @@ variable "route53_zone_id" {
   }
 }
 
+# OpenBao Auto-Unseal Configuration
+
+variable "enable_openbao_unseal" {
+  description = "Enable provisioning of the KMS key + scoped IAM user for OpenBao auto-unseal"
+  type        = bool
+  default     = true
+}
+
 # Proxmox Integration (values passed from Proxmox config or Doppler)
 
 variable "proxmox_domain" {

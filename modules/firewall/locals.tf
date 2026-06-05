@@ -102,6 +102,15 @@ locals {
     { proto = "tcp", dport = tostring(local.svc_ports.infisical_api), source = local.internal_src, comment = "Infisical API/Web from internal" },
   ]
 
+  # OpenBao API/UI (8200) is reached via Traefik (internal RFC1918). The Raft
+  # cluster port (8201) is peer-to-peer; Phase 1 has a single node so it stays
+  # scoped to internal RFC1918 (the apps VLAN is a subset). Tighten to the peer
+  # set when the HA cluster scales out (Phase 2).
+  openbao_services_rules = [
+    { proto = "tcp", dport = tostring(local.svc_ports.openbao_api), source = local.internal_src, comment = "OpenBao API/UI from internal" },
+    { proto = "tcp", dport = tostring(local.svc_ports.openbao_cluster), source = local.internal_src, comment = "OpenBao Raft cluster from internal" },
+  ]
+
   # Outbound to internal RFC1918 only (blocks internet egress)
   outbound_internal_rules = [
     { proto = "tcp", dest = local.internal_src, comment = "Outbound TCP to internal" },

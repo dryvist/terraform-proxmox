@@ -267,6 +267,23 @@ resource "proxmox_virtual_environment_cluster_firewall_security_group" "infisica
   }
 }
 
+resource "proxmox_virtual_environment_cluster_firewall_security_group" "openbao_services" {
+  name    = "openbao-svc"
+  comment = "OpenBao API/UI (8200) and Raft cluster (8201) from internal networks (Traefik front-ends TLS termination on its own ports)"
+
+  dynamic "rule" {
+    for_each = local.openbao_services_rules
+    content {
+      type    = "in"
+      action  = "ACCEPT"
+      proto   = rule.value.proto
+      dport   = rule.value.dport
+      source  = rule.value.source
+      comment = rule.value.comment
+    }
+  }
+}
+
 resource "proxmox_virtual_environment_cluster_firewall_security_group" "ntp_server" {
   name    = "ntp-server"
   comment = "NTP server (UDP 123) from internal networks — Proxmox hosts serve time to VMs/containers via chrony"
