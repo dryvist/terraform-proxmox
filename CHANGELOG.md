@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.23.0](https://github.com/dryvist/terraform-proxmox/compare/v1.22.3...v1.23.0) (2026-06-05)
+
+
+### Features
+
+* **secrets:** scaffold OpenBao secrets manager IaC (Raft node 1) ([2d27e0e](https://github.com/dryvist/terraform-proxmox/commit/2d27e0ee5eddc73da53f22ee0c870642844e6701))
+
 ## [1.22.3](https://github.com/dryvist/terraform-proxmox/compare/v1.22.2...v1.22.3) (2026-06-04)
 
 
