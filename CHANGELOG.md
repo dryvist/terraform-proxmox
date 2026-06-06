@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.24.1](https://github.com/dryvist/terraform-proxmox/compare/v1.24.0...v1.24.1) (2026-06-06)
+
+
+### Bug Fixes
+
+* **splunk-vm:** ignore disk drift to unblock apply on live bootdisk ([#390](https://github.com/dryvist/terraform-proxmox/issues/390)) ([a2a5cf3](https://github.com/dryvist/terraform-proxmox/commit/a2a5cf3752eb20debabad76130fad46d1c63664b))
+
 ## [1.24.0](https://github.com/dryvist/terraform-proxmox/compare/v1.23.0...v1.24.0) (2026-06-05)
 
 
