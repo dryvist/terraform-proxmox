@@ -162,6 +162,15 @@ resource "proxmox_virtual_environment_vm" "splunk_vm" {
       # bpg rebuild the cloud-init drive — and that fails on the non-removable
       # ide2 disk. Ansible owns post-boot networking, so ignore the drift.
       initialization[0].ip_config,
+      # The live disk layout diverged from this module out-of-band: the boot
+      # disk is scsi0/50G (not virtio0/25G), and the empty leftover disk-1 was
+      # reaped directly on the host. bpg keys disk blocks positionally and tofu
+      # state tracks only the virtio1 data disk, so ANY disk reconciliation tries
+      # to unplug the live scsi0 bootdisk (Proxmox HTTP 400) and would reinterpret
+      # the 200G data disk. Disk sizing/layout is owned outside tofu (Proxmox +
+      # the ansible sanoid/syncoid protection layer), so ignore disk drift. Revisit
+      # if tofu is ever made the source of truth for the disk split (see #247).
+      disk,
     ]
   }
 }
