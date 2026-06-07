@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.25.0](https://github.com/dryvist/terraform-proxmox/compare/v1.24.2...v1.25.0) (2026-06-07)
+
+
+### Features
+
+* **monitoring:** add SmokePing + speedtest network-quality LXC ([#394](https://github.com/dryvist/terraform-proxmox/issues/394)) ([713c35a](https://github.com/dryvist/terraform-proxmox/commit/713c35abf57e4742299314a0f9aa0c7c6ebe5ae7))
+
 ## [1.24.2](https://github.com/dryvist/terraform-proxmox/compare/v1.24.1...v1.24.2) (2026-06-07)
 
 
