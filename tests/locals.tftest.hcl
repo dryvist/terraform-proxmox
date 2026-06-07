@@ -391,7 +391,7 @@ run "monitoring_ids_picks_up_monitoring_tagged" {
   variables {
     containers = {
       "smokeping" = {
-        vm_id    = 150
+        vm_id    = 196
         hostname = "smokeping"
         vlan     = "mgmt"
         tags     = ["terraform", "container", "monitoring", "docker"]
@@ -400,14 +400,14 @@ run "monitoring_ids_picks_up_monitoring_tagged" {
   }
 
   assert {
-    condition     = local.monitoring_container_ids["smokeping"] == 150
-    error_message = "monitoring_container_ids should map 'smokeping' to vm_id 150"
+    condition     = local.monitoring_container_ids["smokeping"] == 196
+    error_message = "monitoring_container_ids should map 'smokeping' to vm_id 196"
   }
 
-  # mgmt VLAN id is 5 -> 192.168.5.0/24; vm_id 150 -> .150
+  # mgmt VLAN id is 5 -> 192.168.5.0/24; vm_id 196 -> .196
   assert {
-    condition     = local.container_ipv4["smokeping"] == "192.168.5.150/24"
-    error_message = "smokeping mgmt-VLAN IP should be 192.168.5.150/24, got ${local.container_ipv4["smokeping"]}"
+    condition     = local.container_ipv4["smokeping"] == "192.168.5.196/24"
+    error_message = "smokeping mgmt-VLAN IP should be 192.168.5.196/24, got ${local.container_ipv4["smokeping"]}"
   }
 }
 

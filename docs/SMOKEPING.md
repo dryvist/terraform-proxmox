@@ -32,7 +32,7 @@ Inter-VLAN reachability itself is enforced at UniFi — ensure the mgmt VLAN is
 permitted to ICMP/DNS/HTTPS the VLANs and WAN you want to probe.
 
 To deploy the guest: add the same `smokeping` block to your live `deployment.json`
-(confirm the `vm_id` is free on the mgmt /24 — `150` in the example is
+(confirm the `vm_id` is free on the mgmt /24 — `196` in the example is
 illustrative), then `terragrunt apply`. The `after_hook` sync writes the updated
 inventory into `ansible-proxmox-apps`, which then builds the config below.
 
