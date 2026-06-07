@@ -75,6 +75,12 @@ variable "idrac_kvm_container_ids" {
   default     = {}
 }
 
+variable "monitoring_container_ids" {
+  description = "Map of network-quality monitoring LXC names to IDs (SmokePing + speedtest-exporter, tag-driven)"
+  type        = map(number)
+  default     = {}
+}
+
 variable "management_network" {
   description = "CIDR of management network for SSH/Web access. Configure in terraform.tfvars for your environment."
   type        = string

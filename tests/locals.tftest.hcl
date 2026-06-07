@@ -241,6 +241,20 @@ run "pipeline_constants_service_ports" {
   }
 }
 
+run "pipeline_constants_monitoring_ports" {
+  command = plan
+
+  assert {
+    condition     = local.pipeline_constants.service_ports.smokeping_web == 80
+    error_message = "smokeping_web port should be 80"
+  }
+
+  assert {
+    condition     = local.pipeline_constants.service_ports.speedtest_exporter == 9798
+    error_message = "speedtest_exporter port should be 9798"
+  }
+}
+
 run "pipeline_constants_syslog_ports" {
   command = plan
 
@@ -355,6 +369,45 @@ run "cribl_stream_ids_empty_by_default" {
   assert {
     condition     = length(local.cribl_stream_container_ids) == 0
     error_message = "cribl_stream_container_ids should be empty when containers is empty"
+  }
+}
+
+run "monitoring_ids_empty_by_default" {
+  command = plan
+
+  variables {
+    containers = {}
+  }
+
+  assert {
+    condition     = length(local.monitoring_container_ids) == 0
+    error_message = "monitoring_container_ids should be empty when containers is empty"
+  }
+}
+
+run "monitoring_ids_picks_up_monitoring_tagged" {
+  command = plan
+
+  variables {
+    containers = {
+      "smokeping" = {
+        vm_id    = 150
+        hostname = "smokeping"
+        vlan     = "mgmt"
+        tags     = ["terraform", "container", "monitoring", "docker"]
+      }
+    }
+  }
+
+  assert {
+    condition     = local.monitoring_container_ids["smokeping"] == 150
+    error_message = "monitoring_container_ids should map 'smokeping' to vm_id 150"
+  }
+
+  # mgmt VLAN id is 5 -> 192.168.5.0/24; vm_id 150 -> .150
+  assert {
+    condition     = local.container_ipv4["smokeping"] == "192.168.5.150/24"
+    error_message = "smokeping mgmt-VLAN IP should be 192.168.5.150/24, got ${local.container_ipv4["smokeping"]}"
   }
 }
 

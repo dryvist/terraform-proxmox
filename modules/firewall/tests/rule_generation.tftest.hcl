@@ -28,6 +28,9 @@ variables {
       ntp               = 123
       idrac_kvm_r410    = 5800
       idrac_kvm_r710    = 5801
+      # monitoring ports (own alignment group — longest key in the map)
+      smokeping_web      = 80
+      speedtest_exporter = 9798
     }
     syslog_ports = {
       default   = 514
@@ -333,6 +336,30 @@ run "idrac_kvm_rules_track_constants_ports" {
   assert {
     condition     = local.idrac_kvm_services_rules[1].dport == tostring(var.pipeline_constants.service_ports.idrac_kvm_r710)
     error_message = "idrac_kvm_services_rules[1].dport must equal tostring(service_ports.idrac_kvm_r710), got '${local.idrac_kvm_services_rules[1].dport}'"
+  }
+}
+
+run "monitoring_rules_track_constants_ports" {
+  command = plan
+
+  variables {
+    internal_networks = ["10.0.0.0/8"]
+  }
+
+  # SmokePing web UI (80) + speedtest-exporter metrics (9798)
+  assert {
+    condition     = length(local.monitoring_services_rules) == 2
+    error_message = "monitoring_services_rules must be exactly 2 (SmokePing web, speedtest-exporter), got ${length(local.monitoring_services_rules)}"
+  }
+
+  assert {
+    condition     = local.monitoring_services_rules[0].dport == tostring(var.pipeline_constants.service_ports.smokeping_web)
+    error_message = "monitoring_services_rules[0].dport must track service_ports.smokeping_web, got '${local.monitoring_services_rules[0].dport}'"
+  }
+
+  assert {
+    condition     = local.monitoring_services_rules[1].dport == tostring(var.pipeline_constants.service_ports.speedtest_exporter)
+    error_message = "monitoring_services_rules[1].dport must track service_ports.speedtest_exporter, got '${local.monitoring_services_rules[1].dport}'"
   }
 }
 
