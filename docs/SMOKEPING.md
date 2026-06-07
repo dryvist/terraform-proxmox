@@ -318,4 +318,3 @@ latency panels for a complete network-quality view.
 - Pin a `SPEEDTEST_SERVER` if your nearest Ookla server flaps between runs and
   muddies the throughput trend.
 - The RRD `/data` volume is the whole history — back it up (PBS) like any stateful app.
-```
