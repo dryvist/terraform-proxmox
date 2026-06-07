@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.25.1](https://github.com/dryvist/terraform-proxmox/compare/v1.25.0...v1.25.1) (2026-06-07)
+
+
+### Bug Fixes
+
+* **monitoring:** correct SmokePing vm_id from placeholder 150 to 196 ([#396](https://github.com/dryvist/terraform-proxmox/issues/396)) ([8b52848](https://github.com/dryvist/terraform-proxmox/commit/8b528488215bbb9f3008c615a2e0dc176cd0e41d))
+
 ## [1.25.0](https://github.com/dryvist/terraform-proxmox/compare/v1.24.2...v1.25.0) (2026-06-07)
 
 
