@@ -280,7 +280,7 @@ run "ansible_inventory_ingress_route_table" {
       }
       # Network-quality monitoring LXC on the mgmt VLAN (id 5 -> 192.168.5.0/24).
       "smokeping" = {
-        vm_id    = 150
+        vm_id    = 196
         hostname = "smokeping"
         vlan     = "mgmt"
         tags     = ["terraform", "container", "monitoring", "docker"]
@@ -312,13 +312,13 @@ run "ansible_inventory_ingress_route_table" {
     error_message = "ingress must skip services whose backend container is not defined"
   }
 
-  # smokeping: backend "smokeping" (192.168.5.150) on service_ports.smokeping_web (80).
+  # smokeping: backend "smokeping" (192.168.5.196) on service_ports.smokeping_web (80).
   assert {
     condition = length([
       for r in output.ansible_inventory.ingress :
-      r if r.name == "smokeping" && r.ip == "192.168.5.150" && r.port == 80
+      r if r.name == "smokeping" && r.ip == "192.168.5.196" && r.port == 80
     ]) == 1
-    error_message = "ingress must front smokeping at 192.168.5.150:80 (derived mgmt IP + constant port)"
+    error_message = "ingress must front smokeping at 192.168.5.196:80 (derived mgmt IP + constant port)"
   }
 }
 
