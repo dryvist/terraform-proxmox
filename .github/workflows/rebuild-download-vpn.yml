@@ -1,0 +1,87 @@
+# Scheduled rebuild of the download-vpn LXC (issue #368).
+#
+# The container is internet-isolated by a fail-closed killswitch with no egress
+# hole, so it cannot `apt` in steady state. A periodic destroy+recreate lets it
+# pick up security updates and resets config drift: package installs succeed
+# during the rebuild because they run on a fresh shell BEFORE the killswitch is
+# active. Rootfs is wiped (qBittorrent/Prowlarr config); the /mnt/downloads and
+# /mnt/media host ZFS bind-mounts survive.
+#
+# This workflow is the FIRST hop of a dispatch chain (the org's
+# repository_dispatch + GitHub-App-token idiom, per dryvist/.github's
+# _dispatch-flake-consumers.yml):
+#   1. (here) terragrunt apply -replace -> recreate the bare LXC shell, then
+#      repository_dispatch -> dryvist/ansible-proxmox.
+#   2. ansible-proxmox converge-media-features re-applies bind-mounts +
+#      /dev/net/tun + keyctl (root@pam), then dispatches ->
+#   3. ansible-proxmox-apps converge-download-vpn reinstalls + reconfigures the app.
+#
+# Requires a self-hosted runner ([self-hosted, Linux]) with line-of-sight to the
+# Proxmox node and Nix, pre-baked with the AWS state-backend credentials, the
+# Doppler token, and the SOPS age key. See docs/REBUILD.md for the full
+# prerequisites and the manual first-run procedure.
+name: Rebuild download-vpn (scheduled)
+
+"on":
+  schedule:
+    # 1st of each month, 09:47 UTC (off-peak; cron is always UTC).
+    - cron: "47 9 1 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rebuild-download-vpn
+  cancel-in-progress: false
+
+jobs:
+  replace:
+    name: terragrunt -replace download-vpn
+    runs-on: [self-hosted, Linux]
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      # The repo's canonical Nix toolchain shell wraps `doppler run` (provider
+      # auth + per-VLAN CIDRs) wrapping the targeted replace. The terragrunt
+      # after_hook (sync-inventory.sh) re-renders + distributes the full
+      # ansible_inventory; a -replace is a full plan, so schema validation passes.
+      # AWS creds and SOPS_AGE_KEY_FILE come from the runner environment.
+      - name: terragrunt apply -replace (recreate the LXC shell)
+        env:
+          TG_TF_PATH: tofu
+        run: >-
+          nix develop "github:dryvist/nix-devenv?dir=shells/terraform" --command
+          doppler run -p iac-conf-mgmt -c prd --
+          terragrunt apply
+          -replace='module.containers[0].proxmox_virtual_environment_container.containers["download-vpn"]'
+          -auto-approve
+
+  dispatch:
+    name: Dispatch the media-features converge
+    needs: replace
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      # Mint a GitHub App token scoped to the next repo in the chain — the same
+      # token-mint + repository_dispatch pattern dryvist/.github uses. The org App
+      # client id (var) and private key (secret) resolve in this repo's context.
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.GH_APP_CLIENT_ID }}
+          private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+          owner: dryvist
+          repositories: ansible-proxmox
+          permission-contents: write
+
+      - name: repository_dispatch -> ansible-proxmox (media features)
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: >-
+          gh api repos/dryvist/ansible-proxmox/dispatches
+          -f event_type=rebuild-download-vpn
