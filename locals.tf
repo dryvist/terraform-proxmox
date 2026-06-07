@@ -128,6 +128,14 @@ locals {
     for k, v in var.containers : k => v.vm_id
     if contains(coalesce(try(v.tags, null), []), "idrac")
   }
+
+  # Network-quality monitoring LXC (smokeping tag "monitoring"): SmokePing web UI
+  # (80) + speedtest-exporter metrics (9798). Egress is open (output ACCEPT) so
+  # fping/DNS/HTTPS probes can reach internal and external targets freely.
+  monitoring_container_ids = {
+    for k, v in var.containers : k => v.vm_id
+    if contains(coalesce(try(v.tags, null), []), "monitoring")
+  }
 }
 
 # Pipeline constants - single source of truth for service, syslog, NetFlow, notification, and vector DB ports
@@ -165,6 +173,11 @@ locals {
       # Local LLM: Ollama API (CT 167 hermes-infer) + Open WebUI (CT 168 hermes-chat)
       ollama_api     = 11434
       open_webui_web = 8080
+      # Network-quality monitoring (CT smokeping, mgmt VLAN, Docker-in-LXC):
+      # SmokePing web UI (fronted by Traefik) and the speedtest-exporter metrics
+      # endpoint scraped by Prometheus. See docs/SMOKEPING.md.
+      smokeping_web      = 80
+      speedtest_exporter = 9798
     }
     syslog_ports = {
       default   = 514
@@ -230,6 +243,7 @@ locals {
     llm             = { backend = "hermes-chat", port = local.pipeline_constants.service_ports.open_webui_web }
     ollama          = { backend = "hermes-infer", port = local.pipeline_constants.service_ports.ollama_api }
     qdrant          = { backend = "qdrant", port = local.pipeline_constants.vector_db_ports.qdrant_http }
+    smokeping       = { backend = "smokeping", port = local.pipeline_constants.service_ports.smokeping_web }
     "haproxy-stats" = { backend = "haproxy", port = local.pipeline_constants.service_ports.haproxy_stats }
   }
 

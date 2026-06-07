@@ -118,6 +118,21 @@
       "tags": ["terraform", "container"],
       "pool_id": "infrastructure",
       "root_disk": { "size": 8 }
+    },
+    "_smokeping_comment": "Network-quality monitoring (Docker-in-LXC on mgmt VLAN). Runs SmokePing (latency/loss/jitter, web UI :80) plus a speedtest-exporter (Mbps, Prometheus metrics :9798) via Docker Compose — see docs/SMOKEPING.md for the full Probes/Targets design the ansible-proxmox-apps role applies. Pick a vm_id that is free on the mgmt /24; 150 is illustrative.",
+    "smokeping": {
+      "vm_id": 150,
+      "vlan": "mgmt",
+      "hostname": "smokeping",
+      "description": "SmokePing latency/loss/jitter + speedtest-exporter (network quality monitoring)",
+      "cpu_cores": 2,
+      "memory_dedicated": 1024,
+      "memory_swap": 1024,
+      "tags": ["terraform", "container", "monitoring", "docker"],
+      "pool_id": "infrastructure",
+      "root_disk": { "size": 16 },
+      "unprivileged": true,
+      "features": { "nesting": true, "keyctl": true }
     }
   }
 }

@@ -123,4 +123,12 @@ locals {
     { proto = "tcp", dport = tostring(local.svc_ports.idrac_kvm_r410), source = local.internal_src, comment = "iDRAC HTML5 KVM R410 (TCP ${local.svc_ports.idrac_kvm_r410}) from internal" },
     { proto = "tcp", dport = tostring(local.svc_ports.idrac_kvm_r710), source = local.internal_src, comment = "iDRAC HTML5 KVM R710 (TCP ${local.svc_ports.idrac_kvm_r710}) from internal" },
   ]
+
+  # Monitoring: inbound SmokePing web UI (80) + speedtest-exporter metrics (9798)
+  # from internal. Egress is open (output ACCEPT on the container) so fping/DNS/
+  # HTTPS probes can reach internal and external targets — see container_rules.tf.
+  monitoring_services_rules = [
+    { proto = "tcp", dport = tostring(local.svc_ports.smokeping_web), source = local.internal_src, comment = "SmokePing web UI (TCP ${local.svc_ports.smokeping_web}) from internal" },
+    { proto = "tcp", dport = tostring(local.svc_ports.speedtest_exporter), source = local.internal_src, comment = "speedtest-exporter Prometheus metrics (TCP ${local.svc_ports.speedtest_exporter}) from internal" },
+  ]
 }
