@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.24.2](https://github.com/dryvist/terraform-proxmox/compare/v1.24.1...v1.24.2) (2026-06-07)
+
+
+### Bug Fixes
+
+* **storage:** replace deprecated proxmox_virtual_environment_datastores with proxmox_datastores ([#392](https://github.com/dryvist/terraform-proxmox/issues/392)) ([9aee7bf](https://github.com/dryvist/terraform-proxmox/commit/9aee7bf655b89c099df5d2be613f3e5daf45132d))
+
 ## [1.24.1](https://github.com/dryvist/terraform-proxmox/compare/v1.24.0...v1.24.1) (2026-06-06)
 
 
