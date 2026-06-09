@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.29.0](https://github.com/dryvist/terraform-proxmox/compare/v1.28.0...v1.29.0) (2026-06-09)
+
+
+### Features
+
+* **inventory:** publish ansible_inventory to S3 (native aws_s3_object) ([#404](https://github.com/dryvist/terraform-proxmox/issues/404)) ([cef048c](https://github.com/dryvist/terraform-proxmox/commit/cef048cc3b1e84a1f2cf7918cf8f21bfb0da3d58))
+
 ## [1.28.0](https://github.com/dryvist/terraform-proxmox/compare/v1.27.0...v1.28.0) (2026-06-09)
 
 
