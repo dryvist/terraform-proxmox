@@ -5,6 +5,12 @@ terraform {
       source  = "bpg/proxmox"
       version = "~> 0.106"
     }
+    # Publishes the ansible_inventory output to S3 (inventory_publish.tf), using
+    # the same ambient credential chain as the S3 state backend.
+    aws = {
+      source  = "hashicorp/aws"
+      version = ">= 5.0"
+    }
     tls = {
       source  = "hashicorp/tls"
       version = "~> 4.1"
