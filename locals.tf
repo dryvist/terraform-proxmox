@@ -181,6 +181,11 @@ locals {
       # endpoint scraped by Prometheus. See docs/SMOKEPING.md.
       smokeping_web      = 80
       speedtest_exporter = 9798
+      # Per-uplink network diagnosis (CT netmon-*, mgmt VLAN, Docker-in-LXC): the
+      # satellite gRPC exporter scraped by each prober's Telegraf, alongside DOCSIS
+      # modem SNMP and native active probes. Pushes to Cribl -> Splunk netmon
+      # index. See docs/NETWORK_DIAGNOSIS.md.
+      satellite_exporter = 9817
     }
     syslog_ports = {
       default   = 514
