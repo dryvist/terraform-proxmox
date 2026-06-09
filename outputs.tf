@@ -72,73 +72,10 @@ output "acme_dns_plugins" {
 # generation, eliminating hardcoded VM IDs and IPs from Ansible configuration.
 output "ansible_inventory" {
   description = "Structured inventory for Ansible consumption - includes all VMs, containers, and Splunk infrastructure"
-  value = {
-    # LXC Containers - using proxmox_pct_remote connection
-    containers = {
-      for k, v in(length(var.containers) > 0 ? module.containers[0].container_details : {}) : k => {
-        vmid     = v.id
-        hostname = var.containers[k].hostname
-        ip       = split("/", local.container_ipv4[k])[0] # per-VLAN IP cidrhost(network_cidrs[vlan], vm_id); strip CIDR for Ansible
-        node     = v.node_name
-        # Connection settings for proxmox_pct_remote (community.proxmox)
-        ansible_connection = "community.proxmox.proxmox_pct_remote"
-        ansible_pct_vmid   = v.id
-        tags               = v.tags
-        pool_id            = v.pool_id
-      }
-    }
-    # Regular VMs - using SSH connection
-    # DRY: IP derived from vm_id (consistent with containers and cloud-init config)
-    vms = {
-      for k, v in module.vms.vm_details : k => {
-        vmid               = v.id
-        hostname           = v.name
-        ip                 = split("/", local.vm_ipv4[k])[0]
-        node               = v.node_name
-        ansible_connection = "ssh"
-        tags               = v.tags
-        pool_id            = v.pool_id
-      }
-    }
-    # Docker VMs - filtered subset of VMs with "docker" tag
-    docker_vms = {
-      for k, v in module.vms.vm_details : k => {
-        vmid               = v.id
-        hostname           = v.name
-        ip                 = split("/", local.vm_ipv4[k])[0]
-        node               = v.node_name
-        ansible_connection = "ssh"
-        tags               = v.tags
-        pool_id            = v.pool_id
-      } if contains(try(v.tags, []), "docker")
-    }
-    # Splunk VM - dedicated Docker host with SSH connection
-    splunk_vm = {
-      splunk = {
-        vmid               = module.splunk_vm.vm_id
-        hostname           = module.splunk_vm.name
-        ip                 = module.splunk_vm.ip_address # CIDR already stripped in module output
-        node               = var.proxmox_node
-        ansible_connection = "ssh"
-      }
-    }
-    # Pipeline constants - service and syslog port definitions
-    constants = local.pipeline_constants
-    # Traefik ingress route table - one {name, ip, port} per fronted service UI.
-    # The ansible-proxmox-apps traefik + technitium_dns roles derive their routers
-    # and DNS aliases from this single source instead of hand-listing hosts.
-    ingress = local.ingress
-    # Host-level NAS service config - consumed by ansible-proxmox to provision ZFS dataset + Samba
-    host_services = var.host_services
-    # Cluster node inventory (non-secret identity) - ansible-proxmox targets hosts and
-    # skips nodes where commissioned = false.
-    nodes = var.nodes
-    # Per-node ZFS storage to provision (pools/datasets/quotas) - ansible-proxmox creates
-    # and registers these; Terraform only references the datastore by id on disks.
-    node_storage = var.node_storage
-    # Domain for FQDN resolution (e.g., example.com)
-    domain = var.domain
-  }
+  # The value lives in local.ansible_inventory (inventory_publish.tf) so the
+  # native aws_s3_object publish resource can reference the same data — a
+  # resource cannot reference an output.
+  value = local.ansible_inventory
 }
 
 # Rack-server cluster inventory - consumed by ansible-proxmox via terraform_remote_state.
