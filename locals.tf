@@ -170,6 +170,9 @@ locals {
       homeassistant_web = 8123
       openproject_web   = 80
       prometheus_web    = 9090
+      # Proxmox cluster web UI (:8006) — fronted by Traefik at the ingress
+      # subdomain apex, load-balanced across every commissioned node's UI.
+      proxmox_web = 8006
       # Local LLM: Ollama API (CT 167 hermes-infer) + Open WebUI (CT 168 hermes-chat)
       ollama_api     = 11434
       open_webui_web = 8080

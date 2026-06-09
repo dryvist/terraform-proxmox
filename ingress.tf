@@ -34,6 +34,18 @@ locals {
     "haproxy-stats" = { backend = "haproxy", port = local.pipeline_constants.service_ports.haproxy_stats }
   }
 
+  # Proxmox cluster UI apex backend pool. Every commissioned node's web UI is
+  # reachable at https://<role>.<domain>:8006, using each node's role FQDN —
+  # these already resolve internally, while the bare Proxmox cluster-member name
+  # deliberately does NOT, so it never collides with the subdomain ingress apex.
+  # These are HOSTNAMES, not IPs: no node management IP is exported, so the
+  # sensitive rack_servers data stays out of the inventory. Traefik load-balances
+  # the pool and skips backend cert verification (nodes serve self-signed certs).
+  proxmox_ui_backends = [
+    for name, n in var.nodes : "${n.role}.${var.domain}"
+    if n.commissioned
+  ]
+
   # Assembled routes: one {name, ip, port} per fronted service whose backend
   # container is actually defined (others are skipped, so a partial deployment
   # never emits a dangling route). IP resolves via container_ipv4 (cidrhost),
@@ -60,6 +72,23 @@ locals {
         scheme       = "https"
         insecure_tls = true
       }
-    ]
+    ],
+    # Proxmox cluster UI apex (the ingress subdomain apex), load-balanced.
+    # apex=true -> the Traefik Host rule is the base domain itself (no <name>.
+    # prefix). backends (plural) -> a multi-server loadBalancer; sticky + health
+    # checks give a stable per-browser session + drop a down node from the pool.
+    # Omitted entirely if no node is commissioned (empty pool -> no route).
+    length(local.proxmox_ui_backends) > 0 ? [
+      {
+        name         = "proxmox"
+        apex         = true
+        backends     = local.proxmox_ui_backends
+        port         = local.pipeline_constants.service_ports.proxmox_web
+        scheme       = "https"
+        insecure_tls = true
+        sticky       = true
+        health_check = true
+      }
+    ] : []
   )
 }
