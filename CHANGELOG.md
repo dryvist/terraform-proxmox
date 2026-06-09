@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.27.0](https://github.com/dryvist/terraform-proxmox/compare/v1.26.0...v1.27.0) (2026-06-09)
+
+
+### Features
+
+* **monitoring:** add per-WAN network-diagnosis probers and netmon Splunk index ([#401](https://github.com/dryvist/terraform-proxmox/issues/401)) ([6160211](https://github.com/dryvist/terraform-proxmox/commit/6160211ede91ae04778caea6e72ccf5d74b10289))
+
 ## [1.26.0](https://github.com/dryvist/terraform-proxmox/compare/v1.25.1...v1.26.0) (2026-06-09)
 
 
