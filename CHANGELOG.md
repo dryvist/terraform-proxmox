@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.26.0](https://github.com/dryvist/terraform-proxmox/compare/v1.25.1...v1.26.0) (2026-06-09)
+
+
+### Features
+
+* **ingress:** add Proxmox cluster UI apex route (subdomain apex) ([#400](https://github.com/dryvist/terraform-proxmox/issues/400)) ([147be78](https://github.com/dryvist/terraform-proxmox/commit/147be78016f36d6dba5ded079edf45e8dbaddedd))
+
 ## [1.25.1](https://github.com/dryvist/terraform-proxmox/compare/v1.25.0...v1.25.1) (2026-06-07)
 
 
