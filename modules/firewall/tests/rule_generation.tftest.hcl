@@ -31,6 +31,10 @@ variables {
       # monitoring ports (own alignment group — longest key in the map)
       smokeping_web      = 80
       speedtest_exporter = 9798
+      smokeping_prober   = 9374
+      blackbox_exporter  = 9115
+      atlas_exporter     = 9400
+      irtt               = 2112
     }
     syslog_ports = {
       default   = 514
@@ -346,10 +350,10 @@ run "monitoring_rules_track_constants_ports" {
     internal_networks = ["10.0.0.0/8"]
   }
 
-  # SmokePing web UI (80) + speedtest-exporter metrics (9798)
+  # SmokePing UI + 4 Prometheus exporters (speedtest, prober, blackbox, atlas) + irtt UDP
   assert {
-    condition     = length(local.monitoring_services_rules) == 2
-    error_message = "monitoring_services_rules must be exactly 2 (SmokePing web, speedtest-exporter), got ${length(local.monitoring_services_rules)}"
+    condition     = length(local.monitoring_services_rules) == 6
+    error_message = "monitoring_services_rules must be exactly 6 (UI + speedtest/prober/blackbox/atlas exporters + irtt), got ${length(local.monitoring_services_rules)}"
   }
 
   assert {
@@ -358,8 +362,19 @@ run "monitoring_rules_track_constants_ports" {
   }
 
   assert {
-    condition     = local.monitoring_services_rules[1].dport == tostring(var.pipeline_constants.service_ports.speedtest_exporter)
-    error_message = "monitoring_services_rules[1].dport must track service_ports.speedtest_exporter, got '${local.monitoring_services_rules[1].dport}'"
+    condition     = local.monitoring_services_rules[2].dport == tostring(var.pipeline_constants.service_ports.smokeping_prober)
+    error_message = "monitoring_services_rules[2].dport must track service_ports.smokeping_prober, got '${local.monitoring_services_rules[2].dport}'"
+  }
+
+  assert {
+    condition     = local.monitoring_services_rules[3].dport == tostring(var.pipeline_constants.service_ports.blackbox_exporter)
+    error_message = "monitoring_services_rules[3].dport must track service_ports.blackbox_exporter, got '${local.monitoring_services_rules[3].dport}'"
+  }
+
+  # irtt is the only UDP rule in the monitoring set
+  assert {
+    condition     = local.monitoring_services_rules[5].proto == "udp" && local.monitoring_services_rules[5].dport == tostring(var.pipeline_constants.service_ports.irtt)
+    error_message = "monitoring_services_rules[5] must be UDP irtt, got proto='${local.monitoring_services_rules[5].proto}' dport='${local.monitoring_services_rules[5].dport}'"
   }
 }
 

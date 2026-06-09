@@ -320,7 +320,7 @@ resource "proxmox_virtual_environment_cluster_firewall_security_group" "idrac_kv
 
 resource "proxmox_virtual_environment_cluster_firewall_security_group" "monitoring_services" {
   name    = "monitoring-svc"
-  comment = "Network-quality monitoring: SmokePing web UI (80) and speedtest-exporter metrics (9798) from internal networks"
+  comment = "Network-quality monitoring: SmokePing UI + Prometheus exporters (speedtest, smokeping_prober, blackbox, atlas) + irtt UDP, from internal networks"
 
   dynamic "rule" {
     for_each = local.monitoring_services_rules
