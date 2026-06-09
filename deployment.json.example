@@ -162,6 +162,35 @@
       "root_disk": { "size": 8 },
       "unprivileged": true,
       "features": { "nesting": true, "keyctl": true }
+    },
+    "_netmon_comment": "Per-uplink network-diagnosis probers (Docker-in-LXC on mgmt VLAN, tag netmon). Each runs one Telegraf agent: native ping/dns_query/http_response probes, inputs.snmp to a DOCSIS modem, and inputs.prometheus scraping a satellite gRPC exporter plus the speedtest-exporter; results push to Cribl Edge (HEC) then the Splunk netmon index. A prober measures its assigned uplink only once tofu-unifi applies a source-IP policy route per prober. See docs/NETWORK_DIAGNOSIS.md. vm_ids 197/198 are illustrative; pick free mgmt /24 hosts.",
+    "netmon-cable": {
+      "vm_id": 197,
+      "vlan": "mgmt",
+      "hostname": "netmon-cable",
+      "description": "Per-WAN diagnostics for the cable (DOCSIS) uplink: Telegraf active probes + modem SNMP into the Splunk netmon index",
+      "cpu_cores": 1,
+      "memory_dedicated": 512,
+      "memory_swap": 512,
+      "tags": ["terraform", "container", "monitoring", "netmon", "docker"],
+      "pool_id": "infrastructure",
+      "root_disk": { "size": 8 },
+      "unprivileged": true,
+      "features": { "nesting": true, "keyctl": true }
+    },
+    "netmon-sat": {
+      "vm_id": 198,
+      "vlan": "mgmt",
+      "hostname": "netmon-sat",
+      "description": "Per-uplink diagnostics for the satellite uplink: Telegraf active probes + satellite gRPC exporter into the Splunk netmon index",
+      "cpu_cores": 1,
+      "memory_dedicated": 512,
+      "memory_swap": 512,
+      "tags": ["terraform", "container", "monitoring", "netmon", "docker"],
+      "pool_id": "infrastructure",
+      "root_disk": { "size": 8 },
+      "unprivileged": true,
+      "features": { "nesting": true, "keyctl": true }
     }
   }
 }

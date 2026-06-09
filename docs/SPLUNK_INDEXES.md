@@ -12,6 +12,7 @@ This document defines the Splunk indexes used in the logging pipeline, their pur
 | os       | Operating system logs     | Linux, macOS, Windows hosts    | 365 days  |
 | firewall | Firewall logs             | Palo Alto, Cisco ASA           | 365 days  |
 | network  | General network logs      | Switches, routers, other       | 365 days  |
+| netmon   | Per-WAN network diagnosis | Probes, DOCSIS SNMP, satellite | 90 days   |
 
 ## Index Configuration
 
@@ -87,9 +88,29 @@ frozenTimePeriodInSecs = 31536000
 - Port status changes
 - General network telemetry
 
+### netmon
+
+```ini
+[netmon]
+homePath = $SPLUNK_DB/netmon/db
+coldPath = $SPLUNK_DB/netmon/colddb
+thawedPath = $SPLUNK_DB/netmon/thaweddb
+maxTotalDataSizeMB = 51200
+frozenTimePeriodInSecs = 7776000
+```
+
+**Data types**:
+
+- Per-WAN ICMP/DNS/HTTPS latency, loss, and jitter (Telegraf active probes)
+- DOCSIS modem counters (power, MER/SNR, correctable + uncorrectable codewords, T3/T4 timeouts)
+- Satellite obstruction %, outages, pop-ping latency
+- Hourly per-WAN throughput (speedtest-exporter)
+
 ## Retention Policy
 
-All indexes use a **365-day retention** period (`frozenTimePeriodInSecs = 31536000`).
+Security-log indexes use a **365-day retention** period (`frozenTimePeriodInSecs = 31536000`).
+The `netmon` diagnostics index is the exception at **90 days** (`7776000`) — a troubleshooting
+horizon, not a compliance window.
 
 **Rationale**:
 
@@ -99,13 +120,15 @@ All indexes use a **365-day retention** period (`frozenTimePeriodInSecs = 315360
 
 ## Size Limits
 
-Each index is limited to **100GB** (`maxTotalDataSizeMB = 102400`).
+Security-log indexes are limited to **100GB** each (`maxTotalDataSizeMB = 102400`); the `netmon`
+diagnostics index is capped at **50GB** (`51200`).
 
 **Capacity planning**:
 
-- Total: 400GB across 4 indexes
+- Total: 450GB across 5 indexes (4 × 100GB security + netmon 50GB)
 - Splunk VM disk: 500GB allocated
-- Buffer for internal indexes: 100GB
+- Buffer for Splunk internal indexes: ~50GB — grow the VM disk before onboarding the broader
+  host/container/firewall log sources
 
 ## Source Type Mapping
 
@@ -121,6 +144,9 @@ Each index is limited to **100GB** (`maxTotalDataSizeMB = 102400`).
 | pan:threat     | firewall | Palo Alto threats      |
 | cisco:asa      | firewall | Cisco ASA              |
 | syslog:network | network  | Generic network        |
+| netmon:probe   | netmon   | Telegraf active probes |
+| netmon:docsis  | netmon   | Cable modem SNMP       |
+| netmon:sat     | netmon   | satellite uplink probe |
 
 ## HEC Token Configuration
 
@@ -151,6 +177,9 @@ splunk_indexes:
   - name: network
     maxTotalDataSizeMB: 102400
     frozenTimePeriodInSecs: 31536000
+  - name: netmon
+    maxTotalDataSizeMB: 51200
+    frozenTimePeriodInSecs: 7776000
 ```
 
 ## Related Documentation
