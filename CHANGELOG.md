@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.28.0](https://github.com/dryvist/terraform-proxmox/compare/v1.27.0...v1.28.0) (2026-06-09)
+
+
+### Features
+
+* **monitoring:** harden network-quality stack to Prometheus-native ([#403](https://github.com/dryvist/terraform-proxmox/issues/403)) ([a98962f](https://github.com/dryvist/terraform-proxmox/commit/a98962fa6b4f4501f2aff6d0e76dfb083cdd04ab))
+
 ## [1.27.0](https://github.com/dryvist/terraform-proxmox/compare/v1.26.0...v1.27.0) (2026-06-09)
 
 
