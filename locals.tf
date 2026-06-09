@@ -176,11 +176,19 @@ locals {
       # Local LLM: Ollama API (CT 167 hermes-infer) + Open WebUI (CT 168 hermes-chat)
       ollama_api     = 11434
       open_webui_web = 8080
-      # Network-quality monitoring (CT smokeping, mgmt VLAN, Docker-in-LXC):
-      # SmokePing web UI (fronted by Traefik) and the speedtest-exporter metrics
-      # endpoint scraped by Prometheus. See docs/SMOKEPING.md.
+      # Network-quality monitoring (Prometheus-native stack — see docs/SMOKEPING.md):
+      #   smokeping_web      — SmokePing RRD/CGI UI (optional, fronted by Traefik)
+      #   speedtest_exporter — throughput (Mbps) exporter, scraped by Prometheus
+      #   smokeping_prober   — SuperQ ICMP/UDP latency-distribution histograms (system of record)
+      #   blackbox_exporter  — DNS / HTTP(S) / TLS / TCP probes + reachability SLO
+      #   atlas_exporter     — RIPE Atlas outside-in results (external vantage)
+      #   irtt               — isochronous UDP RTT/jitter server (real RFC-3393 jitter / MOS)
       smokeping_web      = 80
       speedtest_exporter = 9798
+      smokeping_prober   = 9374
+      blackbox_exporter  = 9115
+      atlas_exporter     = 9400
+      irtt               = 2112
       # Per-uplink network diagnosis (CT netmon-*, mgmt VLAN, Docker-in-LXC): the
       # satellite gRPC exporter scraped by each prober's Telegraf, alongside DOCSIS
       # modem SNMP and native active probes. Pushes to Cribl -> Splunk netmon

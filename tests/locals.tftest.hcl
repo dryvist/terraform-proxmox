@@ -253,6 +253,27 @@ run "pipeline_constants_monitoring_ports" {
     condition     = local.pipeline_constants.service_ports.speedtest_exporter == 9798
     error_message = "speedtest_exporter port should be 9798"
   }
+
+  # Hardened Prometheus-native stack exporters (see docs/SMOKEPING.md)
+  assert {
+    condition     = local.pipeline_constants.service_ports.smokeping_prober == 9374
+    error_message = "smokeping_prober port should be 9374"
+  }
+
+  assert {
+    condition     = local.pipeline_constants.service_ports.blackbox_exporter == 9115
+    error_message = "blackbox_exporter port should be 9115"
+  }
+
+  assert {
+    condition     = local.pipeline_constants.service_ports.atlas_exporter == 9400
+    error_message = "atlas_exporter port should be 9400"
+  }
+
+  assert {
+    condition     = local.pipeline_constants.service_ports.irtt == 2112
+    error_message = "irtt port should be 2112"
+  }
 }
 
 run "pipeline_constants_syslog_ports" {

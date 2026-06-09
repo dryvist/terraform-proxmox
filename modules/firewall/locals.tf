@@ -124,11 +124,17 @@ locals {
     { proto = "tcp", dport = tostring(local.svc_ports.idrac_kvm_r710), source = local.internal_src, comment = "iDRAC HTML5 KVM R710 (TCP ${local.svc_ports.idrac_kvm_r710}) from internal" },
   ]
 
-  # Monitoring: inbound SmokePing web UI (80) + speedtest-exporter metrics (9798)
-  # from internal. Egress is open (output ACCEPT on the container) so fping/DNS/
-  # HTTPS probes can reach internal and external targets — see container_rules.tf.
+  # Monitoring: inbound network-quality stack ports from internal — SmokePing UI
+  # plus the Prometheus exporters (speedtest, smokeping_prober, blackbox, atlas)
+  # and the irtt UDP server. All scrape/probe-inbound; egress stays open (output
+  # ACCEPT on the container) so fping/DNS/HTTPS/irtt probes can reach internal and
+  # external targets — see monitoring_rules.tf. Ports are DRY from pipeline_constants.
   monitoring_services_rules = [
     { proto = "tcp", dport = tostring(local.svc_ports.smokeping_web), source = local.internal_src, comment = "SmokePing web UI (TCP ${local.svc_ports.smokeping_web}) from internal" },
     { proto = "tcp", dport = tostring(local.svc_ports.speedtest_exporter), source = local.internal_src, comment = "speedtest-exporter Prometheus metrics (TCP ${local.svc_ports.speedtest_exporter}) from internal" },
+    { proto = "tcp", dport = tostring(local.svc_ports.smokeping_prober), source = local.internal_src, comment = "smokeping_prober Prometheus metrics (TCP ${local.svc_ports.smokeping_prober}) from internal" },
+    { proto = "tcp", dport = tostring(local.svc_ports.blackbox_exporter), source = local.internal_src, comment = "blackbox_exporter Prometheus metrics (TCP ${local.svc_ports.blackbox_exporter}) from internal" },
+    { proto = "tcp", dport = tostring(local.svc_ports.atlas_exporter), source = local.internal_src, comment = "atlas_exporter (RIPE Atlas) Prometheus metrics (TCP ${local.svc_ports.atlas_exporter}) from internal" },
+    { proto = "udp", dport = tostring(local.svc_ports.irtt), source = local.internal_src, comment = "irtt isochronous RTT/jitter server (UDP ${local.svc_ports.irtt}) from internal" },
   ]
 }
