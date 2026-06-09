@@ -320,6 +320,51 @@ run "ansible_inventory_ingress_route_table" {
     ]) == 1
     error_message = "ingress must front smokeping at 192.168.5.196:80 (derived mgmt IP + constant port)"
   }
+
+  # No nodes set in this fixture -> the Proxmox apex pool is empty -> the apex
+  # route is omitted entirely (the length(proxmox_ui_backends) > 0 gate).
+  assert {
+    condition     = length([for r in output.ansible_inventory.ingress : r if r.name == "proxmox"]) == 0
+    error_message = "ingress must omit the proxmox apex route when no node is commissioned"
+  }
+}
+
+# Proxmox cluster UI apex: the subdomain apex load-balanced across the
+# commissioned node role FQDNs (https://<role>.<domain>:8006). Pins the
+# multi-backend + apex contract the ansible-proxmox-apps traefik role consumes.
+run "ansible_inventory_ingress_apex_proxmox" {
+  command = plan
+
+  variables {
+    domain = "example.com"
+    nodes = {
+      # role is the resolvable FQDN label; proxmox3 is un-commissioned and must
+      # drop out of the load-balanced pool. Sample values only.
+      proxmox1 = { role = "proxmox1" }
+      proxmox2 = { role = "proxmox2" }
+      proxmox3 = { role = "proxmox3", commissioned = false }
+    }
+  }
+
+  # The apex entry fronts the subdomain apex with a multi-backend pool built from
+  # the commissioned node role FQDNs (proxmox1/proxmox2), https + skip-verify for
+  # the self-signed node certs, and sticky + health-check flags for the LB.
+  # proxmox3 (un-commissioned) is excluded. Apex-only fields are read via try()
+  # because the ingress tuple is heterogeneous (container/splunk rows lack them).
+  assert {
+    condition = length([
+      for r in output.ansible_inventory.ingress : r
+      if r.name == "proxmox"
+      && try(r.apex, false)
+      && try(r.backends, []) == ["proxmox1.example.com", "proxmox2.example.com"]
+      && try(r.port, 0) == 8006
+      && try(r.scheme, "") == "https"
+      && try(r.insecure_tls, false)
+      && try(r.sticky, false)
+      && try(r.health_check, false)
+    ]) == 1
+    error_message = "ingress must front the Proxmox UI apex (the subdomain apex) with an https sticky health-checked pool over the commissioned node role FQDNs, excluding un-commissioned nodes"
+  }
 }
 
 # --- host_services structure tests ---
