@@ -22,6 +22,9 @@ mock_provider "proxmox" {
 mock_provider "tls" {}
 mock_provider "random" {}
 mock_provider "local" {}
+# aws is only used by the S3 inventory publish (inventory_publish.tf);
+# mock it so tests need no AWS credentials in CI or locally.
+mock_provider "aws" {}
 mock_provider "null" {}
 
 # Override data sources and modules that require real provider connections
