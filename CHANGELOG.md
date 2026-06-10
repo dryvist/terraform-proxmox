@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.30.2](https://github.com/dryvist/terraform-proxmox/compare/v1.30.1...v1.30.2) (2026-06-10)
+
+
+### Bug Fixes
+
+* **ci:** grant actions:read to retrigger-pr-checks caller ([#414](https://github.com/dryvist/terraform-proxmox/issues/414)) ([5e9658d](https://github.com/dryvist/terraform-proxmox/commit/5e9658dbe58a8f2e07bb4985cd5c0901b464e365))
+
 ## [1.30.1](https://github.com/dryvist/terraform-proxmox/compare/v1.30.0...v1.30.1) (2026-06-10)
 
 
