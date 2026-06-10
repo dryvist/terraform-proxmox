@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.30.0](https://github.com/dryvist/terraform-proxmox/compare/v1.29.0...v1.30.0) (2026-06-10)
+
+
+### Features
+
+* **monitoring:** adopt 6-digit VMID + DHCP/DNS-first addressing ([#409](https://github.com/dryvist/terraform-proxmox/issues/409)) ([c36ef1e](https://github.com/dryvist/terraform-proxmox/commit/c36ef1e52a2f65f72208efac4990779836c42c1c))
+
 ## [1.29.0](https://github.com/dryvist/terraform-proxmox/compare/v1.28.0...v1.29.0) (2026-06-09)
 
 
