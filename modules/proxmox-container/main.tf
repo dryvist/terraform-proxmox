@@ -32,10 +32,13 @@ resource "proxmox_virtual_environment_container" "containers" {
   # Startup configuration
   start_on_boot = each.value.start_on_boot
 
-  # Startup order: 256 - vm_id (higher IDs start first)
+  # Startup order: 256 - vm_id (higher IDs start first). Clamped at 0 so
+  # 6-digit positional VMIDs (DNS-first/DHCP guests, see docs vmid-network-tiers)
+  # don't produce a negative order — those guests get order 0 (unordered), which
+  # is correct for non-critical DHCP workloads. Legacy <256 IDs are unaffected.
   # Delay: global startup_delay between each start
   startup {
-    order    = 256 - each.value.vm_id
+    order    = max(0, 256 - each.value.vm_id)
     up_delay = var.startup_delay
   }
 
@@ -43,7 +46,9 @@ resource "proxmox_virtual_environment_container" "containers" {
   initialization {
     hostname = each.value.hostname
 
-    # IP configuration
+    # IP configuration. address is either a CIDR (static, vm_id-derived) or the
+    # literal "dhcp" for DNS-first guests; in the DHCP case the caller passes a
+    # null gateway (the lease provides one), so gateway is simply omitted.
     dynamic "ip_config" {
       for_each = each.value.ip_config.ipv4_address != null ? [1] : []
       content {
