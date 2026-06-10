@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.30.1](https://github.com/dryvist/terraform-proxmox/compare/v1.30.0...v1.30.1) (2026-06-10)
+
+
+### Bug Fixes
+
+* **firewall:** allow inbound HEC on cribl_edge for netmon probers ([#411](https://github.com/dryvist/terraform-proxmox/issues/411)) ([9f1bf31](https://github.com/dryvist/terraform-proxmox/commit/9f1bf31a7a89761c38c7594f915358378cc6593e))
+
 ## [1.30.0](https://github.com/dryvist/terraform-proxmox/compare/v1.29.0...v1.30.0) (2026-06-10)
 
 
