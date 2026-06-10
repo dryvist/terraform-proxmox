@@ -46,6 +46,13 @@ variables {
       linux     = 1517
       windows   = 1518
     }
+    syslog_port_map = {
+      unifi     = { standard = 514, high = 1514, index = "unifi", sourcetype = "ubiquiti:unifi" }
+      palo_alto = { standard = 515, high = 1515, index = "firewall", sourcetype = "pan:firewall" }
+      cisco_asa = { standard = 516, high = 1516, index = "firewall", sourcetype = "cisco:asa" }
+      linux     = { standard = 517, high = 1517, index = "os", sourcetype = "syslog" }
+      windows   = { standard = 518, high = 1518, index = "os", sourcetype = "syslog" }
+    }
     netflow_ports = {
       unifi = 2055
     }
@@ -98,7 +105,7 @@ run "syslog_rules_always_four" {
     internal_networks = ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"]
   }
 
-  # UDP 514, TCP 514, UDP 1514:1518, TCP 1514:1518
+  # UDP 514-518, TCP 514-518, UDP 1514-1518, TCP 1514-1518
   assert {
     condition     = length(local.syslog_rules) == 4
     error_message = "syslog_rules must be exactly 4 (2 protocols × 2 port groups), got ${length(local.syslog_rules)}"
@@ -279,17 +286,18 @@ run "syslog_rules_track_constants_ports" {
     internal_networks = ["10.0.0.0/8"]
   }
 
+  # Standard app-facing frontends derived from syslog_port_map.*.standard
   assert {
-    condition     = local.syslog_rules[0].dport == tostring(var.pipeline_constants.syslog_ports.default)
-    error_message = "syslog_rules[0].dport must equal tostring(syslog_ports.default), got '${local.syslog_rules[0].dport}'"
+    condition     = local.syslog_rules[0].dport == "514,515,516,517,518"
+    error_message = "syslog_rules[0].dport must be the derived standard 514-518 list, got '${local.syslog_rules[0].dport}'"
   }
 
   assert {
-    condition     = local.syslog_rules[1].dport == tostring(var.pipeline_constants.syslog_ports.default)
-    error_message = "syslog_rules[1].dport must equal tostring(syslog_ports.default), got '${local.syslog_rules[1].dport}'"
+    condition     = local.syslog_rules[1].dport == "514,515,516,517,518"
+    error_message = "syslog_rules[1].dport must be the derived standard 514-518 list, got '${local.syslog_rules[1].dport}'"
   }
 
-  # Pipeline range is derived from min/max of non-default syslog_ports values
+  # Pipeline backends derived from syslog_port_map.*.high
   assert {
     condition     = local.syslog_rules[2].dport == "1514,1515,1516,1517,1518"
     error_message = "syslog_rules[2].dport must be the derived 1514:1518 range, got '${local.syslog_rules[2].dport}'"
@@ -387,15 +395,53 @@ run "pipeline_syslog_range_excludes_default" {
     internal_networks = ["10.0.0.0/8"]
   }
 
-  # 514 (default) must NOT appear in the pipeline list; comma-joined avoids
-  # any over-permit if a non-contiguous port is ever added to syslog_ports.
+  # 514 (a standard frontend) must NOT appear in the backend list; comma-joined
+  # avoids any over-permit if a non-contiguous port is ever added to the map.
   assert {
     condition     = local.pipeline_syslog_range == "1514,1515,1516,1517,1518"
-    error_message = "pipeline_syslog_range must exclude the default port 514, got '${local.pipeline_syslog_range}'"
+    error_message = "pipeline_syslog_range must exclude the standard ports, got '${local.pipeline_syslog_range}'"
   }
 
   assert {
     condition     = !contains(local.pipeline_syslog_ports, 514)
-    error_message = "pipeline_syslog_ports must not contain the default port (514), got '${jsonencode(local.pipeline_syslog_ports)}'"
+    error_message = "pipeline_syslog_ports must not contain the standard port 514, got '${jsonencode(local.pipeline_syslog_ports)}'"
+  }
+}
+
+run "syslog_standard_range_tracks_port_map" {
+  command = plan
+
+  variables {
+    internal_networks = ["10.0.0.0/8"]
+  }
+
+  assert {
+    condition     = local.syslog_standard_range == "514,515,516,517,518"
+    error_message = "syslog_standard_range must be the derived 514-518 list, got '${local.syslog_standard_range}'"
+  }
+
+  assert {
+    condition     = !contains(local.syslog_standard_ports, 1514)
+    error_message = "syslog_standard_ports must not contain backend ports, got '${jsonencode(local.syslog_standard_ports)}'"
+  }
+}
+
+run "outbound_https_is_tcp_443_only" {
+  command = plan
+
+  variables {
+    internal_networks = ["10.0.0.0/8"]
+  }
+
+  # License-telemetry egress stays the single TCP/443 rule — any growth here
+  # widens internet egress for cribl containers and needs explicit review.
+  assert {
+    condition     = length(local.outbound_https_rules) == 1
+    error_message = "outbound_https_rules must contain exactly one rule, got ${length(local.outbound_https_rules)}"
+  }
+
+  assert {
+    condition     = local.outbound_https_rules[0].proto == "tcp" && local.outbound_https_rules[0].dport == "443"
+    error_message = "outbound_https_rules[0] must be TCP 443, got proto='${local.outbound_https_rules[0].proto}' dport='${local.outbound_https_rules[0].dport}'"
   }
 }

@@ -38,7 +38,7 @@ resource "proxmox_virtual_environment_cluster_firewall_security_group" "splunk_s
 
 resource "proxmox_virtual_environment_cluster_firewall_security_group" "syslog" {
   name    = "syslog"
-  comment = "Syslog ports: 514 (standard) and 1514-1518 (pipeline per-source) from internal networks"
+  comment = "Syslog ports: standard frontends (514-518) and pipeline backends (1514-1518) from internal networks"
 
   dynamic "rule" {
     for_each = local.syslog_rules
@@ -162,6 +162,23 @@ resource "proxmox_virtual_environment_cluster_firewall_security_group" "outbound
     dport   = "9887"
     dest    = var.splunk_network
     comment = "Outbound Splunk clustering"
+  }
+}
+
+resource "proxmox_virtual_environment_cluster_firewall_security_group" "outbound_https" {
+  name    = "outbound-https"
+  comment = "Allow outbound HTTPS (TCP 443) to any destination — Cribl license telemetry (see locals.outbound_https_rules)"
+
+  dynamic "rule" {
+    for_each = local.outbound_https_rules
+    content {
+      type    = "out"
+      action  = "ACCEPT"
+      proto   = rule.value.proto
+      dport   = rule.value.dport
+      dest    = rule.value.dest
+      comment = rule.value.comment
+    }
   }
 }
 

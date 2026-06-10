@@ -101,6 +101,25 @@ run "ansible_inventory_constants_syslog_ports_exists" {
   }
 }
 
+run "ansible_inventory_constants_syslog_port_map_exists" {
+  command = plan
+
+  assert {
+    condition     = can(output.ansible_inventory.constants.syslog_port_map)
+    error_message = "ansible_inventory.constants must contain 'syslog_port_map' key"
+  }
+
+  assert {
+    condition     = output.ansible_inventory.constants.syslog_port_map.unifi.standard == 514
+    error_message = "syslog_port_map.unifi.standard must be 514"
+  }
+
+  assert {
+    condition     = output.ansible_inventory.constants.syslog_port_map.unifi.index == "unifi"
+    error_message = "syslog_port_map.unifi.index must be 'unifi'"
+  }
+}
+
 run "ansible_inventory_constants_netflow_ports_exists" {
   command = plan
 

@@ -143,6 +143,14 @@ locals {
     if contains(coalesce(try(v.tags, null), []), "cribl") && contains(coalesce(try(v.tags, null), []), "stream")
   }
 
+  # Cribl Edge containers: tagged cribl + edge. Subset of pipeline_container_ids
+  # used by modules/firewall to grant license-telemetry HTTPS egress to Edge
+  # without opening it for HAProxy in the same group.
+  cribl_edge_container_ids = {
+    for k, v in var.containers : k => v.vm_id
+    if contains(coalesce(try(v.tags, null), []), "cribl") && contains(coalesce(try(v.tags, null), []), "edge")
+  }
+
   # iDRAC KVM LXC: tagged "idrac" (domistyle/idrac6-based viewers, Docker-in-LXC)
   idrac_kvm_container_ids = {
     for k, v in var.containers : k => v.vm_id
@@ -161,6 +169,22 @@ locals {
 # Pipeline constants - single source of truth for service, syslog, NetFlow, notification, and vector DB ports
 # Referenced by ansible_inventory output for downstream consumption
 locals {
+  # Syslog source-family routing map — the single source of truth for the
+  # syslog pipeline. standard = app-facing HAProxy frontend port; high =
+  # backend port HAProxy forwards to (the Cribl Edge listener); index/
+  # sourcetype = Splunk routing stamped by the Cribl Edge syslog pipeline.
+  # Consumed by modules/firewall and exported through
+  # ansible_inventory.constants for the HAProxy/Cribl roles, the
+  # validate-pipeline playbook, and the pytest E2E fixtures in
+  # ansible-proxmox-apps.
+  syslog_port_map = {
+    unifi     = { standard = 514, high = 1514, index = "unifi", sourcetype = "ubiquiti:unifi" }
+    palo_alto = { standard = 515, high = 1515, index = "firewall", sourcetype = "pan:firewall" }
+    cisco_asa = { standard = 516, high = 1516, index = "firewall", sourcetype = "cisco:asa" }
+    linux     = { standard = 517, high = 1517, index = "os", sourcetype = "syslog" }
+    windows   = { standard = 518, high = 1518, index = "os", sourcetype = "syslog" }
+  }
+
   pipeline_constants = {
     service_ports = {
       haproxy_stats     = 8404
@@ -215,14 +239,14 @@ locals {
       # index. See docs/NETWORK_DIAGNOSIS.md.
       satellite_exporter = 9817
     }
-    syslog_ports = {
-      default   = 514
-      unifi     = 1514
-      palo_alto = 1515
-      cisco_asa = 1516
-      linux     = 1517
-      windows   = 1518
-    }
+    syslog_port_map = local.syslog_port_map
+    # Legacy flat map: high/backend ports keyed by family, plus the standard
+    # default frontend (514, which unifi rides). Derived from syslog_port_map;
+    # kept until every downstream consumer reads syslog_port_map directly.
+    syslog_ports = merge(
+      { default = local.syslog_port_map.unifi.standard },
+      { for k, v in local.syslog_port_map : k => v.high }
+    )
     netflow_ports = {
       unifi = 2055
     }

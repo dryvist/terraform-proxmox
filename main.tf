@@ -204,6 +204,10 @@ module "firewall" {
   # Cribl Stream containers: cribl + stream tags (receives from Edge, routes to Splunk)
   cribl_stream_container_ids = local.cribl_stream_container_ids
 
+  # Cribl Edge containers: cribl + edge tags — subset of pipeline_container_ids
+  # that gets license-telemetry HTTPS egress
+  cribl_edge_container_ids = local.cribl_edge_container_ids
+
   # MinIO object storage containers (minio tag)
   minio_container_ids = local.minio_container_ids
 

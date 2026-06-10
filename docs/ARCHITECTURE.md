@@ -50,11 +50,11 @@ graph TD
 ```mermaid
 flowchart LR
     subgraph Sources["Syslog Sources"]
-        U[UniFi :1514]
-        PA[Palo Alto :1515]
-        CA[Cisco ASA :1516]
-        LN[Linux :1517]
-        WN[Windows :1518]
+        U[UniFi :514]
+        PA[Palo Alto :515]
+        CA[Cisco ASA :516]
+        LN[Linux :517]
+        WN[Windows :518]
     end
 
     subgraph NetFlow["NetFlow Sources"]
@@ -62,7 +62,7 @@ flowchart LR
     end
 
     subgraph LB["Load Balancer (LXC)"]
-        HAP[HAProxy<br/>:1514-1518 UDP/TCP<br/>:2055 UDP<br/>Stats :8404]
+        HAP[HAProxy<br/>:514-518 frontends → :1514-1518 backends UDP/TCP<br/>:2055 UDP<br/>Stats :8404]
     end
 
     subgraph Collectors["Cribl Edge (LXC, 2 replicas)"]
@@ -186,7 +186,8 @@ Authoritative list lives in `deployment.json` `containers.*`. Summary by pool:
 
 Notable per-container facts:
 
-- `haproxy` LXC fronts syslog 1514-1518 (UDP/TCP) and NetFlow 2055 (UDP) — see
+- `haproxy` LXC fronts syslog on standard ports 514-518 (UDP/TCP, forwarded
+  to Cribl Edge backends 1514-1518) and NetFlow 2055 (UDP) — see
   [LOGGING_PIPELINE.md](./LOGGING_PIPELINE.md).
 - `cribl-edge-01/02` (port 9420 API) and `cribl-stream-01/02` (port 9000 API)
   form the two-tier processing pipeline.

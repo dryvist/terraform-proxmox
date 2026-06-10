@@ -51,6 +51,12 @@ variable "cribl_stream_container_ids" {
   default     = {}
 }
 
+variable "cribl_edge_container_ids" {
+  description = "Map of Cribl Edge container names to their IDs. Subset of pipeline_container_ids that additionally gets license-telemetry HTTPS egress (HAProxy in the same group does not)."
+  type        = map(number)
+  default     = {}
+}
+
 variable "minio_container_ids" {
   description = "Map of MinIO container names to their IDs"
   type        = map(number)
@@ -96,8 +102,14 @@ variable "splunk_network" {
 variable "pipeline_constants" {
   description = "Single source of truth for service/syslog/netflow/notification/vector-db ports. Sourced from root locals.pipeline_constants so port literals stay defined exactly once across the whole repo."
   type = object({
-    service_ports      = map(number)
-    syslog_ports       = map(number)
+    service_ports = map(number)
+    syslog_ports  = map(number)
+    syslog_port_map = map(object({
+      standard   = number
+      high       = number
+      index      = string
+      sourcetype = string
+    }))
     netflow_ports      = map(number)
     notification_ports = map(number)
     vector_db_ports    = map(number)
