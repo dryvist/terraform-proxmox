@@ -48,15 +48,16 @@ locals {
 
   # Assembled routes: one {name, ip, port} per fronted service whose backend
   # container is actually defined (others are skipped, so a partial deployment
-  # never emits a dangling route). IP resolves via container_ipv4 (cidrhost),
-  # already nonsensitive; strip the CIDR mask for the proxy backend URL.
+  # never emits a dangling route). The backend address comes from
+  # local.container_address: a static guest's cidrhost IP, or a DNS-first
+  # (dhcp = true) guest's FQDN — same hostname-not-IP shape as proxmox_ui_backends.
   # The Splunk VM is appended separately: it is a VM (not in var.containers), so
-  # its IP comes from splunk_derived_ip (siem VLAN) rather than container_ipv4.
+  # its IP comes from splunk_derived_ip (siem VLAN) rather than container_address.
   ingress = concat(
     [
       for name, svc in local.ingress_services : {
         name = name
-        ip   = split("/", local.container_ipv4[svc.backend])[0]
+        ip   = local.container_address[svc.backend]
         port = svc.port
       }
       if contains(keys(var.containers), svc.backend)

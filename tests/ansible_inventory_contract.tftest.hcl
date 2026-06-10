@@ -278,14 +278,17 @@ run "ansible_inventory_ingress_route_table" {
         hostname = "seerr"
         vlan     = "media_svc"
       }
-      # Network-quality monitoring LXC on the mgmt VLAN (id 5 -> 192.168.5.0/24).
+      # Network-quality monitoring LXC — DNS-first (dhcp) with a 6-digit positional
+      # VMID (observability tier 4). No vm_id-derived IP; fronted by FQDN.
       "smokeping" = {
-        vm_id    = 196
+        vm_id    = 412000
+        dhcp     = true
         hostname = "smokeping"
         vlan     = "mgmt"
         tags     = ["terraform", "container", "monitoring", "docker"]
       }
     }
+    domain = "example.com"
   }
 
   # plex: backend "plex" (192.168.55.210) on media_ports.plex_web (32400).
@@ -312,13 +315,14 @@ run "ansible_inventory_ingress_route_table" {
     error_message = "ingress must skip services whose backend container is not defined"
   }
 
-  # smokeping: backend "smokeping" (192.168.5.196) on service_ports.smokeping_web (80).
+  # smokeping: DNS-first backend — ingress fronts it by FQDN ({hostname}.{domain}),
+  # NOT a vm_id-derived IP, on service_ports.smokeping_web (80).
   assert {
     condition = length([
       for r in output.ansible_inventory.ingress :
-      r if r.name == "smokeping" && r.ip == "192.168.5.196" && r.port == 80
+      r if r.name == "smokeping" && r.ip == "smokeping.example.com" && r.port == 80
     ]) == 1
-    error_message = "ingress must front smokeping at 192.168.5.196:80 (derived mgmt IP + constant port)"
+    error_message = "ingress must front DHCP guest smokeping at smokeping.example.com:80 (FQDN backend + constant port)"
   }
 
   # No nodes set in this fixture -> the Proxmox apex pool is empty -> the apex

@@ -412,7 +412,8 @@ run "monitoring_ids_picks_up_monitoring_tagged" {
   variables {
     containers = {
       "smokeping" = {
-        vm_id    = 196
+        vm_id    = 412000
+        dhcp     = true
         hostname = "smokeping"
         vlan     = "mgmt"
         tags     = ["terraform", "container", "monitoring", "docker"]
@@ -421,14 +422,45 @@ run "monitoring_ids_picks_up_monitoring_tagged" {
   }
 
   assert {
-    condition     = local.monitoring_container_ids["smokeping"] == 196
-    error_message = "monitoring_container_ids should map 'smokeping' to vm_id 196"
+    condition     = local.monitoring_container_ids["smokeping"] == 412000
+    error_message = "monitoring_container_ids should map 'smokeping' to its 6-digit VMID 412000"
   }
 
-  # mgmt VLAN id is 5 -> 192.168.5.0/24; vm_id 196 -> .196
+  # DNS-first guest: no vm_id-derived IP. cidrhost is skipped (a 6-digit id would
+  # overflow the /24 host space), so container_ipv4 is the literal "dhcp".
   assert {
-    condition     = local.container_ipv4["smokeping"] == "192.168.5.196/24"
-    error_message = "smokeping mgmt-VLAN IP should be 192.168.5.196/24, got ${local.container_ipv4["smokeping"]}"
+    condition     = local.container_ipv4["smokeping"] == "dhcp"
+    error_message = "dhcp smokeping container_ipv4 should be \"dhcp\" (cidrhost skipped), got ${local.container_ipv4["smokeping"]}"
+  }
+}
+
+# DNS-first (dhcp) addressing: a 6-digit positional VMID skips IP derivation, the
+# guest advertises its FQDN ({hostname}.{domain}) to downstream consumers, and no
+# gateway is derived (the DHCP lease provides one).
+run "container_dhcp_resolves_fqdn_and_null_gateway" {
+  command = plan
+
+  variables {
+    domain = "example.com"
+    containers = {
+      "speedtest" = {
+        vm_id    = 416000
+        dhcp     = true
+        hostname = "speedtest"
+        vlan     = "mgmt"
+        tags     = ["terraform", "container", "monitoring", "docker"]
+      }
+    }
+  }
+
+  assert {
+    condition     = local.container_address["speedtest"] == "speedtest.example.com"
+    error_message = "dhcp speedtest should advertise FQDN speedtest.example.com, got ${local.container_address["speedtest"]}"
+  }
+
+  assert {
+    condition     = local.container_gateway["speedtest"] == null
+    error_message = "dhcp speedtest container_gateway should be null (lease-provided)"
   }
 }
 

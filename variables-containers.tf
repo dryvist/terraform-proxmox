@@ -11,9 +11,17 @@ variable "containers" {
 
     # Service VLAN name (required). Selects the guest's subnet + 802.1Q tag:
     # IP = cidrhost(network_cidrs[vlan], vm_id) (unless ip_config.ipv4_address pins a
-    # static address); NIC vlan_id = vlan_ids[vlan]. Must be a key in network_cidrs;
-    # a key ABSENT from vlan_ids yields an UNTAGGED NIC (native VLAN, e.g. mgmt_native).
+    # static address, or dhcp = true); NIC vlan_id = vlan_ids[vlan]. Must be a key in
+    # network_cidrs; a key ABSENT from vlan_ids yields an UNTAGGED NIC (native VLAN,
+    # e.g. mgmt_native).
     vlan = string
+
+    # DNS-first addressing (see docs vmid-network-tiers). When true the guest takes
+    # its address by DHCP and is referenced by FQDN ({hostname}.{domain}) everywhere
+    # — no vm_id-derived IP is computed, so the guest may carry a 6-digit positional
+    # VMID that the /24 cidrhost math could not express. DNS owns the address; the
+    # guest stays reachable across re-IP/rebuild. Defaults false (legacy static IP).
+    dhcp = optional(bool, false)
 
     # Node placement (optional). When unset, main.tf defaults to var.proxmox_node
     # (the primary node). Set to "proxmox-2"/"proxmox-3" to place an LXC on another cluster node.

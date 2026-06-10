@@ -17,7 +17,7 @@ locals {
       for k, v in(length(var.containers) > 0 ? module.containers[0].container_details : {}) : k => {
         vmid     = v.id
         hostname = var.containers[k].hostname
-        ip       = split("/", local.container_ipv4[k])[0] # per-VLAN IP cidrhost(network_cidrs[vlan], vm_id); strip CIDR for Ansible
+        ip       = local.container_address[k] # static: per-VLAN cidrhost IP (CIDR stripped); DHCP guests: FQDN (DNS-first)
         node     = v.node_name
         # Connection settings for proxmox_pct_remote (community.proxmox)
         ansible_connection = "community.proxmox.proxmox_pct_remote"

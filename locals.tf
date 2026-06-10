@@ -24,14 +24,34 @@ locals {
   # A container MAY pin a static ipv4_address (CIDR form, e.g. "192.168.5.10/24") to
   # override the vm_id-derived address — for fixed low-number hosts (e.g. a DNS server
   # at .10) whose address must not follow the vm_id. Otherwise derived as usual.
+  # DNS-first guests (dhcp = true) resolve to the literal "dhcp" instead: cidrhost is
+  # NOT evaluated for them (the ternary short-circuits), so a 6-digit positional VMID
+  # that would overflow the /24 host space is fine. Their gateway is null (DHCP-provided).
   container_ipv4 = {
-    for k, v in var.containers : k => nonsensitive(coalesce(
-      try(v.ip_config.ipv4_address, null),
-      "${cidrhost(var.network_cidrs[v.vlan], v.vm_id)}/${split("/", var.network_cidrs[v.vlan])[1]}"
-    ))
+    for k, v in var.containers : k => (
+      try(v.dhcp, false) ? "dhcp" : nonsensitive(coalesce(
+        try(v.ip_config.ipv4_address, null),
+        "${cidrhost(var.network_cidrs[v.vlan], v.vm_id)}/${split("/", var.network_cidrs[v.vlan])[1]}"
+      ))
+    )
   }
   container_gateway = {
-    for k, v in var.containers : k => nonsensitive(cidrhost(var.network_cidrs[v.vlan], 1))
+    for k, v in var.containers : k => (
+      try(v.dhcp, false) ? null : nonsensitive(cidrhost(var.network_cidrs[v.vlan], 1))
+    )
+  }
+
+  # Reachable address each container advertises to downstream consumers (the
+  # ansible_inventory ip field and the Traefik ingress backend). Static guests
+  # advertise their derived host IP (CIDR mask stripped); DNS-first guests
+  # (dhcp = true) advertise their FQDN {hostname}.{domain} so nothing downstream
+  # pins an address the DHCP lease can change — reachable by name regardless of IP.
+  container_address = {
+    for k, v in var.containers : k => (
+      try(v.dhcp, false)
+      ? (var.domain != "" ? "${v.hostname}.${var.domain}" : v.hostname)
+      : split("/", local.container_ipv4[k])[0]
+    )
   }
   vm_ipv4 = {
     for k, v in var.vms : k =>
