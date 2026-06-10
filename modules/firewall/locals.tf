@@ -64,6 +64,7 @@ locals {
   pipeline_services_rules = [
     { proto = "tcp", dport = tostring(local.svc_ports.haproxy_stats), source = local.internal_src, comment = "HAProxy stats from internal" },
     { proto = "tcp", dport = tostring(local.svc_ports.cribl_edge_api), source = local.internal_src, comment = "Cribl Edge API from internal" },
+    { proto = "tcp", dport = tostring(local.svc_ports.splunk_hec), source = local.internal_src, comment = "Cribl Edge HEC input (netmon Telegraf push, reuses the splunk_hec port) from internal" },
   ]
 
   netflow_rules = [

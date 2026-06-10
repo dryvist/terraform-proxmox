@@ -23,6 +23,8 @@ variables {
       minio_api         = 9000
       minio_console     = 9001
       infisical_api     = 8080
+      openbao_api       = 8200
+      openbao_cluster   = 8201
       postgres_default  = 5432
       redis_default     = 6379
       ntp               = 123
@@ -103,17 +105,17 @@ run "syslog_rules_always_four" {
   }
 }
 
-run "pipeline_services_rules_always_two" {
+run "pipeline_services_rules_always_three" {
   command = plan
 
   variables {
     internal_networks = ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"]
   }
 
-  # HAProxy stats (8404) + Cribl Edge API (9000)
+  # HAProxy stats (8404) + Cribl Edge API (9420) + Cribl Edge HEC input (8088)
   assert {
-    condition     = length(local.pipeline_services_rules) == 2
-    error_message = "pipeline_services_rules must be exactly 2, got ${length(local.pipeline_services_rules)}"
+    condition     = length(local.pipeline_services_rules) == 3
+    error_message = "pipeline_services_rules must be exactly 3, got ${length(local.pipeline_services_rules)}"
   }
 }
 
