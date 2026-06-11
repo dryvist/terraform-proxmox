@@ -29,7 +29,6 @@
 
 #   memory {
 #     dedicated = 512
-#     swap      = 512
 #   }
 
 #   disk {
