@@ -453,11 +453,12 @@ run "monitoring_ids_picks_up_monitoring_tagged" {
   variables {
     containers = {
       "smokeping" = {
-        vm_id    = 412000
-        dhcp     = true
-        hostname = "smokeping"
-        vlan     = "mgmt"
-        tags     = ["terraform", "container", "monitoring", "docker"]
+        vm_id         = 412000
+        dhcp          = true
+        reserved_host = 30
+        hostname      = "smokeping"
+        vlan          = "mgmt"
+        tags          = ["terraform", "container", "monitoring", "docker"]
       }
     }
   }
@@ -485,11 +486,12 @@ run "container_dhcp_resolves_fqdn_and_null_gateway" {
     domain = "example.com"
     containers = {
       "speedtest" = {
-        vm_id    = 416000
-        dhcp     = true
-        hostname = "speedtest"
-        vlan     = "mgmt"
-        tags     = ["terraform", "container", "monitoring", "docker"]
+        vm_id         = 416000
+        dhcp          = true
+        reserved_host = 31
+        hostname      = "speedtest"
+        vlan          = "mgmt"
+        tags          = ["terraform", "container", "monitoring", "docker"]
       }
     }
   }
@@ -557,5 +559,103 @@ run "dns_servers_empty_without_dns_containers" {
   assert {
     condition     = length(local.dns_servers) == 0
     error_message = "dns_servers must be empty with no DNS containers, got ${jsonencode(local.dns_servers)}"
+  }
+}
+
+# --- deterministic MAC + reserved IP contract (DHCP-first guests) ---
+#
+# DHCP-first LXCs carry a stable, locally-administered MAC (02:-prefixed digest of
+# the hostname) and a reserved IP derived from reserved_host (NOT the 6-digit
+# positional vm_id). tofu-unifi pins MAC -> reserved_ip; technitium_dns points the
+# A record at reserved_ip. Static guests get a null reserved_ip.
+
+run "container_mac_is_deterministic_locally_administered" {
+  command = plan
+
+  variables {
+    containers = {
+      "smokeping" = {
+        vm_id         = 412000
+        dhcp          = true
+        reserved_host = 30
+        hostname      = "smokeping"
+        vlan          = "mgmt"
+        tags          = ["terraform", "container", "monitoring", "docker"]
+      }
+    }
+  }
+
+  # 02: prefix => locally-administered + unicast (RFC 7042).
+  assert {
+    condition     = startswith(local.container_mac["smokeping"], "02:")
+    error_message = "container_mac must be locally-administered (02:-prefixed), got ${local.container_mac["smokeping"]}"
+  }
+
+  # Canonical 6-octet colon-separated form (17 chars: 02 + 5*':'+2 hex).
+  assert {
+    condition     = length(local.container_mac["smokeping"]) == 17
+    error_message = "container_mac must be a 17-char MAC (02:xx:xx:xx:xx:xx), got ${local.container_mac["smokeping"]}"
+  }
+
+  # Deterministic: equals the md5-digest format() recomputed from the same hostname.
+  assert {
+    condition = local.container_mac["smokeping"] == format("02:%s:%s:%s:%s:%s",
+      substr(md5("smokeping"), 0, 2), substr(md5("smokeping"), 2, 2),
+    substr(md5("smokeping"), 4, 2), substr(md5("smokeping"), 6, 2), substr(md5("smokeping"), 8, 2))
+    error_message = "container_mac must be the deterministic md5(hostname) digest, got ${local.container_mac["smokeping"]}"
+  }
+}
+
+run "container_reserved_ip_from_reserved_host" {
+  command = plan
+
+  variables {
+    containers = {
+      # DHCP-first media-VLAN guest: reserved_host 210 -> 192.168.55.210, decoupled
+      # from the 6-digit positional vm_id (which the /24 cidrhost math can't express).
+      "netq-probe-media" = {
+        vm_id         = 415000
+        dhcp          = true
+        reserved_host = 210
+        hostname      = "netq-probe-media"
+        vlan          = "media_svc"
+        tags          = ["terraform", "container", "monitoring", "docker"]
+      }
+      # Static guest: no reserved_ip (advertises its derived IP instead).
+      "haproxy" = {
+        vm_id    = 175
+        hostname = "haproxy"
+        vlan     = "pipeline"
+      }
+    }
+  }
+
+  # media_svc id 55 -> 192.168.55.0/24; reserved_host 210 -> 192.168.55.210.
+  assert {
+    condition     = local.container_reserved_ip["netq-probe-media"] == "192.168.55.210"
+    error_message = "dhcp guest reserved_host 210 on media_svc must yield 192.168.55.210, got ${local.container_reserved_ip["netq-probe-media"]}"
+  }
+
+  # Static guest has no reservation.
+  assert {
+    condition     = local.container_reserved_ip["haproxy"] == null
+    error_message = "static guest must have reserved_ip = null"
+  }
+
+  # Static guest also carries no DHCP MAC in the inventory export.
+  assert {
+    condition     = output.ansible_inventory.containers["haproxy"].mac == null
+    error_message = "static guest inventory mac must be null"
+  }
+
+  # DHCP guest surfaces both mac and reserved_ip in the inventory export.
+  assert {
+    condition     = output.ansible_inventory.containers["netq-probe-media"].reserved_ip == "192.168.55.210"
+    error_message = "dhcp guest inventory reserved_ip must be 192.168.55.210, got ${output.ansible_inventory.containers["netq-probe-media"].reserved_ip}"
+  }
+
+  assert {
+    condition     = startswith(output.ansible_inventory.containers["netq-probe-media"].mac, "02:")
+    error_message = "dhcp guest inventory mac must be the 02:-prefixed deterministic MAC"
   }
 }
