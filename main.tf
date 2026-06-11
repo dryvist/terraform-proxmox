@@ -89,6 +89,7 @@ module "vms" {
   environment       = var.environment
   default_datastore = var.datastore_default
   domain            = var.domain
+  dns_servers       = local.dns_servers
 
   # SSH credentials for provisioners (BPG provider reads auth from PROXMOX_VE_* env vars)
   proxmox_ssh_username    = var.proxmox_ssh_username
@@ -159,6 +160,7 @@ module "splunk_vm" {
   cpu_cores      = var.splunk_cpu_cores
   memory         = var.splunk_memory
   domain         = var.domain
+  dns_servers    = local.dns_servers
 
   depends_on = [module.pools]
 }

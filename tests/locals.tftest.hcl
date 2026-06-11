@@ -529,3 +529,33 @@ run "cribl_stream_ids_picks_up_stream_tagged" {
     error_message = "cribl_stream_container_ids should map 'cribl-stream' to vm_id 182"
   }
 }
+
+run "dns_servers_derived_from_dns_containers" {
+  command = plan
+
+  variables {
+    containers = {
+      "technitium-dns" = { vm_id = 103, hostname = "technitium-dns", vlan = "dns", ip_config = { ipv4_address = "192.168.2.2/24" } }
+      "pi-hole"        = { vm_id = 104, hostname = "pi-hole", vlan = "dns" }
+    }
+  }
+
+  # Static pin honored for Technitium; Pi-hole derived from vm_id; order fixed
+  assert {
+    condition     = jsonencode(local.dns_servers) == jsonencode(["192.168.2.2", "192.168.2.104"])
+    error_message = "dns_servers must be [technitium (pinned), pi-hole (derived)], got ${jsonencode(local.dns_servers)}"
+  }
+}
+
+run "dns_servers_empty_without_dns_containers" {
+  command = plan
+
+  variables {
+    containers = {}
+  }
+
+  assert {
+    condition     = length(local.dns_servers) == 0
+    error_message = "dns_servers must be empty with no DNS containers, got ${jsonencode(local.dns_servers)}"
+  }
+}
