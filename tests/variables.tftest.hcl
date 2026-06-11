@@ -109,18 +109,6 @@ run "splunk_vm_id_out_of_range_rejected" {
   ]
 }
 
-run "invalid_internal_networks_cidr_rejected" {
-  command = plan
-
-  variables {
-    internal_networks = ["not-a-cidr"]
-  }
-
-  expect_failures = [
-    var.internal_networks,
-  ]
-}
-
 run "vm_with_invalid_vga_type_rejected" {
   command = plan
 

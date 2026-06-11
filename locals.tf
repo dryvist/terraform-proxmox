@@ -64,6 +64,12 @@ locals {
   # VGA type validation helper
   valid_vga_types = ["std", "cirrus", "vmware", "qxl"]
 
+  # Internal networks for guest-firewall source scoping — derived from the
+  # Doppler-sourced per-VLAN CIDR map (the existing single source of truth),
+  # so the real ranges never appear in committed files. nonsensitive(): the
+  # list must flow into firewall rule attributes; the full map stays sensitive.
+  internal_networks = nonsensitive(distinct(values(var.network_cidrs)))
+
   # Management network for the host firewall module: the compute VLAN CIDR
   # (Proxmox hosts live on compute). Inter-VLAN policy is enforced at UniFi;
   # the Proxmox host firewall keeps host-local protection only.

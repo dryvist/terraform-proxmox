@@ -117,9 +117,8 @@ variable "pipeline_constants" {
 }
 
 variable "internal_networks" {
-  description = "RFC1918 networks allowed to access Splunk (SSH, Web UI, forwarding port 9997)"
+  description = "Internal CIDRs allowed through guest firewalls (SSH, service ports). No default — the real ranges come from Doppler via the root module and are never committed."
   type        = list(string)
-  default     = ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"]
 
   validation {
     condition     = length(var.internal_networks) > 0
@@ -131,6 +130,6 @@ variable "internal_networks" {
       for net in var.internal_networks :
       can(cidrnetmask(net))
     ])
-    error_message = "Each internal_networks entry must be a valid CIDR block, for example 10.0.0.0/8."
+    error_message = "Each internal_networks entry must be a valid CIDR block, for example 192.168.0.0/16."
   }
 }

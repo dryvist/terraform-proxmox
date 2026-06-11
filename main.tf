@@ -228,7 +228,8 @@ module "firewall" {
 
   management_network = local.management_network
   splunk_network     = join(",", local.splunk_network_ips)
-  internal_networks  = var.internal_networks
+  # Derived from the Doppler-sourced VLAN CIDR map (locals.tf) — no committed ranges.
+  internal_networks = local.internal_networks
 
   depends_on = [module.vms, module.containers, module.splunk_vm]
 }

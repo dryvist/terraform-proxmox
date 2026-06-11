@@ -69,7 +69,7 @@ module "acme_certificates" {
         {
           kind       = "vm"
           target_id  = 200
-          target_ip  = "10.0.1.200"
+          target_ip  = "192.168.20.200"
           cert_path  = "/opt/splunk/etc/auth/server.pem"
           key_path   = "/opt/splunk/etc/auth/server.key"
           owner      = "splunk"
