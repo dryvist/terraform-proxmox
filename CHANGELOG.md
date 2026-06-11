@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.31.0](https://github.com/dryvist/terraform-proxmox/compare/v1.30.2...v1.31.0) (2026-06-11)
+
+
+### Features
+
+* **pipeline:** single-source syslog port map + standard-frontend firewall + Cribl telemetry egress ([#416](https://github.com/dryvist/terraform-proxmox/issues/416)) ([f9ed855](https://github.com/dryvist/terraform-proxmox/commit/f9ed855eb636107764f09945696d27c8f5ec4f95))
+
 ## [1.30.2](https://github.com/dryvist/terraform-proxmox/compare/v1.30.1...v1.30.2) (2026-06-10)
 
 
