@@ -68,8 +68,8 @@ locals {
 terraform {
   source = "."
 
-  # Render, VALIDATE, then distribute ansible_inventory after every apply: a
-  # versioned commit into the private int_homelab repo, plus the transitional
+  # Render, VALIDATE, then distribute ansible_inventory to its consumers after
+  # every apply (see scripts/sync-inventory.sh), including the transitional
   # gitignored copy each Ansible repo reads today. A partial/invalid output (e.g.
   # from a `-target` apply, where replace-pending media containers drop whole
   # sections) is REJECTED and nothing is written — the guard the previous inline

@@ -40,10 +40,9 @@ This makes `apply` the single, auditable way to change what every consumer sees.
 ## Relationship to `scripts/sync-inventory.sh`
 
 The S3 publish is **native Terraform**. The existing after-hook
-(`scripts/sync-inventory.sh`) is unchanged and still handles the two
-distribution targets Terraform cannot: the schema-validated versioned commit
-into the private `int_homelab` repo, and the local gitignored copies for
-development.
+(`scripts/sync-inventory.sh`) is unchanged and still handles the
+distribution targets Terraform cannot, including the local gitignored
+copies for development.
 
 ## IAM
 
