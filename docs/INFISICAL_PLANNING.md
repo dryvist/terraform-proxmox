@@ -13,7 +13,7 @@ Self-hosted Infisical deployment on Proxmox infrastructure.
 | Field | Value | Source |
 | --- | --- | --- |
 | LXC vm_id | `108` | `deployment.json` (groups with platform services 105/106/107) |
-| CPU / RAM / disk | 2 cores / 4 GB dedicated + 8 GB swap / 16 GB root + 30 GB at `/opt/infisical` | `deployment.json` |
+| CPU / RAM / disk | 2 cores / 4 GB RAM / 16 GB root + 30 GB at `/opt/infisical` | `deployment.json` |
 | FQDN | `infisical.<domain>` (resolved via Technitium A record on the haproxy LXC) | runtime, populated from `terraform.sops.json` `domain` |
 | Container internal API port | `8080` | `locals.pipeline_constants.service_ports.infisical_api` |
 | Bundled Postgres port | `5432` | `locals.pipeline_constants.service_ports.postgres_default` (container-internal Docker network only) |

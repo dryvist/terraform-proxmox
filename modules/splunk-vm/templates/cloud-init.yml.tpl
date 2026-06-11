@@ -31,17 +31,6 @@ runcmd:
       mount /opt/splunk
     fi
 
-  # --- Swap setup (8 GB) ---
-  - |
-    if [ ! -f /swapfile ]; then
-      fallocate -l 8G /swapfile || dd if=/dev/zero of=/swapfile bs=1M count=8192
-      chmod 600 /swapfile
-      mkswap /swapfile
-      swapon /swapfile
-    fi
-  - |
-    grep -qE '^\s*/swapfile\s+' /etc/fstab || echo '/swapfile none swap sw 0 0' >> /etc/fstab
-
   # --- Splunk directories ---
   # Permissions allow container entrypoint to chown to splunk user
   # (SPLUNK_HOME_OWNERSHIP_ENFORCEMENT=true handles this dynamically)

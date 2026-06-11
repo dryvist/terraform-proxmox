@@ -155,11 +155,11 @@ if [[ "${LIVE}" == "true" ]]; then
       fail "data disk NOT mounted at /opt/splunk"
     fi
 
-    # c. Swap active
-    if ssh "${SSH_OPTS[@]}" "${SSH_USER}@${SPLUNK_IP}" "swapon --show | grep -q /" 2>/dev/null; then
-      pass "swap is active"
+    # c. Swap inactive
+    if ssh "${SSH_OPTS[@]}" "${SSH_USER}@${SPLUNK_IP}" 'test -z "$(swapon --show --noheadings)"' 2>/dev/null; then
+      pass "swap is inactive"
     else
-      fail "swap is NOT active"
+      fail "swap is active"
     fi
 
     # d. Docker running

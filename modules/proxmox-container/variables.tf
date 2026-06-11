@@ -15,7 +15,7 @@ variable "containers" {
     # Resource configuration
     cpu_cores        = optional(number, 1)
     memory_dedicated = optional(number, 512)
-    memory_swap      = optional(number, 512)
+    memory_swap      = optional(number)
 
     # Storage
     root_disk = optional(object({
