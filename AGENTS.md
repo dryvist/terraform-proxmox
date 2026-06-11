@@ -101,8 +101,8 @@ containers, IPs, ports, and firewall rules.
 ### Inventory sync (automatic)
 
 `terragrunt.hcl` runs an `after_hook` post-apply (`scripts/sync-inventory.sh`)
-that validates the `ansible_inventory` output against the schema, then commits a
-versioned copy to the private `int_homelab` repo and writes `tofu_inventory.json`
+that validates the `ansible_inventory` output against the schema, then
+distributes it to its consumers, writing `tofu_inventory.json`
 to each downstream repo's `inventory/` directory under `$GIT_HOME/<repo>/main/`.
 A partial/invalid output is rejected (nothing written). Repos not cloned locally
 are skipped with a stderr warning.

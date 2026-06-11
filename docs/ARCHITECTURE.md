@@ -271,7 +271,7 @@ terraform-proxmox produces `ansible_inventory` output consumed by Ansible repos:
 
 ```bash
 # Regenerate, validate, and distribute (writes tofu_inventory.json to each
-# downstream repo + a versioned commit to int_homelab; rejects a partial output)
+# downstream repo; rejects a partial output)
 ./scripts/sync-inventory.sh
 ```
 

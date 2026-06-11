@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Render the ansible_inventory output from OpenTofu, validate it against the
 # inventory schema (the CONTRACT — what "complete" means is declared there, not
-# here), and on success distribute it UNCHANGED: a versioned commit into the
-# private int_homelab repo, plus the gitignored copy each Ansible repo reads.
+# here), and on success distribute it UNCHANGED to its consumers, including the
+# gitignored copy each Ansible repo reads.
 #
 # The sync deliberately adds no interpretation of its own — shape comes from the
 # tofu output declarations, meaning comes from the consuming Ansible repos, and
@@ -22,11 +22,12 @@ GIT_HOME="${GIT_HOME:?GIT_HOME must be set}"
 # homelab-schemas repo via TOFU_INVENTORY_SCHEMA.
 SCHEMA="${TOFU_INVENTORY_SCHEMA:-${GIT_HOME_PUBLIC:-$GIT_HOME/public}/ansible-proxmox-apps/main/tests/inventory_load/tofu_inventory.schema.json}"
 
-# Locate the private int_homelab data repo (bare+worktree or plain clone).
-INT_HOMELAB="${INT_HOMELAB_DIR:-}"
-if [[ -z "$INT_HOMELAB" ]]; then
-  for c in "$GIT_HOME/int_homelab/main" "$GIT_HOME/int_homelab"; do
-    if git -C "$c" rev-parse --git-dir &>/dev/null; then INT_HOMELAB="$c"; break; fi
+# Optional versioned-commit destination: a clone under $GIT_HOME named by the
+# INVENTORY_DATA_REPO env var. Unset or absent => this step is skipped.
+DATA_REPO_DIR=""
+if [[ -n "${INVENTORY_DATA_REPO:-}" ]]; then
+  for c in "$GIT_HOME/$INVENTORY_DATA_REPO/main" "$GIT_HOME/$INVENTORY_DATA_REPO"; do
+    if git -C "$c" rev-parse --git-dir &>/dev/null; then DATA_REPO_DIR="$c"; break; fi
   done
 fi
 
@@ -38,22 +39,40 @@ terragrunt output -json ansible_inventory > "$tmp"
 # that drops schema-required keys fails here.
 nix run nixpkgs#check-jsonschema -- --schemafile "$SCHEMA" "$tmp"
 
-# Versioned commit into the private int_homelab data repo (terraform-proxmox is
-# the source repo name, not yet renamed).
+# Versioned commit (terraform-proxmox is the source repo name, not yet
+# renamed). Two constraints shape the flow:
+#   - `git diff --quiet` reports clean for UNTRACKED files, so change
+#     detection uses `git status --porcelain` instead.
+#   - Direct pushes to a default branch can be rejected by branch rules, so
+#     the commit lands on a sync branch in a throwaway worktree (the clone's
+#     checked-out branch is never touched) and a PR is opened with gh, which
+#     infers everything it needs from the clone's origin.
 dest="tofu/terraform-proxmox/ansible_inventory.json"
-if [[ -n "$INT_HOMELAB" ]]; then
-  install -Dm644 "$tmp" "$INT_HOMELAB/$dest"
-  if ! git -C "$INT_HOMELAB" diff --quiet -- "$dest" 2>/dev/null; then
-    git -C "$INT_HOMELAB" add "$dest"
-    git -C "$INT_HOMELAB" -c commit.gpgsign=true commit -qm "chore(inventory): sync ansible_inventory from tofu"
-    git -C "$INT_HOMELAB" push -q || echo "sync-inventory: committed to int_homelab but push failed" >&2
+if [[ -n "$DATA_REPO_DIR" ]]; then
+  sync_branch="chore/inventory-sync"
+  sync_wt="$(mktemp -d)"
+  git -C "$DATA_REPO_DIR" fetch -q origin
+  git -C "$DATA_REPO_DIR" worktree add -q --force -B "$sync_branch" "$sync_wt" origin/main
+  install -Dm644 "$tmp" "$sync_wt/$dest"
+  if [[ -n "$(git -C "$sync_wt" status --porcelain -- "$dest")" ]]; then
+    git -C "$sync_wt" add "$dest"
+    git -C "$sync_wt" -c commit.gpgsign=true commit -qm "chore(inventory): sync ansible_inventory from tofu"
+    if git -C "$sync_wt" push -qf origin "$sync_branch"; then
+      # Reuses the open sync PR when one exists; creation failure is non-fatal.
+      (cd "$sync_wt" && gh pr create --head "$sync_branch" \
+        --title "chore(inventory): sync ansible_inventory from tofu" \
+        --body "Automated inventory snapshot from terraform-proxmox scripts/sync-inventory.sh." \
+        2>/dev/null) || echo "sync-inventory: sync branch pushed; PR already open or gh unavailable" >&2
+    else
+      echo "sync-inventory: versioned-commit push failed" >&2
+    fi
   fi
+  git -C "$DATA_REPO_DIR" worktree remove --force "$sync_wt"
 else
-  echo "sync-inventory: int_homelab clone not found under $GIT_HOME — skipped versioned commit" >&2
+  echo "sync-inventory: INVENTORY_DATA_REPO unset or clone not found — skipped versioned commit" >&2
 fi
 
-# Transitional: the gitignored copy each Ansible repo reads until Phase 2 points
-# them at int_homelab.
+# Transitional: the gitignored copy each Ansible repo reads today.
 for repo in ansible-proxmox ansible-proxmox-apps ansible-splunk; do
   for root in "${GIT_HOME_PUBLIC:-}" "$GIT_HOME"; do
     if [[ -n "$root" && -d "$root/$repo/main/inventory" ]]; then
