@@ -68,6 +68,7 @@ locals {
     { proto = "tcp", dport = tostring(local.svc_ports.haproxy_stats), source = local.internal_src, comment = "HAProxy stats from internal" },
     { proto = "tcp", dport = tostring(local.svc_ports.cribl_edge_api), source = local.internal_src, comment = "Cribl Edge API from internal" },
     { proto = "tcp", dport = tostring(local.svc_ports.splunk_hec), source = local.internal_src, comment = "Cribl Edge HEC input (netmon Telegraf push, reuses the splunk_hec port) from internal" },
+    { proto = "tcp", dport = tostring(local.svc_ports.cribl_s2s), source = local.internal_src, comment = "Cribl S2S frontend (remote Edge -> HAProxy -> Stream) from internal" },
   ]
 
   netflow_rules = [
@@ -95,6 +96,7 @@ locals {
 
   cribl_stream_services_rules = [
     { proto = "tcp", dport = tostring(local.svc_ports.cribl_stream_api), source = local.internal_src, comment = "Cribl Stream API from internal" },
+    { proto = "tcp", dport = tostring(local.svc_ports.cribl_s2s), source = local.internal_src, comment = "Cribl S2S input (HAProxy -> Stream) from internal" },
   ]
 
   minio_services_rules = [
