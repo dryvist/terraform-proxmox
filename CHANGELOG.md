@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.32.0](https://github.com/dryvist/terraform-proxmox/compare/v1.31.0...v1.32.0) (2026-06-11)
+
+
+### Features
+
+* **vm:** explicit guest DNS servers derived from the DNS containers ([#419](https://github.com/dryvist/terraform-proxmox/issues/419)) ([2979bee](https://github.com/dryvist/terraform-proxmox/commit/2979beef2e3c9be4058c94f00a3e864d52d16521))
+
 ## [1.31.0](https://github.com/dryvist/terraform-proxmox/compare/v1.30.2...v1.31.0) (2026-06-11)
 
 
