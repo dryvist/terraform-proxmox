@@ -165,3 +165,9 @@ variable "memory" {
     error_message = "Memory must be between 1024 MB and 65536 MB."
   }
 }
+
+variable "dns_servers" {
+  description = "Resolver IPs for guest cloud-init DNS. Derived by the root module from the DNS containers' addresses — never literals."
+  type        = list(string)
+  default     = []
+}

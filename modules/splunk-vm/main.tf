@@ -117,6 +117,15 @@ resource "proxmox_virtual_environment_vm" "splunk_vm" {
   initialization {
     datastore_id = var.datastore_id
 
+    # Explicit resolvers — see modules/proxmox-vm for rationale.
+    dynamic "dns" {
+      for_each = var.domain != "" || length(var.dns_servers) > 0 ? [1] : []
+      content {
+        domain  = var.domain != "" ? var.domain : null
+        servers = length(var.dns_servers) > 0 ? var.dns_servers : null
+      }
+    }
+
     ip_config {
       ipv4 {
         address = var.ip_address

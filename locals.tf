@@ -64,6 +64,16 @@ locals {
   # VGA type validation helper
   valid_vga_types = ["std", "cirrus", "vmware", "qxl"]
 
+  # Resolver list for guest cloud-init DNS: Technitium primary, Pi-hole
+  # secondary. Derived via container_ipv4 (honors static ip pins) so no
+  # literal resolver IPs exist anywhere in the repo. Containers inherit the
+  # node's resolv.conf instead; this feeds VMs only.
+  dns_servers = [
+    for name in ["technitium-dns", "pi-hole"] :
+    split("/", local.container_ipv4[name])[0]
+    if contains(keys(var.containers), name)
+  ]
+
   # Internal networks for guest-firewall source scoping — derived from the
   # Doppler-sourced per-VLAN CIDR map (the existing single source of truth),
   # so the real ranges never appear in committed files. nonsensitive(): the

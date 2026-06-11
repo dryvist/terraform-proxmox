@@ -111,11 +111,15 @@ resource "proxmox_virtual_environment_vm" "vms" {
   initialization {
     datastore_id = var.default_datastore
 
-    # DNS search domain for FQDN resolution
+    # DNS search domain + explicit resolvers for FQDN resolution. Without
+    # servers, guests inherit the node's resolvers at provision time and
+    # silently keep them forever — stale-resolver drift broke docker-host
+    # DNS entirely (2026-06-10). Takes effect on cloud-init re-run/reboot.
     dynamic "dns" {
-      for_each = var.domain != "" ? [1] : []
+      for_each = var.domain != "" || length(var.dns_servers) > 0 ? [1] : []
       content {
-        domain = var.domain
+        domain  = var.domain != "" ? var.domain : null
+        servers = length(var.dns_servers) > 0 ? var.dns_servers : null
       }
     }
 
