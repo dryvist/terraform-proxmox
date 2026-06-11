@@ -160,6 +160,28 @@ terragrunt apply -parallelism=1 -auto-approve
    ssh -i <ssh-key-path> <user>@<host>
    ```
 
+3. **`PROXMOX_VE_ENDPOINT` resolves to NXDOMAIN from the toolchain host:**
+
+   The `PROXMOX_VE_ENDPOINT` injected by Doppler may be a hostname (e.g.
+   `https://pve1.example.com:8006`) that does not resolve from wherever you are
+   running terragrunt. Override it with the node's IP **on the terragrunt
+   invocation itself** — a value set there takes precedence over one injected
+   earlier in the pipeline. Do not rely on a separate `export
+   PROXMOX_VE_ENDPOINT=...` before `doppler run`, because `doppler run`
+   re-injects the Doppler value and shadows the earlier export:
+
+   ```bash
+   # Right: set it on the same command line (creds injected at session launch
+   # via `aws-vault exec tf-proxmox -- claude`)
+   PROXMOX_VE_ENDPOINT=https://192.168.10.10:8006 TG_TF_PATH=tofu \
+     terragrunt plan
+   ```
+
+   Always run terragrunt from the repo root (the directory holding
+   `terragrunt.hcl`). Running from a wrong working directory can select a
+   different/empty module, and the post-apply `after_hook` will then write a
+   partial `ansible_inventory` that clobbers the downstream repos.
+
 ### SSL Certificate Issues
 
 #### Problem: Browser shows certificate error or wrong hostname
@@ -295,6 +317,63 @@ This occurs when operations are interrupted, leaving orphaned resources in infra
 - Timeout settings effectively prevent indefinite hangs
 - Command timeouts can interrupt state updates, creating orphaned resources
 - Destroy operations require careful monitoring to ensure completion
+
+## Splunk Container (VM 200)
+
+### Problem: container restart-loops on "Get existing HEC token" 401
+
+**Symptoms:** the `splunk` Docker container on VM 200 restart-loops —
+`docker inspect -f '{{.State.Health.Status}}' splunk` stays `starting` and
+`RestartCount` climbs. Container logs show splunk-ansible failing exactly one
+task, `splunk_standalone : Get existing HEC token`, with HTTP **401
+Unauthorized** against
+`https://127.0.0.1:8089/services/data/inputs/http/splunk_hec_token`.
+
+**Root cause (not ownership, not the image tag):** the official `splunk/splunk`
+image seeds the admin password from `SPLUNK_PASSWORD` **only on first boot**, when
+`/opt/splunk/etc/passwd` does not exist. `/opt/splunk/etc` is a persistent bind
+mount on the data disk, so `passwd` survives restarts. If the container later
+starts with a `SPLUNK_PASSWORD` that differs from the one baked into the persisted
+`passwd`, splunk-ansible detects the existing install, **skips re-seeding**, then
+401s on its own REST API forever. Removing `passwd` alone does not fix it — the
+prior install under `etc/system`/`etc/apps` still suppresses seeding.
+
+**Recovery (official Splunk password reset; reversible).** On the Proxmox host,
+run inside the guest via `qm guest exec 200 -- bash -c '…'`:
+
+```bash
+docker stop splunk
+# back up, then remove the stale admin password file
+cp -a /opt/splunk/etc/passwd /opt/splunk/etc/passwd.stale && rm -f /opt/splunk/etc/passwd
+# seed admin from the container's own SPLUNK_PASSWORD (never hardcode it)
+PW=$(docker inspect -f '{{range .Config.Env}}{{println .}}{{end}}' splunk \
+       | sed -n 's/^SPLUNK_PASSWORD=//p')
+printf '[user_info]\nUSERNAME = admin\nPASSWORD = %s\n' "$PW" \
+  > /opt/splunk/etc/system/local/user-seed.conf
+chown 41812:41812 /opt/splunk/etc/system/local/user-seed.conf
+chmod 600 /opt/splunk/etc/system/local/user-seed.conf
+docker start splunk
+```
+
+On start, splunkd consumes `user-seed.conf` (because `passwd` is absent),
+recreates admin = `SPLUNK_PASSWORD`, deletes the seed, and the HEC-token task
+authenticates → the playbook completes → the container reports healthy. Verify:
+
+```bash
+docker exec splunk curl -sk -u "admin:$PW" \
+  https://localhost:8089/services/server/info -o /dev/null -w '%{http_code}\n'   # 200
+```
+
+**Ownership note:** splunkd runs as uid **41812**; `/opt/splunk` (the data disk)
+must be owned `41812:41812` or splunkd cannot read `splunk.secret`. The cloud-init
+template pre-owns it on first boot; if it has drifted, `chown -R 41812:41812
+/opt/splunk`.
+
+**Prevention:** if you rotate `SPLUNK_PASSWORD`, you MUST reset the container admin
+with the procedure above — the persisted `passwd` never auto-updates. The running
+compose is owned by **ansible-splunk** (`roles/splunk_docker`, already pinned to
+`splunk/splunk:latest`); the terraform `splunk-vm` module renders only the
+first-boot cloud-init and does **not** deploy the compose.
 
 ## Targeted VM Operations for Fast Troubleshooting
 

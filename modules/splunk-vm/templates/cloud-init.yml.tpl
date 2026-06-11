@@ -43,11 +43,15 @@ runcmd:
     grep -qE '^\s*/swapfile\s+' /etc/fstab || echo '/swapfile none swap sw 0 0' >> /etc/fstab
 
   # --- Splunk directories ---
-  # Permissions allow container entrypoint to chown to splunk user
-  # (SPLUNK_HOME_OWNERSHIP_ENFORCEMENT=true handles this dynamically)
+  # splunkd runs as uid 41812 (the 'splunk' user baked into the official
+  # splunk/splunk image). Pre-own the data-disk mount as 41812 so splunkd can
+  # read its own etc/passwd and splunk.secret on every boot. This is first-boot
+  # only and the disk was just formatted above, so the recursive chown is cheap.
+  # Do NOT use `chmod 777` here — that was a band-aid that masked wrong
+  # ownership; correct ownership is the native, supported approach.
   - mkdir -p /opt/splunk/var
   - mkdir -p /opt/splunk/etc
-  - chmod 777 /opt/splunk /opt/splunk/var /opt/splunk/etc
+  - chown -R 41812:41812 /opt/splunk
 
   # Create config directory on root filesystem (not data disk)
   - mkdir -p /opt/splunk-config
