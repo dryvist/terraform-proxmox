@@ -41,6 +41,7 @@
           "content": ["images", "rootdir"],
           "datasets": {
             "backups": { "quota": "1T", "properties": { "compression": "zstd" } },
+            "databases": { "quota": "1T", "nfs_export": "ro=@10.0.0.0/8", "properties": { "recordsize": "16K", "atime": "off", "compression": "zstd" } },
             "media/tv": { "quota": "2T", "properties": { "recordsize": "1M", "compression": "zstd" } },
             "media/movies": { "quota": "2T", "properties": { "recordsize": "1M", "compression": "zstd" } }
           }
