@@ -51,6 +51,12 @@ variable "cribl_stream_container_ids" {
   default     = {}
 }
 
+variable "cribl_edge_container_ids" {
+  description = "Map of Cribl Edge container names to their IDs. Subset of pipeline_container_ids that additionally gets license-telemetry HTTPS egress (HAProxy in the same group does not)."
+  type        = map(number)
+  default     = {}
+}
+
 variable "minio_container_ids" {
   description = "Map of MinIO container names to their IDs"
   type        = map(number)
@@ -96,8 +102,14 @@ variable "splunk_network" {
 variable "pipeline_constants" {
   description = "Single source of truth for service/syslog/netflow/notification/vector-db ports. Sourced from root locals.pipeline_constants so port literals stay defined exactly once across the whole repo."
   type = object({
-    service_ports      = map(number)
-    syslog_ports       = map(number)
+    service_ports = map(number)
+    syslog_ports  = map(number)
+    syslog_port_map = map(object({
+      standard   = number
+      high       = number
+      index      = string
+      sourcetype = string
+    }))
     netflow_ports      = map(number)
     notification_ports = map(number)
     vector_db_ports    = map(number)
@@ -105,9 +117,8 @@ variable "pipeline_constants" {
 }
 
 variable "internal_networks" {
-  description = "RFC1918 networks allowed to access Splunk (SSH, Web UI, forwarding port 9997)"
+  description = "Internal CIDRs allowed through guest firewalls (SSH, service ports). No default — the real ranges come from Doppler via the root module and are never committed."
   type        = list(string)
-  default     = ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"]
 
   validation {
     condition     = length(var.internal_networks) > 0
@@ -119,6 +130,6 @@ variable "internal_networks" {
       for net in var.internal_networks :
       can(cidrnetmask(net))
     ])
-    error_message = "Each internal_networks entry must be a valid CIDR block, for example 10.0.0.0/8."
+    error_message = "Each internal_networks entry must be a valid CIDR block, for example 192.168.0.0/16."
   }
 }

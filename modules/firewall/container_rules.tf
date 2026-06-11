@@ -95,6 +95,16 @@ resource "proxmox_virtual_environment_firewall_rules" "pipeline_container" {
     comment        = "Outbound to internal only"
   }
 
+  # Cribl Edge only: license-telemetry HTTPS egress. HAProxy shares this
+  # rule set but gets no internet egress.
+  dynamic "rule" {
+    for_each = contains(keys(var.cribl_edge_container_ids), each.key) ? [1] : []
+    content {
+      security_group = proxmox_virtual_environment_cluster_firewall_security_group.outbound_https.name
+      comment        = "Outbound HTTPS (Cribl license telemetry)"
+    }
+  }
+
   depends_on = [proxmox_virtual_environment_firewall_options.pipeline_container]
 }
 
@@ -143,6 +153,11 @@ resource "proxmox_virtual_environment_firewall_rules" "cribl_stream_container" {
   rule {
     security_group = proxmox_virtual_environment_cluster_firewall_security_group.outbound_internal.name
     comment        = "Outbound to internal only (reaches Splunk HEC 8088)"
+  }
+
+  rule {
+    security_group = proxmox_virtual_environment_cluster_firewall_security_group.outbound_https.name
+    comment        = "Outbound HTTPS (Cribl license telemetry)"
   }
 
   depends_on = [proxmox_virtual_environment_firewall_options.cribl_stream_container]

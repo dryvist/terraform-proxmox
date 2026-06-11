@@ -19,6 +19,9 @@ mock_provider "proxmox" {
 mock_provider "tls" {}
 mock_provider "random" {}
 mock_provider "local" {}
+# aws is only used by the S3 inventory publish (inventory_publish.tf);
+# mock it so tests need no AWS credentials in CI or locally.
+mock_provider "aws" {}
 mock_provider "null" {}
 
 override_data {
@@ -98,6 +101,25 @@ run "ansible_inventory_constants_syslog_ports_exists" {
   assert {
     condition     = can(output.ansible_inventory.constants.syslog_ports)
     error_message = "ansible_inventory.constants must contain 'syslog_ports' key"
+  }
+}
+
+run "ansible_inventory_constants_syslog_port_map_exists" {
+  command = plan
+
+  assert {
+    condition     = can(output.ansible_inventory.constants.syslog_port_map)
+    error_message = "ansible_inventory.constants must contain 'syslog_port_map' key"
+  }
+
+  assert {
+    condition     = output.ansible_inventory.constants.syslog_port_map.unifi.standard == 514
+    error_message = "syslog_port_map.unifi.standard must be 514"
+  }
+
+  assert {
+    condition     = output.ansible_inventory.constants.syslog_port_map.unifi.index == "unifi"
+    error_message = "syslog_port_map.unifi.index must be 'unifi'"
   }
 }
 

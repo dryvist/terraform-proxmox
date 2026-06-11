@@ -22,6 +22,9 @@ mock_provider "proxmox" {
 mock_provider "tls" {}
 mock_provider "random" {}
 mock_provider "local" {}
+# aws is only used by the S3 inventory publish (inventory_publish.tf);
+# mock it so tests need no AWS credentials in CI or locally.
+mock_provider "aws" {}
 mock_provider "null" {}
 
 # Override data sources and modules that require real provider connections
@@ -279,6 +282,7 @@ run "pipeline_constants_monitoring_ports" {
 run "pipeline_constants_syslog_ports" {
   command = plan
 
+  # Legacy flat map is derived from syslog_port_map (high ports + default 514)
   assert {
     condition     = local.pipeline_constants.syslog_ports.unifi == 1514
     error_message = "unifi syslog port should be 1514"
@@ -287,6 +291,43 @@ run "pipeline_constants_syslog_ports" {
   assert {
     condition     = local.pipeline_constants.syslog_ports.palo_alto == 1515
     error_message = "palo_alto syslog port should be 1515"
+  }
+
+  assert {
+    condition     = local.pipeline_constants.syslog_ports.default == 514
+    error_message = "default syslog port should be 514"
+  }
+}
+
+run "pipeline_constants_syslog_port_map" {
+  command = plan
+
+  assert {
+    condition     = local.pipeline_constants.syslog_port_map.unifi.standard == 514
+    error_message = "unifi standard frontend should be 514"
+  }
+
+  assert {
+    condition     = local.pipeline_constants.syslog_port_map.unifi.high == 1514
+    error_message = "unifi high backend should be 1514"
+  }
+
+  assert {
+    condition     = local.pipeline_constants.syslog_port_map.palo_alto.index == "firewall"
+    error_message = "palo_alto must route to the firewall index"
+  }
+
+  assert {
+    condition     = local.pipeline_constants.syslog_port_map.windows.sourcetype == "syslog"
+    error_message = "windows sourcetype should be syslog"
+  }
+
+  # Every family keeps the high = standard + 1000 convention
+  assert {
+    condition = alltrue([
+      for k, v in local.pipeline_constants.syslog_port_map : v.high == v.standard + 1000
+    ])
+    error_message = "every syslog_port_map family must keep high == standard + 1000"
   }
 }
 

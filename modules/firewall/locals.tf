@@ -27,20 +27,23 @@ locals {
 
   # Local aliases to keep rule definitions readable
   svc_ports          = var.pipeline_constants.service_ports
-  syslog_ports       = var.pipeline_constants.syslog_ports
+  syslog_port_map    = var.pipeline_constants.syslog_port_map
   notification_ports = var.pipeline_constants.notification_ports
   vector_db_ports    = var.pipeline_constants.vector_db_ports
   netflow_ports      = var.pipeline_constants.netflow_ports
 
-  # Pipeline syslog ports — derived from syslog_ports values so that adding
-  # a new typed-source port auto-expands the firewall rule. Excludes the
-  # default (514) which has its own rule.
+  # Syslog ports — derived from syslog_port_map so that adding a new source
+  # family auto-expands the firewall surface. standard = app-facing HAProxy
+  # frontends (514-518); high = backend ports HAProxy forwards to the Cribl
+  # Edge listeners (1514-1518).
   #
-  # Emitted as a comma-separated list rather than a min:max range to avoid
+  # Emitted as comma-separated lists rather than min:max ranges to avoid
   # accidentally over-permitting if a non-contiguous port (e.g. 9999) is
-  # ever added to syslog_ports — see Gemini security review on #323.
+  # ever added to the map — see Gemini security review on #323.
   # Proxmox firewall dport accepts comma-separated port lists.
-  pipeline_syslog_ports = [for k, v in local.syslog_ports : v if k != "default"]
+  syslog_standard_ports = [for k, v in local.syslog_port_map : v.standard]
+  syslog_standard_range = join(",", [for v in sort(local.syslog_standard_ports) : tostring(v)])
+  pipeline_syslog_ports = [for k, v in local.syslog_port_map : v.high]
   pipeline_syslog_range = join(",", [for v in sort(local.pipeline_syslog_ports) : tostring(v)])
 
   internal_access_rules = [
@@ -55,10 +58,10 @@ locals {
   ]
 
   syslog_rules = [
-    { proto = "udp", dport = tostring(local.syslog_ports.default), source = local.internal_src, comment = "Syslog UDP (UDP ${local.syslog_ports.default}) from internal" },
-    { proto = "tcp", dport = tostring(local.syslog_ports.default), source = local.internal_src, comment = "Syslog TCP (TCP ${local.syslog_ports.default}) from internal" },
-    { proto = "udp", dport = local.pipeline_syslog_range, source = local.internal_src, comment = "Pipeline syslog UDP (UDP ${local.pipeline_syslog_range}) from internal" },
-    { proto = "tcp", dport = local.pipeline_syslog_range, source = local.internal_src, comment = "Pipeline syslog TCP (TCP ${local.pipeline_syslog_range}) from internal" },
+    { proto = "udp", dport = local.syslog_standard_range, source = local.internal_src, comment = "Standard syslog frontends UDP (${local.syslog_standard_range}) from internal" },
+    { proto = "tcp", dport = local.syslog_standard_range, source = local.internal_src, comment = "Standard syslog frontends TCP (${local.syslog_standard_range}) from internal" },
+    { proto = "udp", dport = local.pipeline_syslog_range, source = local.internal_src, comment = "Pipeline syslog backends UDP (${local.pipeline_syslog_range}) from internal" },
+    { proto = "tcp", dport = local.pipeline_syslog_range, source = local.internal_src, comment = "Pipeline syslog backends TCP (${local.pipeline_syslog_range}) from internal" },
   ]
 
   pipeline_services_rules = [
@@ -117,6 +120,18 @@ locals {
     { proto = "tcp", dest = local.internal_src, comment = "Outbound TCP to internal" },
     { proto = "udp", dest = local.internal_src, comment = "Outbound UDP to internal" },
     { proto = "icmp", dest = local.internal_src, comment = "Outbound ICMP to internal" },
+  ]
+
+  # Cribl Free licensing requires anonymized telemetry to cribl.io (CDN-
+  # fronted — the IPs rotate, so no stable dest CIDR exists). When telemetry
+  # is blocked past the grace period, the license disables ALL inputs:
+  # observed 2026-06-10 on every cribl LXC — listeners stayed bound while
+  # each incoming event was silently dropped, killing the whole pipeline.
+  # Outbound TCP 443 to any destination is the minimal opening that keeps
+  # inputs licensed; tarball downloads still come from the MinIO mirror, and
+  # the group is attached only to cribl containers (not HAProxy).
+  outbound_https_rules = [
+    { proto = "tcp", dport = "443", dest = null, comment = "Outbound HTTPS — Cribl license telemetry (CDN-fronted, no stable dest CIDR)" },
   ]
 
   # iDRAC KVM: inbound noVNC HTTP ports from internal; egress reuses outbound_internal

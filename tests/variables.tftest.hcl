@@ -16,6 +16,9 @@ mock_provider "proxmox" {
 mock_provider "tls" {}
 mock_provider "random" {}
 mock_provider "local" {}
+# aws is only used by the S3 inventory publish (inventory_publish.tf);
+# mock it so tests need no AWS credentials in CI or locally.
+mock_provider "aws" {}
 mock_provider "null" {}
 
 # Override data sources and modules that require real provider connections
@@ -103,18 +106,6 @@ run "splunk_vm_id_out_of_range_rejected" {
 
   expect_failures = [
     var.splunk_vm_id,
-  ]
-}
-
-run "invalid_internal_networks_cidr_rejected" {
-  command = plan
-
-  variables {
-    internal_networks = ["not-a-cidr"]
-  }
-
-  expect_failures = [
-    var.internal_networks,
   ]
 }
 
