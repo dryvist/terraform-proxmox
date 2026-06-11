@@ -59,8 +59,9 @@ Consumers fetch the raw object and adapt it. Example
 (`ansible-proxmox`'s `playbooks/load_tofu.yml` resolver):
 
 1. `TOFU_INVENTORY_PATH` — explicit local file.
-2. S3 artifact — fetched with the `aws` CLI (URI from `TOFU_INVENTORY_S3_URI`
-   or derived from the account).
+2. S3 artifact — fetched natively with `amazon.aws.s3_object` (URI from
+   `TOFU_INVENTORY_S3_URI` or derived from the account via
+   `amazon.aws.aws_caller_info`); no `aws` CLI needed.
 3. `inventory/tofu_inventory.json` — local cache.
 
 A consumer needs only AWS read creds for option 2 — no repo checkout and no
