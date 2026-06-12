@@ -170,6 +170,12 @@ resource "proxmox_virtual_environment_vm" "vms" {
       # ip_config — ignore it so bpg does not rebuild the cloud-init drive
       # (which fails: the ide2 cloud-init disk is not removable on a running VM).
       initialization[0].ip_config,
+      # Same failure mode for resolvers: a dns diff (e.g. changing the explicit
+      # DNS-server derivation) makes bpg rebuild the non-removable ide2 drive on
+      # every running VM — that is what broke the 2026-06-11 full apply. New VMs
+      # pick up the dns block at first boot; existing VMs get resolvers via
+      # Ansible post-boot.
+      initialization[0].dns,
     ]
   }
 
