@@ -18,7 +18,12 @@ locals {
         vmid     = v.id
         hostname = var.containers[k].hostname
         ip       = local.container_address[k] # static: per-VLAN cidrhost IP (CIDR stripped); DHCP guests: FQDN (DNS-first)
-        node     = v.node_name
+        # Deterministic MAC + reserved IP for DHCP-first guests (both null for
+        # static guests). tofu-unifi reads {mac, reserved_ip} to build the DHCP
+        # reservation; the technitium_dns role points the A record at reserved_ip.
+        mac         = try(var.containers[k].dhcp, false) ? local.container_mac[k] : null
+        reserved_ip = local.container_reserved_ip[k]
+        node        = v.node_name
         # Connection settings for proxmox_pct_remote (community.proxmox)
         ansible_connection = "community.proxmox.proxmox_pct_remote"
         ansible_pct_vmid   = v.id

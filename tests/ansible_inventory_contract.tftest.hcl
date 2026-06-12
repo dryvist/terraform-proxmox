@@ -303,11 +303,12 @@ run "ansible_inventory_ingress_route_table" {
       # Network-quality monitoring LXC — DNS-first (dhcp) with a 6-digit positional
       # VMID (observability tier 4). No vm_id-derived IP; fronted by FQDN.
       "smokeping" = {
-        vm_id    = 412000
-        dhcp     = true
-        hostname = "smokeping"
-        vlan     = "mgmt"
-        tags     = ["terraform", "container", "monitoring", "docker"]
+        vm_id         = 412000
+        dhcp          = true
+        reserved_host = 30
+        hostname      = "smokeping"
+        vlan          = "mgmt"
+        tags          = ["terraform", "container", "monitoring", "docker"]
       }
     }
     domain = "example.com"

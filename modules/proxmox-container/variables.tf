@@ -49,6 +49,10 @@ variable "containers" {
       bridge   = optional(string, "vmbr0")
       firewall = optional(bool, true)
       vlan_id  = optional(number)
+      # Deterministic MAC for DHCP-first guests (set by the root module from
+      # local.container_mac). Null for static guests, so the provider keeps
+      # auto-generating their MAC and existing containers are not disrupted.
+      mac_address = optional(string)
     })), [{ name = "eth0", bridge = "vmbr0", firewall = true }])
 
     # Initialization

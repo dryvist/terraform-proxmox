@@ -41,6 +41,35 @@ locals {
     )
   }
 
+  # Deterministic, locally-administered MAC per DHCP-first guest. The `02:` prefix
+  # marks it locally-administered + unicast (RFC 7042). The remaining 5 octets are
+  # a stable digest of the hostname, so the MAC is reproducible across rebuilds and
+  # plan runs WITHOUT reading provider state. This is the join key downstream:
+  # tofu-unifi pins this MAC to container_reserved_ip (DHCP reservation) and the
+  # technitium_dns role points the A record at the same address. We set it on the
+  # NIC explicitly because bpg/proxmox auto-generates a random MAC otherwise and
+  # (v0.90+) does not expose it as an output — leaving nothing stable to reserve.
+  container_mac = {
+    for k, v in var.containers : k => format("02:%s:%s:%s:%s:%s",
+      substr(md5(v.hostname), 0, 2), substr(md5(v.hostname), 2, 2),
+      substr(md5(v.hostname), 4, 2), substr(md5(v.hostname), 6, 2),
+    substr(md5(v.hostname), 8, 2))
+  }
+
+  # Reserved IP for DHCP-first guests that declare a reserved_host octet. This is
+  # the address tofu-unifi pins the MAC to and the DNS A record resolves to. It is
+  # decoupled from the (possibly 6-digit) positional vm_id: reserved_host is a real
+  # host octet within the guest's VLAN /24, so cidrhost stays in range. Static
+  # guests and DHCP guests with no reserved_host resolve to null (they advertise an
+  # IP or FQDN via container_address instead). nonsensitive(): a single host address
+  # is not independently secret and must flow into the non-sensitive inventory.
+  container_reserved_ip = {
+    for k, v in var.containers : k => (
+      try(v.dhcp, false) && try(v.reserved_host, null) != null
+      ? nonsensitive(cidrhost(var.network_cidrs[v.vlan], v.reserved_host)) : null
+    )
+  }
+
   # Reachable address each container advertises to downstream consumers (the
   # ansible_inventory ip field and the Traefik ingress backend). Static guests
   # advertise their derived host IP (CIDR mask stripped); DNS-first guests

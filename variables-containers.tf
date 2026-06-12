@@ -23,6 +23,13 @@ variable "containers" {
     # guest stays reachable across re-IP/rebuild. Defaults false (legacy static IP).
     dhcp = optional(bool, false)
 
+    # DHCP-reservation host octet for dhcp guests. UniFi pins the guest's
+    # deterministic MAC (local.container_mac) to cidrhost(network_cidrs[vlan],
+    # reserved_host), and the DNS A record points at that same address. Decoupled
+    # from the 6-digit positional vm_id so the reserved address is a real host in the
+    # guest's VLAN /24. Required whenever dhcp = true (see the validation below).
+    reserved_host = optional(number)
+
     # Node placement (optional). When unset, main.tf defaults to var.proxmox_node
     # (the primary node). Set to "proxmox-2"/"proxmox-3" to place an LXC on another cluster node.
     node_name = optional(string)
@@ -112,5 +119,12 @@ variable "containers" {
       for k, v in var.containers : v.memory_dedicated >= 64 && v.memory_dedicated <= 65536
     ])
     error_message = "Container memory must be between 64 MB and 64 GB."
+  }
+
+  validation {
+    condition = alltrue([
+      for k, v in var.containers : try(v.reserved_host, null) != null if try(v.dhcp, false)
+    ])
+    error_message = "Every dhcp = true container must set reserved_host: it is the host octet UniFi pins the deterministic MAC to (DHCP reservation) and the DNS A record resolves to."
   }
 }

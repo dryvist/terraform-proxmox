@@ -116,8 +116,14 @@ module "containers" {
         ipv4_gateway = local.container_gateway[k]
       }
       # Tag every NIC onto the LXC's service VLAN (802.1Q id from var.vlan_ids).
+      # DHCP-first guests also get a deterministic MAC (local.container_mac) so
+      # tofu-unifi can pin a stable DHCP reservation; static guests keep a null MAC
+      # (provider auto-generates) so they are not replaced.
       network_interfaces = [
-        for ni in v.network_interfaces : merge(ni, { vlan_id = lookup(var.vlan_ids, v.vlan, null) })
+        for ni in v.network_interfaces : merge(ni, {
+          vlan_id     = lookup(var.vlan_ids, v.vlan, null)
+          mac_address = try(v.dhcp, false) ? local.container_mac[k] : null
+        })
       ]
       # DRY: Always inject SSH key for Ansible access
       # Uses container's password/keys if specified, otherwise empty password with SSH key only
