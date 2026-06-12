@@ -267,11 +267,14 @@ Both containers run Docker-in-LXC (`nesting: true`, `keyctl: true`) and are tagg
 
 ## Downstream Inventory Flow
 
-terraform-proxmox produces `ansible_inventory` output consumed by Ansible repos:
+terraform-proxmox produces `ansible_inventory` output consumed by Ansible repos.
+Every `terragrunt apply` publishes it **natively** to the versioned state bucket
+(`inventory_publish.tf`, `aws_s3_object`); consumers resolve it S3-first with
+only AWS read creds. The after-hook then validates and handles the rest:
 
 ```bash
-# Regenerate, validate, and distribute (writes tofu_inventory.json to each
-# downstream repo; rejects a partial output)
+# Validate + distribute what Terraform can't (versioned-mirror PR, local
+# cache-warming); rejects a partial output. Runs automatically post-apply.
 ./scripts/sync-inventory.sh
 ```
 
