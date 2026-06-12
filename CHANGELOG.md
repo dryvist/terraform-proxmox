@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.33.1](https://github.com/dryvist/terraform-proxmox/compare/v1.33.0...v1.33.1) (2026-06-12)
+
+
+### Bug Fixes
+
+* **ci:** repoint shared reusable workflows to dryvist org ([#436](https://github.com/dryvist/terraform-proxmox/issues/436)) ([272eb26](https://github.com/dryvist/terraform-proxmox/commit/272eb264ef8462095e0e8f2225ec474021759388))
+
 ## [1.33.0](https://github.com/dryvist/terraform-proxmox/compare/v1.32.0...v1.33.0) (2026-06-12)
 
 
