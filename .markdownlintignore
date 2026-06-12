@@ -1,3 +1,7 @@
+# Canonical source: dryvist/.github root .markdownlint-cli2.yaml (ignores list).
+# Delta from canon: repo-local additions beyond CHANGELOG.md — Terraform caches,
+# symlinked docs dirs, and gh-aw generated artifacts.
+
 # Ignore Terraform provider files and cache directories
 .terraform/**
 .terragrunt-cache/**
