@@ -90,13 +90,13 @@ jobs:
     name: Markdown Lint
     needs: changes
     if: needs.changes.outputs.markdown == 'true'
-    uses: JacobPEvans-personal/.github/.github/workflows/_markdown-lint.yml@main
+    uses: dryvist/.github/.github/workflows/_markdown-lint.yml@main
 
   file-size:
     name: File Size
     needs: changes
     if: needs.changes.outputs.terraform == 'true' || needs.changes.outputs.markdown == 'true'
-    uses: JacobPEvans-personal/.github/.github/workflows/_file-size.yml@main
+    uses: dryvist/.github/.github/workflows/_file-size.yml@main
 
   # Secrets can appear in ANY file, so this runs on every PR (no path filter,
   # never skipped). Official gitleaks-action; org GITLEAKS_LICENSE is seeded.

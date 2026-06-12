@@ -1,4 +1,8 @@
 # markdownlint-cli2 configuration
+# Canonical source: dryvist/.github root .markdownlint-cli2.yaml.
+# Delta from canon: rules live in .markdownlint.yml (canon inlines them under
+# `config:`), and ignores extend canon's CHANGELOG.md with .docs/**, .direnv/**,
+# and .github/aw/** (repo-local generated/symlinked paths).
 # Rules are in .markdownlint.yml; this file handles CLI-level ignores.
 
 ignores:
