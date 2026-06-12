@@ -30,22 +30,22 @@ locals {
   # key fails loudly instead of silently selecting a wrong subnet. Canonical and
   # shared one-way with terraform-unifi — single source, no magic numbers.
   network_cidrs = {
-    lan_main  = get_env("NETWORK_CIDR_LAN_MAIN")
-    mgmt      = get_env("NETWORK_CIDR_MGMT")
+    lan_main = get_env("NETWORK_CIDR_LAN_MAIN")
+    mgmt     = get_env("NETWORK_CIDR_MGMT")
     # Native/untagged Management subnet (gateway + DNS servers). No vlan_ids entry
     # => NICs on this key are untagged (native VLAN), matching haproxy/Technitium.
     mgmt_native = get_env("NETWORK_CIDR_LAN_MGMT")
-    dns       = get_env("NETWORK_CIDR_DNS")
-    bmc       = get_env("NETWORK_CIDR_BMC")
-    compute   = get_env("NETWORK_CIDR_COMPUTE")
-    siem      = get_env("NETWORK_CIDR_SIEM")
-    pipeline  = get_env("NETWORK_CIDR_PIPELINE")
-    data      = get_env("NETWORK_CIDR_DATA")
-    ai        = get_env("NETWORK_CIDR_AI")
-    apps      = get_env("NETWORK_CIDR_APPS")
-    media_svc = get_env("NETWORK_CIDR_MEDIA_SVC")
-    homeauto  = get_env("NETWORK_CIDR_HOMEAUTO")
-    nonprod   = get_env("NETWORK_CIDR_NONPROD")
+    dns         = get_env("NETWORK_CIDR_DNS")
+    bmc         = get_env("NETWORK_CIDR_BMC")
+    compute     = get_env("NETWORK_CIDR_COMPUTE")
+    siem        = get_env("NETWORK_CIDR_SIEM")
+    pipeline    = get_env("NETWORK_CIDR_PIPELINE")
+    data        = get_env("NETWORK_CIDR_DATA")
+    ai          = get_env("NETWORK_CIDR_AI")
+    apps        = get_env("NETWORK_CIDR_APPS")
+    media_svc   = get_env("NETWORK_CIDR_MEDIA_SVC")
+    homeauto    = get_env("NETWORK_CIDR_HOMEAUTO")
+    nonprod     = get_env("NETWORK_CIDR_NONPROD")
   }
 
   # Layer 3: Doppler env vars — credentials only (API tokens, SSH keys, passwords).
@@ -61,12 +61,22 @@ locals {
     proxmox_ssh_private_key = get_env("PROXMOX_SSH_PRIVATE_KEY", "")
     proxmox_ssh_host        = get_env("PROXMOX_VE_HOSTNAME", "")
     # Keep in sync with local.proxmox_ssh_user (SOPS-first, env fallback)
-    proxmox_ssh_username    = local.proxmox_ssh_user
+    proxmox_ssh_username = local.proxmox_ssh_user
   }
 }
 
 terraform {
   source = "."
+
+  # Contention: automated runs (agents, hooks, parallel sessions) collide on the
+  # state lock and fail instantly with "Error acquiring the state lock". Make
+  # every locking command WAIT for the holder instead — 10m comfortably covers
+  # a full apply + after-hook. get_terraform_commands_that_need_locking() is the
+  # terragrunt-canonical command list for exactly this.
+  extra_arguments "state_lock_timeout" {
+    commands  = get_terraform_commands_that_need_locking()
+    arguments = ["-lock-timeout=10m"]
+  }
 
   # Render, VALIDATE, then distribute ansible_inventory to its consumers after
   # every apply (see scripts/sync-inventory.sh), including the transitional
@@ -81,7 +91,12 @@ terraform {
   }
 }
 
-# Remote state backend configuration using S3 + DynamoDB
+# Remote state backend configuration using S3 + DynamoDB.
+# Locking is belt-and-suspenders: use_lockfile (S3-native, tofu >= 1.10) AND the
+# legacy DynamoDB table — both are acquired. Dropping the DynamoDB leg would
+# force a backend re-init for no contention benefit; revisit when terragrunt is
+# removed (#353). Lock WAITING (the contention fix) is the -lock-timeout
+# extra_arguments above, not the backend config.
 remote_state {
   backend = "s3"
   generate = {
