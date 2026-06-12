@@ -78,8 +78,11 @@ output "ansible_inventory" {
   value = local.ansible_inventory
 }
 
-# Rack-server cluster inventory - consumed by ansible-proxmox via terraform_remote_state.
-# Sensitive: BMC IPs/MACs and host mgmt IPs are operational secrets. ansible-proxmox
+# Rack-server cluster inventory - NO consumer yet. When one materializes, it
+# should fetch a published S3 artifact (the ansible_inventory pattern in
+# inventory_publish.tf), not terraform_remote_state — consumers must not need
+# the toolchain or full state read access.
+# Sensitive: BMC IPs/MACs and host mgmt IPs are operational secrets. A consumer
 # must use nonsensitive() when constructing inventory strings from these.
 output "rack_servers" {
   description = "Rack-server identity (names, BMC IPs/MACs, mgmt IPs, service tags, by-chassis grouping, ansible inventory shape). Real values come from terraform.sops.json; when var.rack_servers defaults to an empty map, this output is an object whose collections are all empty."
