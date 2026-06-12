@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.33.0](https://github.com/dryvist/terraform-proxmox/compare/v1.32.0...v1.33.0) (2026-06-12)
+
+
+### Features
+
+* **containers:** deterministic MAC + reserved-IP contract for DHCP-first guests ([#430](https://github.com/dryvist/terraform-proxmox/issues/430)) ([9103512](https://github.com/dryvist/terraform-proxmox/commit/91035129dab73e2a01eddfce25a19c694118db8f))
+* **firewall:** cribl_s2s port 10300 for remote Edge -&gt; HAProxy -&gt; Stream ([#424](https://github.com/dryvist/terraform-proxmox/issues/424)) ([93bb34f](https://github.com/dryvist/terraform-proxmox/commit/93bb34f3d5962739ee1a06cb90b47e7e5247be63))
+* **storage:** document the databases dataset shape in deployment.json.example ([#426](https://github.com/dryvist/terraform-proxmox/issues/426)) ([10472ce](https://github.com/dryvist/terraform-proxmox/commit/10472cec6ae10b4ebe828ab62c401966089efd88))
+
+
+### Bug Fixes
+
+* **splunk:** deploy natively — drop dead :10.0.2 compose, pre-own /opt/splunk as 41812 ([#425](https://github.com/dryvist/terraform-proxmox/issues/425)) ([4fd485d](https://github.com/dryvist/terraform-proxmox/commit/4fd485d871dc4283c86836ed07420e3a58e261bb))
+* **sync:** env-driven sync destination; detect untracked changes; PR-based commit flow ([#428](https://github.com/dryvist/terraform-proxmox/issues/428)) ([f7bcae1](https://github.com/dryvist/terraform-proxmox/commit/f7bcae140054149aa0e94426c3b001100b3a06e6))
+* **terragrunt:** wait on held state locks instead of failing (-lock-timeout=10m) ([#431](https://github.com/dryvist/terraform-proxmox/issues/431)) ([3e819ee](https://github.com/dryvist/terraform-proxmox/commit/3e819eef7f214d764f64f543bd5d8a68463f6f33))
+* **vm:** ignore cloud-init dns drift to avoid rebuilding the non-removable ide2 drive ([#432](https://github.com/dryvist/terraform-proxmox/issues/432)) ([e888eb7](https://github.com/dryvist/terraform-proxmox/commit/e888eb7b5127ac98c435af710f70fd6c01a0c7df))
+
 ## [1.32.0](https://github.com/dryvist/terraform-proxmox/compare/v1.31.0...v1.32.0) (2026-06-11)
 
 
