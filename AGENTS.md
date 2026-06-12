@@ -92,20 +92,28 @@ containers, IPs, ports, and firewall rules.
 
 ### Downstream repos
 
+All three consumers resolve the inventory the same way (their
+`load_tofu.yml`): `TOFU_INVENTORY_PATH` (explicit pin) → the **S3 published
+artifact** (written natively by every apply via `aws_s3_object`; fetched with
+`amazon.aws` modules — AWS read creds only, no checkout, no toolchain) → the
+local gitignored cache. See `docs/INVENTORY_PUBLISHING.md`.
+
 | Repo | Consumes | Purpose |
 | --- | --- | --- |
-| `ansible-proxmox` | `ansible_inventory.host_services` | Host config (kernel, ZFS, monitoring, NAS/Samba) |
-| `ansible-proxmox-apps` | `ansible_inventory` (containers, docker_vms, constants) | Cribl, HAProxy, DNS, etc. |
+| `ansible-proxmox` | `ansible_inventory` (host_services, node_storage, nodes) | Host config (kernel, ZFS, monitoring, NAS/Samba) |
+| `ansible-proxmox-apps` | `ansible_inventory` (containers, docker_vms, constants, ingress) | Cribl, HAProxy, DNS, etc. |
 | `ansible-splunk` | `ansible_inventory` (splunk_vm) | Splunk Enterprise (Docker) |
 
-### Inventory sync (automatic)
+### Inventory publish + sync (automatic)
 
-`terragrunt.hcl` runs an `after_hook` post-apply (`scripts/sync-inventory.sh`)
-that validates the `ansible_inventory` output against the schema, then
-distributes it to its consumers, writing `tofu_inventory.json`
-to each downstream repo's `inventory/` directory under `$GIT_HOME/<repo>/main/`.
-A partial/invalid output is rejected (nothing written). Repos not cloned locally
-are skipped with a stderr warning.
+Every apply publishes the inventory **natively** to the versioned state bucket
+(`inventory_publish.tf`, `aws_s3_object.ansible_inventory`). The
+`after_hook` (`scripts/sync-inventory.sh`) then validates the output against
+the schema and handles what Terraform can't: the versioned-mirror PR into the
+private data repo (gated on `INVENTORY_DATA_REPO`) and the local
+`tofu_inventory.json` cache each consumer repo's resolver uses as its offline
+fallback. A partial/invalid output is rejected (nothing written). Repos not
+cloned locally are skipped with a stderr warning.
 
 To sync manually after importing state without applying, see
 `docs/ARCHITECTURE.md`.

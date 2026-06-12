@@ -72,7 +72,9 @@ else
   echo "sync-inventory: INVENTORY_DATA_REPO unset or clone not found — skipped versioned commit" >&2
 fi
 
-# Transitional: the gitignored copy each Ansible repo reads today.
+# Cache-warming: the gitignored copy each consumer's resolver uses as its
+# offline fallback (resolution priority 3, after TOFU_INVENTORY_PATH and the
+# S3 artifact).
 for repo in ansible-proxmox ansible-proxmox-apps ansible-splunk; do
   for root in "${GIT_HOME_PUBLIC:-}" "$GIT_HOME"; do
     if [[ -n "$root" && -d "$root/$repo/main/inventory" ]]; then
