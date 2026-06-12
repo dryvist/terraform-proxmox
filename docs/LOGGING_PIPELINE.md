@@ -22,7 +22,7 @@ NetFlow Sources             Load Balancer       Collectors            Processing
 +----------------+          +----------+        +---------------+      +-----------+      +---------+
 | UniFi IPFIX    |          |          |        | cribl-edge-01 |      |           |      |         |
 | (2055 UDP)     |   --->   | HAProxy  |  --->  |               | ---> | Cribl     | ---> | Splunk  |
-|                |          | :2055 UDP|        | cribl-edge-02 |      | Stream    |      | network |
+|                |          | :2055 UDP|        | cribl-edge-02 |      | Stream    |      | netflow |
 +----------------+          +----------+        +---------------+      +-----------+      +---------+
 ```
 
@@ -46,9 +46,9 @@ Network devices and hosts configured to send syslog to `<internal-domain>`.
 
 | Source         | Port | Protocol | Index   |
 | -------------- | ---- | -------- | ------- |
-| UniFi (IPFIX)  | 2055 | UDP      | network |
+| UniFi (IPFIX)  | 2055 | UDP      | netflow |
 
-The `network` Splunk index receives NetFlow/IPFIX data from UniFi for traffic analysis.
+The `netflow` Splunk index receives NetFlow/IPFIX data from UniFi for traffic analysis.
 See `SPLUNK_INDEXES.md` for index retention settings.
 
 #### UniFi Network Device Configuration
@@ -74,7 +74,7 @@ See `SPLUNK_INDEXES.md` for index retention settings.
 - Data Retention: 365 days
 - Collect Historical Client Data: Enabled
 - Debug Logs: Disabled
-- NetFlow (IPFIX): Enabled (UDP 2055 → HAProxy → Cribl Edge → `network` index)
+- NetFlow (IPFIX): Enabled (UDP 2055 → HAProxy → Cribl Edge → `netflow` index)
 
 #### UniFi Log Format (CEF)
 
