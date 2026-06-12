@@ -171,6 +171,11 @@ resource "proxmox_virtual_environment_vm" "splunk_vm" {
       # bpg rebuild the cloud-init drive — and that fails on the non-removable
       # ide2 disk. Ansible owns post-boot networking, so ignore the drift.
       initialization[0].ip_config,
+      # Same failure mode for resolvers: a dns diff makes bpg rebuild the
+      # cloud-init drive too — on THIS VM that rebuild took 15+ minutes and
+      # rebooted production Splunk during the 2026-06-11 apply. Resolvers on the
+      # running VM are Ansible-owned; the dns block only matters at first boot.
+      initialization[0].dns,
       # The live disk layout diverged from this module out-of-band: the boot
       # disk is scsi0/50G (not virtio0/25G), and the empty leftover disk-1 was
       # reaped directly on the host. bpg keys disk blocks positionally and tofu
