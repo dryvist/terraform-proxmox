@@ -13,6 +13,7 @@ This document defines the Splunk indexes used in the logging pipeline, their pur
 | firewall | Firewall logs             | Palo Alto, Cisco ASA           | 365 days  |
 | network  | General network logs      | Switches, routers, other       | 365 days  |
 | netmon   | Per-WAN network diagnosis | Probes, DOCSIS SNMP, satellite | 90 days   |
+| netflow  | UniFi NetFlow/IPFIX flows | UniFi gateway (IPFIX 2055)     | 90 days   |
 
 ## Index Configuration
 
@@ -106,11 +107,28 @@ frozenTimePeriodInSecs = 7776000
 - Satellite obstruction %, outages, pop-ping latency
 - Hourly per-WAN throughput (speedtest-exporter)
 
+### netflow
+
+```ini
+[netflow]
+homePath = $SPLUNK_DB/netflow/db
+coldPath = $SPLUNK_DB/netflow/colddb
+thawedPath = $SPLUNK_DB/netflow/thaweddb
+maxTotalDataSizeMB = 51200
+frozenTimePeriodInSecs = 7776000
+```
+
+**Data types**:
+
+- UniFi NetFlow / IPFIX flow records (UDP 2055 → HAProxy → Cribl Edge → Cribl Stream)
+- High-volume traffic-flow telemetry, split from `network` so its volume has its own
+  size and retention envelope
+
 ## Retention Policy
 
 Security-log indexes use a **365-day retention** period (`frozenTimePeriodInSecs = 31536000`).
-The `netmon` diagnostics index is the exception at **90 days** (`7776000`) — a troubleshooting
-horizon, not a compliance window.
+The `netmon` diagnostics and `netflow` flow-record indexes are the exceptions at **90 days**
+(`7776000`) — a troubleshooting / volume horizon, not a compliance window.
 
 **Rationale**:
 
@@ -121,14 +139,14 @@ horizon, not a compliance window.
 ## Size Limits
 
 Security-log indexes are limited to **100GB** each (`maxTotalDataSizeMB = 102400`); the `netmon`
-diagnostics index is capped at **50GB** (`51200`).
+diagnostics and `netflow` flow indexes are each capped at **50GB** (`51200`).
 
 **Capacity planning**:
 
-- Total: 450GB across 5 indexes (4 × 100GB security + netmon 50GB)
+- Total: 500GB across 6 indexes (4 × 100GB security + netmon 50GB + netflow 50GB)
 - Splunk VM disk: 500GB allocated
-- Buffer for Splunk internal indexes: ~50GB — grow the VM disk before onboarding the broader
-  host/container/firewall log sources
+- Caps now equal the 500GB VM disk — grow the VM disk (leaving ~50GB for Splunk internal
+  indexes) before onboarding the broader host/container/firewall log sources
 
 ## Source Type Mapping
 
@@ -147,6 +165,7 @@ diagnostics index is capped at **50GB** (`51200`).
 | netmon:probe   | netmon   | Telegraf active probes |
 | netmon:docsis  | netmon   | Cable modem SNMP       |
 | netmon:sat     | netmon   | satellite uplink probe |
+| ipfix          | netflow  | UniFi NetFlow/IPFIX    |
 
 ## HEC Token Configuration
 
@@ -178,6 +197,9 @@ splunk_indexes:
     maxTotalDataSizeMB: 102400
     frozenTimePeriodInSecs: 31536000
   - name: netmon
+    maxTotalDataSizeMB: 51200
+    frozenTimePeriodInSecs: 7776000
+  - name: netflow
     maxTotalDataSizeMB: 51200
     frozenTimePeriodInSecs: 7776000
 ```
