@@ -169,6 +169,16 @@ resource "proxmox_virtual_environment_container" "containers" {
       # "no options specified" when an update sends no meaningful feature changes.
       # Features are only set at creation time (privileged containers require root@pam).
       features,
+      # Ignore mount_point drift. HOST bind-mounts (e.g. the media stack's single
+      # /bulk/data mount) are root@pam-only, so the BPG API token cannot set them —
+      # they are applied post-creation by the ansible-proxmox `media_lxc_features`
+      # role, not by terraform. Without this, every refresh sees the live mount as
+      # drift and tries to strip it, which forces replacement of the (data-bearing)
+      # media containers. Same rationale as `features` and the splunk-vm boot disk
+      # (terraform-proxmox #390). Storage-VOLUME mounts declared in deployment.json
+      # are still created at provision time; only post-creation reconciliation is
+      # ignored (mounts are effectively set-once here).
+      mount_point,
     ]
   }
 }
