@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.35.1](https://github.com/dryvist/terraform-proxmox/compare/v1.35.0...v1.35.1) (2026-06-14)
+
+
+### Bug Fixes
+
+* **servarr-config:** align committed config to adopted live state ([#451](https://github.com/dryvist/terraform-proxmox/issues/451)) ([1497d55](https://github.com/dryvist/terraform-proxmox/commit/1497d5594537a7dc9a5481160784f978db316ce4))
+
 ## [1.35.0](https://github.com/dryvist/terraform-proxmox/compare/v1.34.1...v1.35.0) (2026-06-14)
 
 
