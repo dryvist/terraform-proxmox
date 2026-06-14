@@ -1,190 +1,136 @@
 # Infrastructure Numbering Scheme
 
-**Status**: Active Production Infrastructure (100% Terraform-managed)
+**Status**: Active. The homelab has moved to a **6-7-digit tier-positional VMID** scheme.
+The legacy flat 3-digit IDs (100-251) still exist and are renumbered incrementally as
+maintenance windows allow — they are **not** the target.
+
+> The authoritative, digit-by-digit allocation is **not** duplicated here (it drifts).
+> Canonical design + tier tables: **[docs.jacobpevans.com/infrastructure/vmid-network-tiers](https://docs.jacobpevans.com/infrastructure/vmid-network-tiers)**
+> (the public page is the framework; the exhaustive per-guest allocation is in the private
+> infrastructure docs). The **live** per-guest assignment is the gitignored
+> `deployment.json` and the `ansible_inventory` Terraform output — this file describes the
+> *convention*, not the inventory.
 
 ---
 
-## Numbering Conventions
+## The VMID positional scheme (current)
 
-### LXC Containers (100-199)
+A VMID is six digits, each position carrying meaning (read coarsest → finest):
 
-All services run as lightweight LXC containers, organized by function:
+```text
+[Tier][Sub-tier][Crit][OS][Instance][Env]
+   │      │        │    │      │       │
+   │      │        │    │      │       └─ environment (prod / stg / test / dev / sbx)
+   │      │        │    │      └───────── instance number within the group
+   │      │        │    └──────────────── OS family (0 = LXC, the common case)
+   │      │        └───────────────────── criticality 0-9 (lower = more critical; 5 = default)
+   │      └────────────────────────────── sub-tier (0 user-facing, 1 mgmt, 2 download)
+   └───────────────────────────────────── trust tier 1-9 (= VLAN tag ÷ 10)
+```
 
-- **100-110**: Infrastructure (Ansible, PVE scripts)
-- **150-169**: AI development (Claude Code, Gemini, Qdrant)
-- **171-179**: Cribl Stream (log processing)
-- **181-189**: Cribl Edge (log forwarding)
-- **190-199**: Splunk management
+A plain numeric sort groups guests by tier → sub-tier → criticality, for free. Example:
+Plex (`702000`) = tier 7 (media) · sub 0 (user-facing) · crit 2 · OS 0 (LXC) · instance 0 ·
+env 0 (prod), and lives on VLAN 70 — identity and network are one number.
 
-### VMs (200+)
+### Trust tiers → VLANs (tier × 10)
 
-Heavy I/O workloads run as full VMs:
+| Tier | VLAN | Name | What lives here |
+| --- | --- | --- | --- |
+| 1 | 10 | Core services | Foundational infra everything depends on |
+| 2 | 20 | Storage | NAS, block/object storage, backup targets |
+| 3 | 30 | Data / pipeline / compute | Data movement, batch, general compute |
+| 4 | 40 | Observability & security | Monitoring, logging, security tooling |
+| 5 | 50 | AI / ML | Inference, training, model-serving |
+| 6 | 60 | Applications | General self-hosted apps |
+| 7 | 70 | Media | Media library + supporting services |
+| 8 | 80 | Home & IoT | Home automation, IoT |
+| 9 | 90 | Untrusted / guest | Cameras, guest access, least-trusted |
 
-- **200**: Splunk Enterprise all-in-one VM
-- **201+**: Reserved for future VMs
-
----
-
-## Complete Infrastructure Map
-
-### LXC Containers - Infrastructure (100-110)
-
-| ID  | Name              | Type | Cores | RAM  | Storage | Pool           | Purpose                              |
-|-----|-------------------|------|-------|------|---------|----------------|--------------------------------------|
-| 100 | ansible           | LXC  | 2     | 2GB  | 64GB    | infrastructure | Ansible control node - primary       |
-| 101 | ansible-2         | LXC  | 2     | 2GB  | 64GB    | infrastructure | Ansible control node - secondary     |
-| 102 | pve-scripts-local | LXC  | 1     | 512MB| 8GB     | infrastructure | Proxmox VE Helper Scripts            |
-
-### LXC Containers - AI Development (150-169)
-
-| ID  | Name           | Type | Cores | RAM  | Storage | Pool | Purpose                              |
-|-----|----------------|------|-------|------|---------|------|--------------------------------------|
-| 150 | claude-code-01 | LXC  | 2     | 2GB  | 64GB    | ai   | Claude Code development environment 1|
-| 151 | claude-code-02 | LXC  | 2     | 2GB  | 64GB    | ai   | Claude Code development environment 2|
-| 161 | gemini-01      | LXC  | 2     | 2GB  | 64GB    | ai   | Gemini development environment 1     |
-| 162 | gemini-02      | LXC  | 2     | 2GB  | 64GB    | ai   | Gemini development environment 2     |
-| 165 | qdrant         | LXC  | 2     | 8GB  | 108GB   | ai   | Qdrant vector database - AI RAG      |
-| 166 | llamaindex     | LXC  | 2     | 4GB  | 16GB    | ai   | LlamaIndex RAG engine (CPU)          |
-| 167 | hermes-infer   | LXC  | 6     | 6GB  | 144GB   | ai   | Ollama LLM inference (GPU RX 6800)   |
-| 168 | hermes-chat    | LXC  | 2     | 2GB  | 16GB    | ai   | Open WebUI chat frontend             |
-
-The GPU LLM stack (`hermes-infer` + `hermes-chat`) is documented end-to-end at
-[docs.jacobpevans.com/infrastructure/local-llm](https://docs.jacobpevans.com/infrastructure/local-llm).
-`hermes-infer` is a privileged LXC with the RX 6800 passed through (`/dev/kfd`,
-`/dev/dri`) and a 120 GB model volume at `/var/lib/ollama`.
-
-### LXC Containers - Cribl Stream (171-179)
-
-| ID  | Name           | Type | Cores | RAM  | Storage | Pool    | Purpose                              |
-|-----|----------------|------|-------|------|---------|---------|--------------------------------------|
-| 171 | cribl-stream-1 | LXC  | 2     | 2GB  | 32GB    | logging | Cribl Stream processing node 1       |
-| 172 | cribl-stream-2 | LXC  | 2     | 2GB  | 32GB    | logging | Cribl Stream processing node 2       |
-
-### LXC Containers - Cribl Edge (181-189)
-
-| ID  | Name           | Type | Cores | RAM  | Storage | Pool    | Purpose                              |
-|-----|----------------|------|-------|------|---------|---------|--------------------------------------|
-| 181 | cribl-edge-01  | LXC  | 2     | 2GB  | 32GB    | logging | Cribl Edge log forwarder 1           |
-| 182 | cribl-edge-02  | LXC  | 2     | 2GB  | 32GB    | logging | Cribl Edge log forwarder 2           |
-
-### LXC Containers - Load Balancer & Syslog (190-199)
-
-| ID  | Name            | Type | Cores | RAM  | Storage | Pool    | Purpose                              |
-|-----|-----------------|------|-------|------|---------|---------|--------------------------------------|
-| 190 | haproxy-syslog  | LXC  | 1     | 512MB| 16GB    | logging | HAProxy load balancer + syslog       |
-| 199 | splunk-mgmt     | LXC  | 3     | 3GB  | 100GB   | logging | Splunk SH, DS, LM, MC, CM            |
-
-### VMs - Splunk Enterprise (200+)
-
-| ID  | Name      | Type | Cores | RAM  | Storage | Pool    | Purpose                              |
-|-----|-----------|------|-------|------|---------|---------|--------------------------------------|
-| 200 | splunk-vm | VM   | 8     | 12GB | 200GB   | logging | Splunk Enterprise all-in-one         |
+Special-purpose VLANs sit **outside** the tier numbering: `1` Default, `5` Management,
+`53` DNS (named for port 53).
 
 ---
 
-## Resource Pools
+## Addressing: DHCP / DNS-first, with a static exception
 
-| Pool           | Purpose                              | Resources                                    |
-|----------------|--------------------------------------|----------------------------------------------|
-| infrastructure | Core infrastructure services         | ansible, ansible-2, pve-scripts-local        |
-| ai             | AI development environments          | claude-code-01/02, gemini-01/02, qdrant      |
-| logging        | Logging and observability            | cribl-*, splunk-mgmt, splunk-vm              |
+Guests do not carry hardcoded IPs. The default is **DHCP + DNS-first**: a guest is referenced
+everywhere by `{hostname}.{subdomain}` and DNS owns the actual lease. In `deployment.json` a
+DHCP-first guest sets `dhcp: true` (+ optional `reserved_host` octet for a deterministic
+DHCP reservation pinned by tofu-unifi). IaC carries hostnames, not octets.
 
----
+The **exception** is core gear that must be reachable *before* DNS is up — most importantly
+**DNS servers**. These pin a static `ip_config.ipv4_address` instead.
 
-## Resource Totals
+How `locals.tf` resolves a guest's address (`container_ipv4`):
 
-### Containers (14 total)
+- `dhcp = true` → `"dhcp"` (no IP derived; gateway null, lease-provided).
+- static `ip_config` set → that address.
+- otherwise → `cidrhost(network_cidrs[vlan], vm_id)` (legacy derive; only valid while the ID
+  fits the /24).
 
-| Category       | Cores | RAM   | Storage |
-|----------------|-------|-------|---------|
-| Infrastructure | 5     | 4.5GB | 136GB   |
-| AI Development | 10    | 16GB  | 364GB   |
-| Cribl Stream   | 4     | 4GB   | 264GB   |
-| Cribl Edge     | 4     | 4GB   | 264GB   |
-| HAProxy/Syslog | 1     | 512MB | 16GB    |
-| Splunk Mgmt    | 3     | 3GB   | 100GB   |
-| **Subtotal**   | 27    | 32GB  | 1144GB  |
+`cidrhost` is evaluated **only** on the derive branch (an if/else, not `coalesce`, so it
+short-circuits — see PR #444). That is what lets a static-IP exception host carry a 6-7-digit
+positional VMID: a `cidrhost(cidr, 5310010)` would overflow the /24, but it is never
+evaluated when a static `ip_config` is present.
 
-### VMs (1 total)
+### DNS servers (special VLAN 53, static exception) — worked example
 
-| Category       | Cores | RAM   | Storage |
-|----------------|-------|-------|---------|
-| Splunk VM      | 8     | 12GB  | 200GB   |
+DNS = VLAN 53, outside the tier÷10 rule, so DNS guests use a **7-digit `53`-prefixed** ID and
+a **static** IP. The pve2 DNS secondary `technitium-dns-2`:
 
-### Grand Total
+- VMID **5310010** = `53` (DNS VLAN) · sub 1 (mgmt) · crit 0 (most critical) · OS 0 (LXC) ·
+  instance 1 · env 0 (prod).
+- static `ip_config` `<dns-subnet>.3` (gateway `.1`, primary `.2`, secondary `.3`).
 
-- **Cores**: 35 (oversubscribed)
-- **RAM**: 44GB
-- **Storage**: 1369GB
-
----
-
-## Network Addressing
-
-All resources use /24 CIDR notation for host addresses on the management network.
-
-Example configuration uses 192.168.1.0/24:
-
-### Infrastructure (100-110)
-
-- 192.168.1.100/24 - ansible
-- 192.168.1.101/24 - ansible-2
-- 192.168.1.102/24 - pve-scripts-local
-
-### AI Development (150-169)
-
-- 192.168.1.150/24 - claude-code-01
-- 192.168.1.151/24 - claude-code-02
-- 192.168.1.161/24 - gemini-01
-- 192.168.1.162/24 - gemini-02
-- 192.168.1.165/24 - qdrant
-- 192.168.1.166/24 - llamaindex
-- 192.168.1.167/24 - hermes-infer
-- 192.168.1.168/24 - hermes-chat
-
-### Cribl Stream (171-179)
-
-- 192.168.1.171/24 - cribl-stream-1
-- 192.168.1.172/24 - cribl-stream-2
-
-### Cribl Edge (181-189)
-
-- 192.168.1.181/24 - cribl-edge-01
-- 192.168.1.182/24 - cribl-edge-02
-
-### Load Balancer & Syslog (190-199)
-
-- 192.168.1.190/24 - haproxy-syslog
-- 192.168.1.199/24 - splunk-mgmt
-
-### VMs (200+)
-
-- 192.168.1.200/24 - splunk-vm
+> IP examples on this page use the `192.168.<vlan>.x` placeholder shape (committed-file rule);
+> real subnets come from Doppler `NETWORK_CIDR_*` at runtime and live only in the gitignored
+> `deployment.json`. See [AGENTS.md](../AGENTS.md) for the config-file architecture.
 
 ---
 
-## Splunk Configuration
+## Legacy 3-digit ranges (being retired)
+
+The original flat scheme assigned IDs by function in 100-299. These guests still run on these
+IDs until renumbered onto their tier-positional IDs; treat the table as historical, not as the
+allocation to extend.
+
+| Range | Legacy purpose |
+| --- | --- |
+| 100-110 | Infrastructure containers |
+| 150-169 | AI development containers |
+| 171-189 | Cribl Stream / Edge containers |
+| 190-199 | Load balancer / HAProxy / Splunk mgmt |
+| 200 | Splunk Enterprise VM |
+| 201-299 | Reserved for future VMs |
+
+New guests adopt the positional scheme immediately; do not assign new flat 3-digit IDs.
+
+---
+
+## Resource pools
+
+Guests are grouped into Proxmox resource pools by function (`pool_id` in `deployment.json`),
+e.g. `infrastructure`, `ai`, `logging`, independent of the VMID. Pools are organizational;
+placement on a node's VLAN is driven by the tier, not the pool.
+
+---
+
+## Splunk configuration
 
 ### Architecture
 
-Single all-in-one Splunk Enterprise deployment:
+Single all-in-one Splunk Enterprise VM plus a management container:
 
-- **VM (200)**: Splunk Enterprise with all data roles
-- **Container (199)**: Management roles (SH, DS, LM, MC, CM)
+- **Splunk VM**: Splunk Enterprise with all data roles, on the `siem` VLAN.
+- **splunk-mgmt container**: management roles (SH, DS, LM, MC, CM).
 
-### Splunk Network
-
-```text
-192.168.1.199,192.168.1.200
-```
-
-### Port Matrix
+### Port matrix
 
 | Port | Protocol | Purpose             | Allowed From            |
-|------|----------|---------------------|-------------------------|
+| ---- | -------- | ------------------- | ----------------------- |
 | 22   | TCP      | SSH                 | management_network      |
 | 8000 | TCP      | Splunk Web UI       | management_network      |
+| 8088 | TCP      | Splunk HEC          | Splunk network + Cribl  |
 | 8089 | TCP      | Splunk Management   | Splunk network          |
 | 9997 | TCP      | Splunk Forwarding   | Splunk network + Cribl  |
 | 8080 | TCP      | Replication         | Splunk network          |
@@ -192,90 +138,28 @@ Single all-in-one Splunk Enterprise deployment:
 
 ---
 
-## Storage Configuration
+## Storage configuration
 
-### Cribl Persistent Queue Disks
+### Cribl persistent-queue disks
 
-Cribl Stream and Cribl Edge containers include 100GB persistent queue storage mounted at `/opt/cribl/data`:
+Cribl Stream and Cribl Edge containers carry a separate data disk for the on-disk persistent
+queue (mounted at `/opt/cribl/data`): a small root disk for OS + application, plus a larger
+data disk so a HAProxy/Cribl outage buffers instead of dropping. Ansible formats and mounts
+the data disk; see the Cribl roles in the downstream apps repo.
 
-**Cribl Stream (171-172)**:
+### Splunk VM disk layout
 
-- Root disk: 32GB (OS + application)
-- Data disk: 100GB (persistent queue, on-disk persistence)
+The Splunk VM uses separate boot and data disks:
 
-**Cribl Edge (181-182)**:
+- **Boot disk (virtio0)**: OS, Splunk application, configuration.
+- **Data disk (virtio1)**: Splunk index storage and event data, mounted at `/opt/splunk/var`.
 
-- Root disk: 32GB (OS + application)
-- Data disk: 100GB (persistent queue, buffer storage)
-
-Configuration in `terraform.tfvars.example`:
-
-```hcl
-mount_points = [{
-  volume = "local-zfs"
-  size   = "100G"
-  path   = "/opt/cribl/data"
-}]
-```
-
-**Note**: Ansible configuration is responsible for formatting and mounting the volume. See `ansible/roles/` for implementation details.
-
-### Splunk VM Disk Layout
-
-Splunk Enterprise VM (200) uses separate boot and data disks:
-
-- **Boot disk (virtio0)**: 25GB - OS, Splunk application, configuration
-- **Data disk (virtio1)**: 200GB - Splunk index storage and event data
-
-Configuration in `terraform.tfvars.example`:
-
-```hcl
-splunk_boot_disk_size = 25   # Boot disk: 25GB
-splunk_data_disk_size  = 200 # Data disk: 200GB for indexes
-```
-
-**Note**: Ansible configuration mounts the data disk to `/opt/splunk/var` for index storage. See `ansible/roles/splunk-enterprise/` for disk mount details.
+Disk sizes are set in `deployment.json` (`splunk_boot_disk_size`, `splunk_data_disk_size`).
 
 ---
 
-## Terraform Management
+## Terraform management
 
-### State
-
-All resources are 100% Terraform-managed:
-
-- 14 LXC containers
-- 1 VM (Splunk)
-- 3 resource pools
-- Firewall rules
-
-### Configuration
-
-See `terraform.tfvars.example` for complete configuration templates.
-
-### Fresh Deploy
-
-To deploy from scratch (e.g., after PVE 9.x upgrade):
-
-```bash
-terragrunt apply
-```
-
-This will create all 20 resources from the configuration.
-
----
-
-## Reserved Ranges
-
-| Range     | Purpose                              |
-|-----------|--------------------------------------|
-| 100-110   | Infrastructure containers            |
-| 111-149   | Reserved                             |
-| 150-169   | AI development containers            |
-| 170       | Reserved                             |
-| 171-179   | Cribl Stream containers              |
-| 180       | Reserved                             |
-| 181-189   | Cribl Edge containers                |
-| 190-199   | Load balancer, HAProxy, Splunk mgmt  |
-| 200       | Splunk Enterprise VM                 |
-| 201-299   | Reserved for future VMs              |
+All guests, pools, and firewall rules are 100% Terraform-managed; the live set of resources is
+defined in `deployment.json` and surfaced to downstream Ansible via the `ansible_inventory`
+output. Deploy from scratch with `terragrunt apply`.
