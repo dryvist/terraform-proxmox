@@ -315,6 +315,45 @@ run "minio_tagged_container_in_minio_ids" {
   }
 }
 
+# --- object_storage_container_ids tests ---
+
+run "object_storage_tagged_container_in_object_storage_ids" {
+  command = plan
+
+  variables {
+    containers = {
+      "object-storage" = {
+        vm_id         = 202000
+        hostname      = "object-storage"
+        vlan          = "siem"
+        dhcp          = true
+        reserved_host = 20
+        tags          = ["terraform", "container", "object-storage", "storage", "infrastructure"]
+      }
+    }
+  }
+
+  assert {
+    condition     = contains(keys(local.object_storage_container_ids), "object-storage")
+    error_message = "Container with 'object-storage' tag must be in object_storage_container_ids"
+  }
+
+  assert {
+    condition     = local.object_storage_container_ids["object-storage"] == 202000
+    error_message = "object_storage_container_ids['object-storage'] should be vm_id 202000"
+  }
+
+  assert {
+    condition     = !contains(keys(local.minio_container_ids), "object-storage")
+    error_message = "Container with 'object-storage' tag must NOT be in minio_container_ids"
+  }
+
+  assert {
+    condition     = !contains(keys(local.pipeline_container_ids), "object-storage")
+    error_message = "Container with 'object-storage' tag must NOT be in pipeline_container_ids"
+  }
+}
+
 # --- infisical_container_ids tests ---
 
 run "infisical_tagged_container_in_infisical_ids" {

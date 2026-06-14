@@ -27,18 +27,22 @@ locals {
       cribl_edge_api    = 9420
       cribl_stream_api  = 9000
       # Cribl-to-Cribl (S2S/TCP-JSON) ingestion: remote Edge nodes -> HAProxy -> Stream
-      cribl_s2s        = 10300
-      apt_cacher_ng    = 3142
-      minio_api        = 9000
-      minio_console    = 9001
-      infisical_api    = 8080
-      openbao_api      = 8200
-      openbao_cluster  = 8201
-      postgres_default = 5432
-      redis_default    = 6379
-      ntp              = 123
-      idrac_kvm_r410   = 5410
-      idrac_kvm_r710   = 5710
+      cribl_s2s     = 10300
+      apt_cacher_ng = 3142
+      minio_api     = 9000
+      minio_console = 9001
+      # Object storage (RustFS) — replaces MinIO. Both kept during the migration
+      # soak; remove the minio_* pair once object-storage cutover is stable.
+      object_storage_s3      = 9000
+      object_storage_console = 9001
+      infisical_api          = 8080
+      openbao_api            = 8200
+      openbao_cluster        = 8201
+      postgres_default       = 5432
+      redis_default          = 6379
+      ntp                    = 123
+      idrac_kvm_r410         = 5410
+      idrac_kvm_r710         = 5710
       # Web UIs fronted by Traefik that have no other constant home. Kept here so
       # every port lives in one place and the ingress table (below) references
       # constants, never literals.

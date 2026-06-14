@@ -348,6 +348,46 @@ resource "proxmox_virtual_environment_firewall_rules" "minio_container" {
   depends_on = [proxmox_virtual_environment_firewall_options.minio_container]
 }
 
+# Object storage containers (RustFS — S3 API 9000, Console 9001)
+
+resource "proxmox_virtual_environment_firewall_options" "object_storage_container" {
+  for_each = var.object_storage_container_ids
+
+  node_name     = var.node_name
+  container_id  = each.value
+  enabled       = local.firewall_defaults.enabled
+  input_policy  = local.firewall_defaults.input_policy
+  output_policy = local.firewall_defaults.output_policy
+  log_level_in  = local.firewall_defaults.log_level_in
+  log_level_out = local.firewall_defaults.log_level_out
+
+  depends_on = [proxmox_virtual_environment_cluster_firewall.main]
+}
+
+resource "proxmox_virtual_environment_firewall_rules" "object_storage_container" {
+  for_each = var.object_storage_container_ids
+
+  node_name    = var.node_name
+  container_id = each.value
+
+  rule {
+    security_group = proxmox_virtual_environment_cluster_firewall_security_group.internal_access.name
+    comment        = "Internal access (SSH, ICMP)"
+  }
+
+  rule {
+    security_group = proxmox_virtual_environment_cluster_firewall_security_group.object_storage_services.name
+    comment        = "Object storage services (TCP/9000 S3 API, TCP/9001 Console)"
+  }
+
+  rule {
+    security_group = proxmox_virtual_environment_cluster_firewall_security_group.outbound_internal.name
+    comment        = "Outbound to internal only"
+  }
+
+  depends_on = [proxmox_virtual_environment_firewall_options.object_storage_container]
+}
+
 # Infisical container firewall resources live in modules/firewall/infisical_rules.tf
 # (extracted so container_rules.tf stays under the shared _file-size workflow's 12 KB error
 # threshold).

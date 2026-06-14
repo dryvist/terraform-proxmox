@@ -216,8 +216,11 @@ module "firewall" {
   # that gets license-telemetry HTTPS egress
   cribl_edge_container_ids = local.cribl_edge_container_ids
 
-  # MinIO object storage containers (minio tag)
+  # MinIO object storage (minio tag) — DEPRECATED, kept for the migration soak.
   minio_container_ids = local.minio_container_ids
+
+  # Object storage (object-storage tag) — RustFS, MinIO replacement.
+  object_storage_container_ids = local.object_storage_container_ids
 
   # Infisical secrets-management containers (infisical tag)
   infisical_container_ids = local.infisical_container_ids
