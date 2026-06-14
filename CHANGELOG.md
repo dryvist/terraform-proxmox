@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.33.2](https://github.com/dryvist/terraform-proxmox/compare/v1.33.1...v1.33.2) (2026-06-14)
+
+
+### Bug Fixes
+
+* **container:** ignore mount_point drift so applies don't replace media LXCs ([#439](https://github.com/dryvist/terraform-proxmox/issues/439)) ([f722f54](https://github.com/dryvist/terraform-proxmox/commit/f722f5434e4e62f7b9097de03fdd785684799a53))
+
 ## [1.33.1](https://github.com/dryvist/terraform-proxmox/compare/v1.33.0...v1.33.1) (2026-06-12)
 
 
