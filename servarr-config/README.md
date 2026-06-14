@@ -42,9 +42,14 @@ Not yet here (see Follow-ups):
 
 ```bash
 cp terraform.tfvars.example local.auto.tfvars   # gitignored; fill from secret store
-tofu init
-tofu plan                                        # drift detection — no changes applied
+# bucket embeds the AWS account id, so it is passed at init (never committed):
+tofu init -backend-config="bucket=terraform-proxmox-state-useast2-$(aws sts get-caller-identity --query Account --output text)"
+tofu plan                                        # drift detection — exit 2 = drift
 ```
+
+State lives in S3 (`terraform-proxmox/servarr-config/terraform.tfstate`). The live
+Sonarr/Radarr resources have already been imported (adopted) and `tofu plan` is
+clean, so the config manages them with no behavior change.
 
 Real values (URLs, API keys, qBittorrent password) come from the secret store
 (SOPS / Doppler / env), never committed. The example file uses RFC1918
