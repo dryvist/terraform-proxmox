@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.34.1](https://github.com/dryvist/terraform-proxmox/compare/v1.34.0...v1.34.1) (2026-06-14)
+
+
+### Bug Fixes
+
+* **locals:** support static-IP exception hosts with positional VMIDs ([a6cceea](https://github.com/dryvist/terraform-proxmox/commit/a6cceeaa09c757ac037e0dd9f5438095e15e9004))
+
 ## [1.34.0](https://github.com/dryvist/terraform-proxmox/compare/v1.33.2...v1.34.0) (2026-06-14)
 
 
