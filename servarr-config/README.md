@@ -73,10 +73,13 @@ IDs come from each app's API (`GET /api/v3/rootfolder`,
 ## Drift detection (scheduled)
 
 `.github/workflows/servarr-config-drift.yml` runs `tofu plan -detailed-exitcode`
-on a daily schedule (and on `workflow_dispatch`). Exit `2` means the live
-Sonarr/Radarr config has drifted from this code; the job alerts ntfy and fails
-loudly so the drift is triaged (codify into this module, or revert via apply)
-rather than silently clobbered.
+on a daily schedule (and on `workflow_dispatch`). When the workflow is **enabled**,
+exit `2` means the live Sonarr/Radarr config has drifted from this code: the
+drift job posts an ntfy alert (if `NTFY_BASE_URL` is set) and fails loudly so the
+drift is triaged (codify into this module, or revert via apply) rather than
+silently clobbered. When the workflow is **disabled** (`SERVARR_DRIFT_ENABLED` is
+not `true`), the gate job fails loudly with no ntfy alert — a deliberate signal
+that drift coverage is off.
 
 It runs on the **self-hosted `terraform` runner** because the *arr APIs are on
 the homelab LAN. It is **off by default**; activation is gated on the repo

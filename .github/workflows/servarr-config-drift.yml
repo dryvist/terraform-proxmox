@@ -104,7 +104,7 @@ jobs:
           NTFY_BASE_URL: ${{ steps.doppler.outputs.NTFY_BASE_URL }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: >-
-          test -n "${NTFY_BASE_URL:-}" && curl -fsS
+          test -n "${NTFY_BASE_URL:-}" && curl -fsS --connect-timeout 5 --max-time 15 --retry 2
           -H "Title: servarr-config drift" -H "Priority: high" -H "Tags: warning,arr,drift"
           -d "Live Sonarr/Radarr config drifted from code (or plan failed). Review: ${RUN_URL}"
           "${NTFY_BASE_URL%/}/keystone"
