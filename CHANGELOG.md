@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.36.0](https://github.com/dryvist/terraform-proxmox/compare/v1.35.1...v1.36.0) (2026-06-14)
+
+
+### Features
+
+* **inventory:** gate the S3 publish on a precondition, fail before writing garbage ([3f0e2c9](https://github.com/dryvist/terraform-proxmox/commit/3f0e2c976184ff943758a48ce0706cb6241feb56))
+
 ## [1.35.1](https://github.com/dryvist/terraform-proxmox/compare/v1.35.0...v1.35.1) (2026-06-14)
 
 
