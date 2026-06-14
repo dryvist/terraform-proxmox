@@ -193,9 +193,11 @@
       "unprivileged": true,
       "features": { "nesting": true, "keyctl": true }
     },
-    "_unifi_metrics_comment": "UniFi controller telemetry collector (Docker-in-LXC on mgmt VLAN, tag unifi_metrics). Runs unpoller (polls the UniFi controller API, exposes Prometheus) + a Telegraf inputs.prometheus scrape that ships Splunk-HEC to Cribl Edge then the Splunk unifi_metrics index. Captures device cpu/mem/temp/uptime, per-port bytes/errors/drops/PoE/STP, per-client signal/rate/satisfaction, and WAN quality. Controller creds via UNIFI_* env. See ansible-proxmox-apps roles/unifi_metrics. vm_id 199 is illustrative; pick a free mgmt /24 host.",
+    "_unifi_metrics_comment": "UniFi controller telemetry collector (Docker-in-LXC, observability tier 4). Runs unpoller (polls the UniFi controller API, exposes Prometheus) + a Telegraf inputs.prometheus scrape that ships Splunk-HEC to Cribl Edge then the Splunk unifi_metrics index. Captures device cpu/mem/temp/uptime, per-port bytes/errors/drops/PoE/STP, per-client signal/rate/satisfaction, and WAN quality. Controller creds via UNIFI_* env. See ansible-proxmox-apps roles/unifi_metrics. VMID follows the 6-digit positional convention (docs vmid-network-tiers): 415040 = tier 4 (observability) / sub-tier 1 (mgmt) / crit 5 / instance 0 / OS 4 (LXC) / env 0. DNS-first (dhcp:true + reserved_host); features carry only nesting because the API token cannot set keyctl/fuse on unprivileged containers (root@pam adds those via ansible-proxmox, same as the media guests).",
     "unifi-metrics": {
-      "vm_id": 199,
+      "vm_id": 415040,
+      "dhcp": true,
+      "reserved_host": 33,
       "vlan": "mgmt",
       "hostname": "unifi-metrics",
       "description": "UniFi controller telemetry: unpoller + Telegraf into the Splunk unifi_metrics index",
@@ -205,7 +207,7 @@
       "pool_id": "infrastructure",
       "root_disk": { "size": 8 },
       "unprivileged": true,
-      "features": { "nesting": true, "keyctl": true }
+      "features": { "nesting": true }
     }
   }
 }
