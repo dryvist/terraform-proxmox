@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.35.0](https://github.com/dryvist/terraform-proxmox/compare/v1.34.1...v1.35.0) (2026-06-14)
+
+
+### Features
+
+* **servarr-config:** declarative Sonarr/Radarr config via devopsarr ([#448](https://github.com/dryvist/terraform-proxmox/issues/448)) ([d2352a7](https://github.com/dryvist/terraform-proxmox/commit/d2352a753b80da8fb8582b722ab59ff75ec1e84f))
+
 ## [1.34.1](https://github.com/dryvist/terraform-proxmox/compare/v1.34.0...v1.34.1) (2026-06-14)
 
 
