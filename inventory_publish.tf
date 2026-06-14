@@ -101,4 +101,41 @@ resource "aws_s3_object" "ansible_inventory" {
   key          = "terraform-proxmox/inventory/ansible_inventory.json"
   content      = jsonencode(local.ansible_inventory)
   content_type = "application/json"
+
+  # Publish gate: a malformed inventory must fail the apply BEFORE this object is
+  # written. The after-hook (scripts/sync-inventory.sh) runs check-jsonschema
+  # only AFTER this resource has already updated S3, so a schema break there
+  # leaves S3 fresh-but-wrong while the cache silently stays stale — exactly the
+  # half-publish hole behind the ingress outage. These preconditions encode the
+  # critical "do not publish garbage" invariants in HCL so they're evaluated at
+  # plan/apply time, before any S3 write; the full JSON-schema check stays in the
+  # hook as defense-in-depth for the cache copy.
+  #
+  # NOTE: `domain` is deliberately NOT asserted here. An empty domain is a
+  # supported state in this module — locals.tf falls back to a bare hostname when
+  # var.domain == "" (and `tofu test` exercises that default). The downstream
+  # requirement that domain be set for the Ansible per-node ansible_host lives in
+  # the ansible-proxmox-apps loader (load_tofu.yml), which fails loud there.
+  lifecycle {
+    precondition {
+      condition = alltrue([
+        for k, c in local.ansible_inventory.containers :
+        c.ip != null && c.ip != "" &&
+        c.node != null && c.node != "" &&
+        c.hostname != null && c.hostname != "" &&
+        c.vmid != null
+      ])
+      error_message = "One or more containers have an empty ip/node/hostname/vmid in the inventory — the Ansible connection target and DNS A-records derive from these. Inspect module.containers output and deployment.json."
+    }
+    precondition {
+      condition = alltrue([
+        for e in local.ansible_inventory.ingress :
+        try(e.name, "") != "" && try(e.port, 0) > 0 && (
+          try(e.ip, "") != "" ||
+          (try(e.apex, false) && length(try(e.backends, [])) > 0)
+        )
+      ])
+      error_message = "One or more ingress entries are malformed — each needs a name, a port > 0, and either a non-empty ip (service route) or apex=true with a non-empty backends pool. Inspect ingress.tf."
+    }
+  }
 }
