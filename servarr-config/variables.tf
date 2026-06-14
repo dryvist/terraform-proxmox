@@ -61,12 +61,12 @@ variable "movie_root_folder" {
 
 variable "tv_category" {
   type        = string
-  default     = "tv"
+  default     = "tv-sonarr"
   description = "qBittorrent category Sonarr assigns to its downloads."
 }
 
 variable "movie_category" {
   type        = string
-  default     = "movies"
+  default     = "radarr"
   description = "qBittorrent category Radarr assigns to its downloads."
 }

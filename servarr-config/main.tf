@@ -30,6 +30,15 @@ resource "sonarr_download_client_qbittorrent" "qbittorrent" {
   use_ssl                    = false
   tv_category                = var.tv_category
   remove_completed_downloads = true
+  remove_failed_downloads    = true
+
+  # devopsarr stores the qBittorrent password write-only, so it can never be read
+  # back and would otherwise show as drift on every plan. The password is managed
+  # out-of-band (set by the app/secret store); ignore it here so `tofu plan`
+  # stays a meaningful drift signal.
+  lifecycle {
+    ignore_changes = [password]
+  }
 }
 
 # --- Radarr ------------------------------------------------------------------
@@ -48,4 +57,13 @@ resource "radarr_download_client_qbittorrent" "qbittorrent" {
   use_ssl                    = false
   movie_category             = var.movie_category
   remove_completed_downloads = true
+  remove_failed_downloads    = true
+
+  # devopsarr stores the qBittorrent password write-only, so it can never be read
+  # back and would otherwise show as drift on every plan. The password is managed
+  # out-of-band (set by the app/secret store); ignore it here so `tofu plan`
+  # stays a meaningful drift signal.
+  lifecycle {
+    ignore_changes = [password]
+  }
 }
