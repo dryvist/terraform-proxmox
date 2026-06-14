@@ -1,0 +1,11 @@
+# Copy to a gitignored *.auto.tfvars (or pass via -var-file) and fill from the
+# secret store. Placeholders use RFC1918 192.168.x addresses only.
+
+sonarr_url     = "http://192.168.55.222:8989"
+sonarr_api_key = "REPLACE_FROM_SECRET_STORE" # SONARR_API_KEY
+
+radarr_url     = "http://192.168.55.223:7878"
+radarr_api_key = "REPLACE_FROM_SECRET_STORE" # RADARR_API_KEY
+
+qbittorrent_host     = "192.168.55.224"
+qbittorrent_password = "REPLACE_FROM_SECRET_STORE" # QBITTORRENT_ADMIN_PASSWORD
