@@ -352,6 +352,11 @@ run "object_storage_tagged_container_in_object_storage_ids" {
     condition     = !contains(keys(local.pipeline_container_ids), "object-storage")
     error_message = "Container with 'object-storage' tag must NOT be in pipeline_container_ids"
   }
+
+  assert {
+    condition     = !contains(keys(local.notification_container_ids), "object-storage")
+    error_message = "Container with 'object-storage' tag must NOT be in notification_container_ids"
+  }
 }
 
 # --- infisical_container_ids tests ---
