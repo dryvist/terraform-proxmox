@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.34.0](https://github.com/dryvist/terraform-proxmox/compare/v1.33.2...v1.34.0) (2026-06-14)
+
+
+### Features
+
+* **containers:** document unifi-metrics LXC for UniFi telemetry collector ([#440](https://github.com/dryvist/terraform-proxmox/issues/440)) ([ab33469](https://github.com/dryvist/terraform-proxmox/commit/ab334695e8c5146332ed71f2dace95bfbb473ce9))
+
 ## [1.33.2](https://github.com/dryvist/terraform-proxmox/compare/v1.33.1...v1.33.2) (2026-06-14)
 
 
