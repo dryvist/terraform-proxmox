@@ -28,15 +28,16 @@ Manages the CI-reachable apps only:
 | Sonarr | `root_folder` (`/data/media/tv`), `download_client_qbittorrent` |
 | Radarr | `root_folder` (`/data/media/movies`), `download_client_qbittorrent` |
 
-Not yet here (see Follow-ups):
+Out of scope for this module (owned elsewhere):
 
 - **Prowlarr** (indexers + Sonarr/Radarr app links) — it runs behind the
-  download-vpn killswitch, so it is **not reachable from CI/a workstation**. It
-  must be driven from inside that container, not from this CI config.
-- **Quality profiles / custom formats / media-management** — these are
-  community-maintained content best sourced from
-  [Configarr](https://configarr.de/) / [Recyclarr](https://recyclarr.dev/)
-  ([TRaSH-Guides](https://trash-guides.info/)) rather than hand-declared.
+  download-vpn killswitch, so it is **not reachable from CI/a workstation**. It is
+  driven from inside that container by the Ansible `servarr_wiring` role, not this
+  module.
+- **Quality profiles / custom formats / media-management** — community-maintained
+  TRaSH content, applied by the Ansible `configarr` role
+  ([Configarr](https://configarr.de/) / [Recyclarr](https://recyclarr.dev/) /
+  [TRaSH-Guides](https://trash-guides.info/)) rather than hand-declared.
 
 ## Usage
 
@@ -50,6 +51,11 @@ tofu plan                                        # drift detection — exit 2 = 
 State lives in S3 (`terraform-proxmox/servarr-config/terraform.tfstate`). The live
 Sonarr/Radarr resources have already been imported (adopted) and `tofu plan` is
 clean, so the config manages them with no behavior change.
+
+Drift detection is **on-demand by design**: run `tofu plan` when you want it. A
+scheduled CI workflow was considered and rejected as disproportionate for a
+module this small (automating it against the LAN-only *arr APIs would need a
+self-hosted runner + a read-only state credential + an enable gate).
 
 Real values (URLs, API keys, qBittorrent password) come from the secret store
 (SOPS / Doppler / env), never committed. The example file uses RFC1918
@@ -72,8 +78,7 @@ IDs come from each app's API (`GET /api/v3/rootfolder`,
 
 ## Follow-ups
 
-- Prowlarr config via an in-container runner (devopsarr or Configarr executed
-  inside download-vpn).
-- Configarr for quality profiles / custom formats (TRaSH).
-- Retire the Ansible servarr wiring once parity is verified.
-- Wire a scheduled `tofu plan -detailed-exitcode` for drift alerting.
+- Retire the Sonarr/Radarr download-client + root-folder wiring from the Ansible
+  `servarr_wiring` role once a live apply of this module proves parity — this
+  module and the `configarr` role then own that config. (Prowlarr + the
+  deterministic API keys stay in `servarr_wiring`.)
