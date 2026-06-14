@@ -24,15 +24,21 @@ locals {
   # A container MAY pin a static ipv4_address (CIDR form, e.g. "192.168.5.10/24") to
   # override the vm_id-derived address — for fixed low-number hosts (e.g. a DNS server
   # at .10) whose address must not follow the vm_id. Otherwise derived as usual.
-  # DNS-first guests (dhcp = true) resolve to the literal "dhcp" instead: cidrhost is
-  # NOT evaluated for them (the ternary short-circuits), so a 6-digit positional VMID
-  # that would overflow the /24 host space is fine. Their gateway is null (DHCP-provided).
+  # DNS-first guests (dhcp = true) resolve to the literal "dhcp" instead.
+  #
+  # cidrhost is evaluated ONLY on the derive branch. An explicit if/else (not
+  # coalesce, which evaluates every argument eagerly) short-circuits it, so a
+  # 6-7-digit positional VMID — which overflows the /24 host space — is safe with
+  # EITHER dhcp = true OR a pinned static ipv4_address. This is what lets a
+  # static-IP exception host (a DNS server, reachable before DNS is up) carry a
+  # positional VMID instead of a legacy 3-digit one.
   container_ipv4 = {
     for k, v in var.containers : k => (
-      try(v.dhcp, false) ? "dhcp" : nonsensitive(coalesce(
-        try(v.ip_config.ipv4_address, null),
-        "${cidrhost(var.network_cidrs[v.vlan], v.vm_id)}/${split("/", var.network_cidrs[v.vlan])[1]}"
-      ))
+      try(v.dhcp, false) ? "dhcp" : (
+        try(v.ip_config.ipv4_address, null) != null
+        ? nonsensitive(v.ip_config.ipv4_address)
+        : nonsensitive("${cidrhost(var.network_cidrs[v.vlan], v.vm_id)}/${split("/", var.network_cidrs[v.vlan])[1]}")
+      )
     )
   }
   container_gateway = {

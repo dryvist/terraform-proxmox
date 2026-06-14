@@ -507,6 +507,36 @@ run "container_dhcp_resolves_fqdn_and_null_gateway" {
   }
 }
 
+# Static-IP exception host (a DNS server, reachable before DNS is up) carrying a
+# 7-digit positional VMID. cidrhost(<dns cidr>, 5310010) would overflow the /24,
+# so this run only passes because the static ip_config short-circuits the derive
+# branch — the regression guard for the coalesce -> if/else change in locals.tf.
+run "container_static_ip_with_positional_vmid_skips_cidrhost" {
+  command = plan
+
+  variables {
+    containers = {
+      "technitium-dns-2" = {
+        vm_id     = 5310010
+        hostname  = "technitium-dns-2"
+        vlan      = "dns"
+        ip_config = { ipv4_address = "192.168.2.3/24" }
+        tags      = ["terraform", "container", "dns"]
+      }
+    }
+  }
+
+  assert {
+    condition     = local.container_ipv4["technitium-dns-2"] == "192.168.2.3/24"
+    error_message = "static ip_config must win without evaluating cidrhost for the 7-digit vm_id, got ${local.container_ipv4["technitium-dns-2"]}"
+  }
+
+  assert {
+    condition     = local.container_gateway["technitium-dns-2"] == "192.168.2.1"
+    error_message = "static positional-VMID guest gateway should be the .1 of its VLAN, got ${local.container_gateway["technitium-dns-2"]}"
+  }
+}
+
 run "cribl_stream_ids_picks_up_stream_tagged" {
   command = plan
 
