@@ -104,6 +104,11 @@ locals {
     { proto = "tcp", dport = tostring(local.svc_ports.minio_console), source = local.internal_src, comment = "MinIO Console from internal" },
   ]
 
+  object_storage_services_rules = [
+    { proto = "tcp", dport = tostring(local.svc_ports.object_storage_s3), source = local.internal_src, comment = "Object storage (RustFS) S3 API from internal" },
+    { proto = "tcp", dport = tostring(local.svc_ports.object_storage_console), source = local.internal_src, comment = "Object storage (RustFS) Console from internal" },
+  ]
+
   infisical_services_rules = [
     { proto = "tcp", dport = tostring(local.svc_ports.infisical_api), source = local.internal_src, comment = "Infisical API/Web from internal" },
   ]

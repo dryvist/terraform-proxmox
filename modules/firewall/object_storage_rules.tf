@@ -1,0 +1,42 @@
+# Object storage (RustFS) container firewall resources. Extracted from
+# container_rules.tf so that file stays under the shared _file-size workflow's
+# 12 KB error threshold (same pattern as infisical_rules.tf). S3 API on 9000,
+# Console on 9001 — both internal-only via the object-storage-svc group.
+
+resource "proxmox_virtual_environment_firewall_options" "object_storage_container" {
+  for_each = var.object_storage_container_ids
+
+  node_name     = var.node_name
+  container_id  = each.value
+  enabled       = local.firewall_defaults.enabled
+  input_policy  = local.firewall_defaults.input_policy
+  output_policy = local.firewall_defaults.output_policy
+  log_level_in  = local.firewall_defaults.log_level_in
+  log_level_out = local.firewall_defaults.log_level_out
+
+  depends_on = [proxmox_virtual_environment_cluster_firewall.main]
+}
+
+resource "proxmox_virtual_environment_firewall_rules" "object_storage_container" {
+  for_each = var.object_storage_container_ids
+
+  node_name    = var.node_name
+  container_id = each.value
+
+  rule {
+    security_group = proxmox_virtual_environment_cluster_firewall_security_group.internal_access.name
+    comment        = "Internal access (SSH, ICMP)"
+  }
+
+  rule {
+    security_group = proxmox_virtual_environment_cluster_firewall_security_group.object_storage_services.name
+    comment        = "Object storage services (TCP/9000 S3 API, TCP/9001 Console)"
+  }
+
+  rule {
+    security_group = proxmox_virtual_environment_cluster_firewall_security_group.outbound_internal.name
+    comment        = "Outbound to internal only"
+  }
+
+  depends_on = [proxmox_virtual_environment_firewall_options.object_storage_container]
+}

@@ -58,7 +58,13 @@ variable "cribl_edge_container_ids" {
 }
 
 variable "minio_container_ids" {
-  description = "Map of MinIO container names to their IDs"
+  description = "Map of MinIO container names to their IDs (DEPRECATED — kept during the RustFS migration soak; remove after object-storage cutover)"
+  type        = map(number)
+  default     = {}
+}
+
+variable "object_storage_container_ids" {
+  description = "Map of object storage (RustFS) container names to their IDs"
   type        = map(number)
   default     = {}
 }

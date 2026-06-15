@@ -267,6 +267,23 @@ resource "proxmox_virtual_environment_cluster_firewall_security_group" "minio_se
   }
 }
 
+resource "proxmox_virtual_environment_cluster_firewall_security_group" "object_storage_services" {
+  name    = "object-storage-svc"
+  comment = "Object storage (RustFS): S3 API (9000) and Console (9001) from internal networks"
+
+  dynamic "rule" {
+    for_each = local.object_storage_services_rules
+    content {
+      type    = "in"
+      action  = "ACCEPT"
+      proto   = rule.value.proto
+      dport   = rule.value.dport
+      source  = rule.value.source
+      comment = rule.value.comment
+    }
+  }
+}
+
 resource "proxmox_virtual_environment_cluster_firewall_security_group" "infisical_services" {
   name    = "infisical-svc"
   comment = "Infisical API/Web from internal networks (HAProxy front-ends TLS termination on its own ports)"
