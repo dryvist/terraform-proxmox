@@ -139,16 +139,23 @@ resource "proxmox_virtual_environment_container" "containers" {
     type             = each.value.os_type
   }
 
-  # Container features (nesting for Docker, keyctl for overlay fs)
-  # Only emit features block when any non-default value is set.
-  # Creating privileged containers with a features block requires root@pam.
+  # Container features. nesting/keyctl/fuse are DERIVED from the `docker` tag in
+  # locals.tf (local.effective_features) so docker guests get the full Docker-in-LXC
+  # set automatically; explicit per-container features still apply on top.
+  # Only emit the block when any value is set. Creating privileged containers with a
+  # features block requires root@pam.
   dynamic "features" {
-    for_each = (each.value.features.nesting || each.value.features.keyctl || each.value.features.fuse || length(each.value.features.mount) > 0) ? [1] : []
+    for_each = (
+      local.effective_features[each.key].nesting
+      || local.effective_features[each.key].keyctl
+      || local.effective_features[each.key].fuse
+      || length(local.effective_features[each.key].mount) > 0
+    ) ? [1] : []
     content {
-      nesting = each.value.features.nesting
-      keyctl  = each.value.features.keyctl
-      fuse    = each.value.features.fuse
-      mount   = each.value.features.mount
+      nesting = local.effective_features[each.key].nesting
+      keyctl  = local.effective_features[each.key].keyctl
+      fuse    = local.effective_features[each.key].fuse
+      mount   = local.effective_features[each.key].mount
     }
   }
 
