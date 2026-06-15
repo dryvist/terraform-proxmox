@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.37.0](https://github.com/dryvist/terraform-proxmox/compare/v1.36.0...v1.37.0) (2026-06-15)
+
+
+### Features
+
+* **object-storage:** add RustFS object-storage LXC alongside MinIO for migration ([#456](https://github.com/dryvist/terraform-proxmox/issues/456)) ([1743a52](https://github.com/dryvist/terraform-proxmox/commit/1743a523f4a232bc33423de80cc0d4d363c38fcf))
+
 ## [1.36.0](https://github.com/dryvist/terraform-proxmox/compare/v1.35.1...v1.36.0) (2026-06-14)
 
 
