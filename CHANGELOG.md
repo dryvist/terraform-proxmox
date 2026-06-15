@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.38.0](https://github.com/dryvist/terraform-proxmox/compare/v1.37.0...v1.38.0) (2026-06-15)
+
+
+### Features
+
+* **storage:** document the appdata dataset for persistent app config ([9b3c1da](https://github.com/dryvist/terraform-proxmox/commit/9b3c1dace8d52318d1a3a359131bc22f7dfd6c01))
+
 ## [1.37.0](https://github.com/dryvist/terraform-proxmox/compare/v1.36.0...v1.37.0) (2026-06-15)
 
 
