@@ -47,7 +47,6 @@ locals {
       # every port lives in one place and the ingress table (below) references
       # constants, never literals.
       technitium_web    = 5380
-      pihole_web        = 80
       phpipam_web       = 80
       homeassistant_web = 8123
       openproject_web   = 80
