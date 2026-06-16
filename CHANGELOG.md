@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.38.1](https://github.com/dryvist/terraform-proxmox/compare/v1.38.0...v1.38.1) (2026-06-16)
+
+
+### Bug Fixes
+
+* **ingress:** drop the dead pi-hole route (no Pi-hole app on that backend) ([#463](https://github.com/dryvist/terraform-proxmox/issues/463)) ([e7e2cfc](https://github.com/dryvist/terraform-proxmox/commit/e7e2cfcd3a9a483d4d235513f1c516282a95c8e9))
+
 ## [1.38.0](https://github.com/dryvist/terraform-proxmox/compare/v1.37.0...v1.38.0) (2026-06-15)
 
 
