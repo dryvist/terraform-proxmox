@@ -17,7 +17,6 @@ locals {
     qbittorrent      = { backend = "download-vpn", port = local.pipeline_constants.media_ports.qbittorrent_web }
     prowlarr         = { backend = "download-vpn", port = local.pipeline_constants.media_ports.prowlarr_web }
     technitium       = { backend = "technitium-dns", port = local.pipeline_constants.service_ports.technitium_web }
-    pihole           = { backend = "pi-hole", port = local.pipeline_constants.service_ports.pihole_web }
     phpipam          = { backend = "phpipam", port = local.pipeline_constants.service_ports.phpipam_web }
     minio            = { backend = "minio", port = local.pipeline_constants.service_ports.minio_console }
     "object-storage" = { backend = "object-storage", port = local.pipeline_constants.service_ports.object_storage_console }
