@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.38.2](https://github.com/dryvist/terraform-proxmox/compare/v1.38.1...v1.38.2) (2026-06-17)
+
+
+### Bug Fixes
+
+* **firewall:** open TCP 9201 on cribl_stream containers for prometheus_rw ([#465](https://github.com/dryvist/terraform-proxmox/issues/465)) ([52bc357](https://github.com/dryvist/terraform-proxmox/commit/52bc3574ced96f99f5be0292656ecbf14dbe12b4))
+
 ## [1.38.1](https://github.com/dryvist/terraform-proxmox/compare/v1.38.0...v1.38.1) (2026-06-16)
 
 
