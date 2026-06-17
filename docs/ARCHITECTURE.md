@@ -208,7 +208,7 @@ Notable per-container facts:
   The unified `bulk/data` dataset is bind-mounted from the media-node host as
   `/data` (size-less `mount_points`) — a single filesystem so torrents and the
   library hardlink with zero duplication; the `ansible-proxmox` `zfs_pools` role
-  provisions the dataset and `lxc_media_features` applies the mount ahead of use.
+  provisions the dataset and `media_lxc_features` applies the mount ahead of use.
   Egress is locked to the VPN by an in-LXC
   nftables killswitch (config + continuous validation owned by
   `ansible-proxmox-apps` `download_vpn` role); Proxmox-level firewall is
