@@ -97,6 +97,7 @@ locals {
   cribl_stream_services_rules = [
     { proto = "tcp", dport = tostring(local.svc_ports.cribl_stream_api), source = local.internal_src, comment = "Cribl Stream API from internal" },
     { proto = "tcp", dport = tostring(local.svc_ports.cribl_s2s), source = local.internal_src, comment = "Cribl S2S input (HAProxy -> Stream) from internal" },
+    { proto = "tcp", dport = tostring(local.svc_ports.cribl_prometheus_rw), source = local.internal_src, comment = "Prometheus remote_write receiver from internal" },
   ]
 
   minio_services_rules = [
