@@ -205,16 +205,18 @@ Notable per-container facts:
   internal notifications.
 - `download-vpn` is an unprivileged LXC with `/dev/net/tun` passed through
   (`device_passthrough`) so WireGuard can create `wg0` inside the container.
-  `rpool/data/downloads` and `rpool/data/media` are bind-mounted from the media-node host
-  (size-less `mount_points`); the `ansible-proxmox` `zfs_pools` role provisions
-  these datasets ahead of LXC creation. Egress is locked to the VPN by an in-LXC
+  The unified `bulk/data` dataset is bind-mounted from the media-node host as
+  `/data` (size-less `mount_points`) — a single filesystem so torrents and the
+  library hardlink with zero duplication; the `ansible-proxmox` `zfs_pools` role
+  provisions the dataset and `lxc_media_features` applies the mount ahead of use.
+  Egress is locked to the VPN by an in-LXC
   nftables killswitch (config + continuous validation owned by
   `ansible-proxmox-apps` `download_vpn` role); Proxmox-level firewall is
   intentionally not applied to the media pool — the killswitch is the security
   boundary.
 - `sonarr`, `radarr`, `plex` are LAN-only (no VPN); they reach Prowlarr +
-  qBittorrent on `download-vpn` over the LAN and read/write the same
-  bind-mounted `rpool/data/*` datasets.
+  qBittorrent on `download-vpn` over the LAN and read/write the same unified
+  `bulk/data` (`/data`) dataset.
 - `traefik` (VMID 101) is the HTTPS reverse-proxy / TLS ingress on the
   management VLAN (VLAN 5), co-located with `haproxy`; backends on other VLANs
   are reached via inter-VLAN routing (UniFi allow rules per UI port). It
