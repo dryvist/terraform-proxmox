@@ -128,3 +128,69 @@ scripts/timing-results.txt
 # Live deployment config — contains real node names, VM inventory, and ZFS pool names.
 # Populate from deployment.json.example and keep locally only.
 deployment.json
+
+# ---------------------------------------------------------------------
+# dryvist org-default: secrets, credentials & AI-assistant local state
+# Source of truth: dryvist/.github -> configs/gitignore (PR #43).
+# Carve-outs intentionally absent (committed by convention): .envrc,
+# *.sops.*, .terraform.lock.hcl
+# ---------------------------------------------------------------------
+
+# Environment files (committed examples kept via negation)
+.env.local
+.env.*.local
+!.env.*.example
+
+# Private keys & certificates
+*.ppk
+id_rsa
+id_ed25519
+
+# Ansible Vault
+*.vault
+vault.yml
+vault.yaml
+.vault_pass
+.vault_password
+.vault-pass*
+.vault-password*
+
+# Generic secret material
+secrets.yml
+secrets.yaml
+*.secrets.yml
+*.secrets.yaml
+secrets.dec.yaml
+*credentials*
+
+# Cloud provider credentials
+.azure/
+gcloud-credentials.json
+kubeconfig
+*.kubeconfig
+
+# Doppler secrets fallback cache (encrypted snapshot of the WHOLE config) + setup
+doppler.json
+.doppler/
+
+# Terraform / OpenTofu state & tfvars are secret-bearing
+**/.terraform/*
+*.tfplan
+!*.tfvars.example
+
+# AI assistant machine-local state (committed .claude/settings.json, rules, CLAUDE.md stay)
+.claude/settings.local.json
+.claude/.credentials.json
+.claude/projects/
+.claude/shell-snapshots/
+.claude/statsig/
+.claude/todos/
+.claude/local/
+.claude/worktrees/
+.claude-wt/
+CLAUDE.local.md
+.CLAUDE.local.md
+GEMINI.local.md
+AGENTS.local.md
+.aider*
+.specstory/
