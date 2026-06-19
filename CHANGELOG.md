@@ -1,5 +1,34 @@
 # Changelog
 
+## [1.38.2](https://github.com/dryvist/terraform-proxmox/compare/v1.38.1...v1.38.2) (2026-06-17)
+
+
+### Bug Fixes
+
+* **firewall:** open TCP 9201 on cribl_stream containers for prometheus_rw ([#465](https://github.com/dryvist/terraform-proxmox/issues/465)) ([52bc357](https://github.com/dryvist/terraform-proxmox/commit/52bc3574ced96f99f5be0292656ecbf14dbe12b4))
+
+## [1.38.1](https://github.com/dryvist/terraform-proxmox/compare/v1.38.0...v1.38.1) (2026-06-16)
+
+
+### Bug Fixes
+
+* **ingress:** drop the dead pi-hole route (no Pi-hole app on that backend) ([#463](https://github.com/dryvist/terraform-proxmox/issues/463)) ([e7e2cfc](https://github.com/dryvist/terraform-proxmox/commit/e7e2cfcd3a9a483d4d235513f1c516282a95c8e9))
+
+## [1.38.0](https://github.com/dryvist/terraform-proxmox/compare/v1.37.0...v1.38.0) (2026-06-15)
+
+
+### Features
+
+* **storage:** document the appdata dataset for persistent app config ([9b3c1da](https://github.com/dryvist/terraform-proxmox/commit/9b3c1dace8d52318d1a3a359131bc22f7dfd6c01))
+
+## [1.37.0](https://github.com/dryvist/terraform-proxmox/compare/v1.36.0...v1.37.0) (2026-06-15)
+
+
+### Features
+
+* **object-storage:** add RustFS object-storage LXC alongside MinIO for migration ([#456](https://github.com/dryvist/terraform-proxmox/issues/456)) ([1743a52](https://github.com/dryvist/terraform-proxmox/commit/1743a523f4a232bc33423de80cc0d4d363c38fcf))
+* **proxmox-container:** derive Docker-in-LXC features from the docker tag ([#457](https://github.com/dryvist/terraform-proxmox/issues/457)) ([75db4a4](https://github.com/dryvist/terraform-proxmox/commit/75db4a472f68e3900fbb35aa05bb8eaf7bd2a3e6))
+
 ## [1.36.0](https://github.com/dryvist/terraform-proxmox/compare/v1.35.1...v1.36.0) (2026-06-14)
 
 
