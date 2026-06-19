@@ -1,8 +1,7 @@
 # README validator configuration for terraform-proxmox
-# Terraform module READMEs use Usage + Requirements instead of Installation
 required_sections:
+  - Installation
   - Usage
-  - Requirements
 optional_sections:
   - Contributing
   - License

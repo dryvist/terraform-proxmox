@@ -4,19 +4,14 @@ Terraform/Terragrunt IaC for the Proxmox VE homelab. Provisions VMs, LXC
 containers, resource pools, firewall rules, and ACME certificates. State is
 stored in S3 with DynamoDB locking.
 
-## Requirements
+## Installation
 
-All tooling ships via the Nix devshell — activate once per worktree, then
-automatic on every `cd`.
-
-```bash
-direnv allow        # one-time; requires direnv + nix-direnv
-```
-
-Manual activation:
+All tooling ships via the Nix devshell — activate once per worktree with
+`direnv allow` (requires direnv + nix-direnv); after that it's automatic on
+every `cd`.
 
 ```bash
-nix develop "github:JacobPEvans/nix-devenv?dir=shells/terraform"
+direnv allow        # one-time
 ```
 
 Tooling provided: `terragrunt`, `opentofu`, `terraform-docs`, `tflint`,
@@ -77,10 +72,14 @@ The full suite runs automatically in CI on every PR.
 
 | Doc | Purpose |
 | --- | ------- |
-| [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) | Pipeline architecture, downstream repos, IP derivation |
+| [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) | Pipeline architecture and IP derivation |
 | [docs/SOPS_SETUP.md](./docs/SOPS_SETUP.md) | SOPS + age setup, Doppler integration |
 | [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) | Operational guidance, timeout/debug logging |
 
 ## License
 
 Apache License 2.0 — see [LICENSE](LICENSE).
+
+---
+
+> Part of a [larger ecosystem of ~40 repos](https://docs.jacobpevans.com) — see how it all fits together.
