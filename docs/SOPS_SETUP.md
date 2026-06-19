@@ -82,6 +82,13 @@ mkdir -p ~/.config/sops/age
 age-keygen -o ~/.config/sops/age/keys.txt
 ```
 
+> **Exploratory (not implemented):** a proposal would give the age **private**
+> key a portable, backed-up home in **Proton Pass**
+> (`pass://infra/sops-age/keys.txt`) so SOPS decryption works on Linux/cloud
+> agents (not just macOS), materialized by `./scripts/secrets-bootstrap.sh`. See
+> [PROTON_PASS_STRATEGY.md](./PROTON_PASS_STRATEGY.md). Until adopted, set the key
+> up per host with `age-keygen` as above.
+
 Note the public key printed to stdout (starts with `age1...`).
 
 Update `.sops.yaml` with your public key:
@@ -133,13 +140,24 @@ documentation for Doppler project/config details.
 
 To re-encrypt the SOPS file with a new age key:
 
-1. Update `.sops.yaml` with the new public key.
-2. Run `sops updatekeys terraform.sops.json` to re-encrypt with the new key.
-3. Commit both the re-encrypted `terraform.sops.json` and updated `.sops.yaml`.
+1. Generate the new keypair (`age-keygen -o ~/.config/sops/age/keys.txt`).
+2. Update `.sops.yaml` with the new public key.
+3. Run `sops updatekeys terraform.sops.json` to re-encrypt with the new key.
+4. Commit both the re-encrypted `terraform.sops.json` and updated `.sops.yaml`.
+5. Distribute the new private key to other hosts by your usual secure means.
+
+> **Exploratory (not implemented):** if the Proton Pass proposal is adopted,
+> steps 1 and 5 would instead store the private key at
+> `pass://infra/sops-age/keys.txt` and other hosts would pick it up via
+> `./scripts/secrets-bootstrap.sh` (removing any stale local `keys.txt` first).
+> See [PROTON_PASS_STRATEGY.md](./PROTON_PASS_STRATEGY.md).
 
 ## Security Notes
 
-- The age private key (`keys.txt`) must **never** be committed to git
+- The age private key (`keys.txt`) must **never** be committed to git (an
+  exploratory proposal would give it a portable home in Proton Pass —
+  `pass://infra/sops-age/keys.txt`, materialized by
+  `./scripts/secrets-bootstrap.sh`; not yet implemented)
 - The `.sops.yaml` file contains only the **public** key (safe to commit)
 - `terraform.sops.json` is safe to commit once encrypted (values are ciphertext)
 - `deployment.json` is **not committed** — it is the private input in the on-prem

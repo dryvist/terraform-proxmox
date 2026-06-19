@@ -41,6 +41,18 @@ doppler run -- terragrunt apply
 doppler run -- terragrunt show
 ```
 
+Exploratory (not implemented): a Proton Pass bootstrap path is being explored so
+a fresh host (including Linux cloud agents) can materialize the SOPS age key and
+decrypt `terraform.sops.json` off-macOS:
+
+```bash
+./scripts/secrets-bootstrap.sh   # idempotent; no-clobber; writes nothing to git
+```
+
+Proton Pass as a cross-repo root-of-trust (Tier 0) + AI-agent keychain (Tier 1)
+is a proposed future direction only — not the current design. See
+[`docs/PROTON_PASS_STRATEGY.md`](./docs/PROTON_PASS_STRATEGY.md).
+
 The BPG Proxmox provider reads `PROXMOX_VE_*` env vars directly — no
 `--name-transformer` needed. The Nix shell activates via direnv (`.envrc`).
 
@@ -60,6 +72,11 @@ locals.tf derivations    (computed)             — management_network, splunk_n
   `domain`, `vm_ssh_public_key_path`, `vm_ssh_private_key_path`,
   `proxmox_ssh_username`. Decrypted automatically by Terragrunt.
 - Doppler — credentials at runtime (provider auth + SSH key content).
+- The SOPS **age private key** is set up per host today (`age-keygen`). An
+  exploratory proposal would source it from Proton Pass
+  (`pass://infra/sops-age/keys.txt`) via `scripts/secrets-bootstrap.sh` to give it
+  a portable home so SOPS decryption works on Linux/cloud agents too — not yet
+  implemented.
 - `management_network` and `splunk_network` are derived in `locals.tf` and
   must never be set manually.
 
@@ -160,6 +177,7 @@ For slow operations and "context deadline exceeded" debugging:
 | --- | --- |
 | Architecture (canonical) | [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) |
 | Secrets roadmap | [`docs/SECRETS_ROADMAP.md`](./docs/SECRETS_ROADMAP.md) |
+| Proton Pass (exploratory future root-of-trust + AI keychain) | [`docs/PROTON_PASS_STRATEGY.md`](./docs/PROTON_PASS_STRATEGY.md) |
 | SOPS / age setup | [`docs/SOPS_SETUP.md`](./docs/SOPS_SETUP.md) |
 | Network-quality monitoring (SmokePing) | [`docs/SMOKEPING.md`](./docs/SMOKEPING.md) |
 | Honeypots / deception fabric + phone alerting | [`docs/HONEYPOTS.md`](./docs/HONEYPOTS.md) |

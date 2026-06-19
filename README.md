@@ -26,6 +26,18 @@ Doppler (provider secrets). Run all commands through the wrapper:
 aws-vault exec tf-proxmox -- doppler run -- terragrunt <COMMAND>
 ```
 
+Exploratory (not implemented): a Proton Pass bootstrap path is being explored to
+materialize the SOPS age key on fresh hosts (incl. Linux cloud agents), so the
+wrapper can decrypt `terraform.sops.json` anywhere:
+
+```bash
+./scripts/secrets-bootstrap.sh   # idempotent; writes ~/.config/sops/age/keys.txt if absent
+```
+
+Today the age key is set up per host via `age-keygen` (see
+[docs/SOPS_SETUP.md](./docs/SOPS_SETUP.md)); the Proton Pass proposal is in
+[docs/PROTON_PASS_STRATEGY.md](./docs/PROTON_PASS_STRATEGY.md).
+
 Common operations:
 
 ```bash
@@ -74,6 +86,7 @@ The full suite runs automatically in CI on every PR.
 | --- | ------- |
 | [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) | Pipeline architecture and IP derivation |
 | [docs/SOPS_SETUP.md](./docs/SOPS_SETUP.md) | SOPS + age setup, Doppler integration |
+| [docs/PROTON_PASS_STRATEGY.md](./docs/PROTON_PASS_STRATEGY.md) | Exploratory: Proton Pass as a future root-of-trust + AI-agent keychain |
 | [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) | Operational guidance, timeout/debug logging |
 
 ## License
