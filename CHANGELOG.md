@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.39.0](https://github.com/dryvist/terraform-proxmox/compare/v1.38.2...v1.39.0) (2026-06-19)
+
+
+### Features
+
+* **servarr-config:** scheduled tofu-plan drift detection on self-hosted runner ([#471](https://github.com/dryvist/terraform-proxmox/issues/471)) ([50ab314](https://github.com/dryvist/terraform-proxmox/commit/50ab314065fd744ac10405a4cc021ff08ea9b2e8))
+
 ## [1.38.2](https://github.com/dryvist/terraform-proxmox/compare/v1.38.1...v1.38.2) (2026-06-17)
 
 
