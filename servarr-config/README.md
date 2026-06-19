@@ -76,8 +76,42 @@ tofu import radarr_download_client_qbittorrent.qbittorrent <id>
 IDs come from each app's API (`GET /api/v3/rootfolder`,
 `GET /api/v3/downloadclient`). After import, `tofu plan` should be clean.
 
+## Drift detection (scheduled)
+
+`.github/workflows/servarr-config-drift.yml` runs `tofu plan -detailed-exitcode`
+on a daily schedule (and on `workflow_dispatch`). When the workflow is **enabled**,
+exit `2` means the live Sonarr/Radarr config has drifted from this code: the
+drift job posts an ntfy alert (if `NTFY_BASE_URL` is set) and fails loudly so the
+drift is triaged (codify into this module, or revert via apply) rather than
+silently clobbered. When the workflow is **disabled** (`SERVARR_DRIFT_ENABLED` is
+not `true`), the gate job emits a `::notice::` annotation and the drift job is
+skipped, so the scheduled run finishes green (no red status cluttering Actions
+history) while the annotation still flags that drift coverage is off.
+
+It runs on the **self-hosted `terraform` runner** because the *arr APIs are on
+the homelab LAN. It is **off by default**; activation is gated on the repo
+variable `SERVARR_DRIFT_ENABLED` and these secrets, supplied via the same
+`dopplerhq/secrets-fetch-action` pattern the rest of CI uses:
+
+| Where | Key | Note |
+| --- | --- | --- |
+| Repo variable | `SERVARR_DRIFT_ENABLED` | set to `true` to enable |
+| Repo secret | `GH_ACTION_DOPPLER_IAC_CONF_MGMT` | Doppler service token, read `iac-conf-mgmt/prd` |
+| Doppler `iac-conf-mgmt/prd` | `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` | the **read-only** AWS account — the read counterpart of the `tf-proxmox` write role (one read role per write role). Plan runs `-lock=false`, so it needs S3 read only, no DynamoDB |
+| Doppler `iac-conf-mgmt/prd` | `SONARR_URL`, `SONARR_API_KEY`, `RADARR_URL`, `RADARR_API_KEY` | *arr endpoints + keys |
+| Doppler `iac-conf-mgmt/prd` | `QBITTORRENT_HOST`, `QBITTORRENT_ADMIN_PASSWORD` | download-client check |
+| Doppler `iac-conf-mgmt/prd` | `AWS_ACCOUNT_ID` | already present; builds the bucket name (no aws CLI on the runner) |
+| Doppler `iac-conf-mgmt/prd` | `NTFY_BASE_URL` | optional; without it, the job failure is the only signal |
+
+The read-only AWS account is the one genuinely new principal. It can read state
+(which contains the *arr keys), so keep it read-only — one shared read role
+paired with the `tf-proxmox` write role, not a per-workflow key.
+
 ## Follow-ups
 
+- Prowlarr config via an in-container runner (devopsarr or Configarr executed
+  inside download-vpn).
+- Configarr for quality profiles / custom formats (TRaSH).
 - Retire the Sonarr/Radarr download-client + root-folder wiring from the Ansible
   `servarr_wiring` role once a live apply of this module proves parity — this
   module and the `configarr` role then own that config. (Prowlarr + the

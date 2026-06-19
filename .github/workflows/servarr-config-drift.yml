@@ -1,0 +1,111 @@
+# Scheduled config-as-code drift detection for the *arr structural config in
+# servarr-config/ (devopsarr providers). `tofu plan -detailed-exitcode` is the
+# purpose-built drift detector: exit 0 = in sync, exit 2 = the live
+# Sonarr/Radarr config has drifted from code (the non-zero exit fails the step,
+# so drift is loud, never a silent green). Out-of-band UI changes surface here
+# for triage (codify into IaC, or revert by apply) instead of being clobbered.
+#
+# Runs on the self-hosted `terraform` runner because the Sonarr/Radarr APIs live
+# on the homelab LAN and are unreachable from GitHub-hosted runners. Prowlarr is
+# deliberately NOT covered: it sits behind the download-vpn killswitch and is
+# only reachable from inside that container.
+#
+# Gated by repo variable `SERVARR_DRIFT_ENABLED == 'true'`. When off, the run
+# FAILS LOUDLY rather than skipping silently. Activation: servarr-config/README.md.
+
+name: Servarr Config Drift
+
+on:
+  schedule:
+    # Daily, off the :00 mark to avoid the cron thundering herd.
+    - cron: "17 9 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: servarr-config-drift
+  cancel-in-progress: false
+
+jobs:
+  gate-check:
+    name: Check drift gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notice when SERVARR_DRIFT_ENABLED is not true
+        if: vars.SERVARR_DRIFT_ENABLED != 'true'
+        env:
+          GATE_MESSAGE: >-
+            SERVARR_DRIFT_ENABLED is not 'true' -- scheduled *arr config drift
+            detection is OFF, so out-of-band changes to Sonarr/Radarr go
+            unnoticed. Provision the iac-conf-mgmt/prd Doppler keys and repo
+            secret/variable (see servarr-config/README.md), then set the
+            variable to enable. Disable this schedule intentionally if drift
+            detection is meant to be off.
+        run: |
+          echo "::notice::${GATE_MESSAGE}"
+
+  drift:
+    name: Detect *arr config drift
+    needs: gate-check
+    if: vars.SERVARR_DRIFT_ENABLED == 'true'
+    runs-on: [self-hosted, Linux, terraform]
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: servarr-config
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup OpenTofu
+        uses: opentofu/setup-opentofu@v2
+        with:
+          # Pass the real plan exit code through (needed for -detailed-exitcode).
+          tofu_wrapper: false
+
+      - name: Fetch secrets from Doppler
+        id: doppler
+        uses: dopplerhq/secrets-fetch-action@v2
+        with:
+          doppler-token: ${{ secrets.GH_ACTION_DOPPLER_IAC_CONF_MGMT }}
+          doppler-project: iac-conf-mgmt
+          doppler-config: prd
+
+      - name: OpenTofu init (S3 backend)
+        env:
+          # The one read-only AWS account (read counterpart of the tf-proxmox
+          # write role). Account id is a non-secret Doppler value that builds the
+          # bucket name, so the runner needs no aws CLI.
+          AWS_REGION: us-east-2
+          AWS_ACCESS_KEY_ID: ${{ steps.doppler.outputs.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ steps.doppler.outputs.AWS_SECRET_ACCESS_KEY }}
+          AWS_ACCOUNT_ID: ${{ steps.doppler.outputs.AWS_ACCOUNT_ID }}
+        run: tofu init -input=false -backend-config="bucket=terraform-proxmox-state-useast2-${AWS_ACCOUNT_ID}"
+
+      - name: OpenTofu plan (non-zero exit = drift, fails the step)
+        env:
+          AWS_REGION: us-east-2
+          AWS_ACCESS_KEY_ID: ${{ steps.doppler.outputs.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ steps.doppler.outputs.AWS_SECRET_ACCESS_KEY }}
+          TF_VAR_sonarr_url: ${{ steps.doppler.outputs.SONARR_URL }}
+          TF_VAR_sonarr_api_key: ${{ steps.doppler.outputs.SONARR_API_KEY }}
+          TF_VAR_radarr_url: ${{ steps.doppler.outputs.RADARR_URL }}
+          TF_VAR_radarr_api_key: ${{ steps.doppler.outputs.RADARR_API_KEY }}
+          TF_VAR_qbittorrent_host: ${{ steps.doppler.outputs.QBITTORRENT_HOST }}
+          TF_VAR_qbittorrent_password: ${{ steps.doppler.outputs.QBITTORRENT_ADMIN_PASSWORD }}
+        # -lock=false: a read-only drift plan must never block a real apply.
+        run: tofu plan -input=false -lock=false -detailed-exitcode
+
+      - name: Alert ntfy on drift/failure
+        if: failure()
+        env:
+          NTFY_BASE_URL: ${{ steps.doppler.outputs.NTFY_BASE_URL }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: >-
+          test -n "${NTFY_BASE_URL:-}" && curl -fsS --connect-timeout 5 --max-time 15 --retry 2
+          -H "Title: servarr-config drift" -H "Priority: high" -H "Tags: warning,arr,drift"
+          -d "Live Sonarr/Radarr config drifted from code (or plan failed). Review: ${RUN_URL}"
+          "${NTFY_BASE_URL%/}/keystone"
+          || echo "ntfy unset/failed; the job failure is the signal."
