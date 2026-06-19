@@ -84,8 +84,9 @@ exit `2` means the live Sonarr/Radarr config has drifted from this code: the
 drift job posts an ntfy alert (if `NTFY_BASE_URL` is set) and fails loudly so the
 drift is triaged (codify into this module, or revert via apply) rather than
 silently clobbered. When the workflow is **disabled** (`SERVARR_DRIFT_ENABLED` is
-not `true`), the gate job fails loudly with no ntfy alert — a deliberate signal
-that drift coverage is off.
+not `true`), the gate job emits a `::notice::` annotation and the drift job is
+skipped, so the scheduled run finishes green (no red status cluttering Actions
+history) while the annotation still flags that drift coverage is off.
 
 It runs on the **self-hosted `terraform` runner** because the *arr APIs are on
 the homelab LAN. It is **off by default**; activation is gated on the repo

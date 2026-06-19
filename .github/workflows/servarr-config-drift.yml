@@ -33,7 +33,7 @@ jobs:
     name: Check drift gate
     runs-on: ubuntu-latest
     steps:
-      - name: Fail when SERVARR_DRIFT_ENABLED is not true
+      - name: Notice when SERVARR_DRIFT_ENABLED is not true
         if: vars.SERVARR_DRIFT_ENABLED != 'true'
         env:
           GATE_MESSAGE: >-
@@ -44,12 +44,12 @@ jobs:
             variable to enable. Disable this schedule intentionally if drift
             detection is meant to be off.
         run: |
-          echo "::error::${GATE_MESSAGE}"
-          exit 1
+          echo "::notice::${GATE_MESSAGE}"
 
   drift:
     name: Detect *arr config drift
     needs: gate-check
+    if: vars.SERVARR_DRIFT_ENABLED == 'true'
     runs-on: [self-hosted, Linux, terraform]
     timeout-minutes: 15
     defaults:
