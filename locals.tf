@@ -161,10 +161,19 @@ locals {
     if contains(coalesce(try(v.tags, null), []), "apt-cache")
   }
 
-  # MinIO object storage containers (minio tag)
+  # MinIO object storage containers (minio tag).
+  # DEPRECATED: replaced by object_storage_container_ids (RustFS). Kept during
+  # the migration soak so MinIO stays writable as the rollback path; remove
+  # together with the minio block in deployment.json after cutover is stable.
   minio_container_ids = {
     for k, v in var.containers : k => v.vm_id
     if contains(coalesce(try(v.tags, null), []), "minio")
+  }
+
+  # Object storage containers (object-storage tag) — RustFS, MinIO replacement.
+  object_storage_container_ids = {
+    for k, v in var.containers : k => v.vm_id
+    if contains(coalesce(try(v.tags, null), []), "object-storage")
   }
 
   # Infisical secrets-management containers (infisical tag)

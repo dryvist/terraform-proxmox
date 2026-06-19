@@ -97,11 +97,17 @@ locals {
   cribl_stream_services_rules = [
     { proto = "tcp", dport = tostring(local.svc_ports.cribl_stream_api), source = local.internal_src, comment = "Cribl Stream API from internal" },
     { proto = "tcp", dport = tostring(local.svc_ports.cribl_s2s), source = local.internal_src, comment = "Cribl S2S input (HAProxy -> Stream) from internal" },
+    { proto = "tcp", dport = tostring(local.svc_ports.cribl_prometheus_rw), source = local.internal_src, comment = "Prometheus remote_write receiver from internal" },
   ]
 
   minio_services_rules = [
     { proto = "tcp", dport = tostring(local.svc_ports.minio_api), source = local.internal_src, comment = "MinIO API from internal" },
     { proto = "tcp", dport = tostring(local.svc_ports.minio_console), source = local.internal_src, comment = "MinIO Console from internal" },
+  ]
+
+  object_storage_services_rules = [
+    { proto = "tcp", dport = tostring(local.svc_ports.object_storage_s3), source = local.internal_src, comment = "Object storage (RustFS) S3 API from internal" },
+    { proto = "tcp", dport = tostring(local.svc_ports.object_storage_console), source = local.internal_src, comment = "Object storage (RustFS) Console from internal" },
   ]
 
   infisical_services_rules = [

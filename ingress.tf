@@ -10,28 +10,28 @@ locals {
   # backend = the container key whose IP is resolved from the inventory.
   # port = a pipeline_constants reference (never a literal, so ports stay DRY).
   ingress_services = {
-    plex            = { backend = "plex", port = local.pipeline_constants.media_ports.plex_web }
-    seerr           = { backend = "seerr", port = local.pipeline_constants.media_ports.seerr_web }
-    sonarr          = { backend = "sonarr", port = local.pipeline_constants.media_ports.sonarr_web }
-    radarr          = { backend = "radarr", port = local.pipeline_constants.media_ports.radarr_web }
-    qbittorrent     = { backend = "download-vpn", port = local.pipeline_constants.media_ports.qbittorrent_web }
-    prowlarr        = { backend = "download-vpn", port = local.pipeline_constants.media_ports.prowlarr_web }
-    technitium      = { backend = "technitium-dns", port = local.pipeline_constants.service_ports.technitium_web }
-    pihole          = { backend = "pi-hole", port = local.pipeline_constants.service_ports.pihole_web }
-    phpipam         = { backend = "phpipam", port = local.pipeline_constants.service_ports.phpipam_web }
-    minio           = { backend = "minio", port = local.pipeline_constants.service_ports.minio_console }
-    infisical       = { backend = "infisical", port = local.pipeline_constants.service_ports.infisical_api }
-    openbao         = { backend = "openbao1", port = local.pipeline_constants.service_ports.openbao_api }
-    mailpit         = { backend = "mailpit", port = local.pipeline_constants.notification_ports.mailpit_web }
-    ntfy            = { backend = "ntfy", port = local.pipeline_constants.notification_ports.ntfy_http }
-    homeassistant   = { backend = "homeassistant", port = local.pipeline_constants.service_ports.homeassistant_web }
-    openproject     = { backend = "openproject", port = local.pipeline_constants.service_ports.openproject_web }
-    prometheus      = { backend = "prometheus", port = local.pipeline_constants.service_ports.prometheus_web }
-    llm             = { backend = "hermes-chat", port = local.pipeline_constants.service_ports.open_webui_web }
-    ollama          = { backend = "hermes-infer", port = local.pipeline_constants.service_ports.ollama_api }
-    qdrant          = { backend = "qdrant", port = local.pipeline_constants.vector_db_ports.qdrant_http }
-    smokeping       = { backend = "smokeping", port = local.pipeline_constants.service_ports.smokeping_web }
-    "haproxy-stats" = { backend = "haproxy", port = local.pipeline_constants.service_ports.haproxy_stats }
+    plex             = { backend = "plex", port = local.pipeline_constants.media_ports.plex_web }
+    seerr            = { backend = "seerr", port = local.pipeline_constants.media_ports.seerr_web }
+    sonarr           = { backend = "sonarr", port = local.pipeline_constants.media_ports.sonarr_web }
+    radarr           = { backend = "radarr", port = local.pipeline_constants.media_ports.radarr_web }
+    qbittorrent      = { backend = "download-vpn", port = local.pipeline_constants.media_ports.qbittorrent_web }
+    prowlarr         = { backend = "download-vpn", port = local.pipeline_constants.media_ports.prowlarr_web }
+    technitium       = { backend = "technitium-dns", port = local.pipeline_constants.service_ports.technitium_web }
+    phpipam          = { backend = "phpipam", port = local.pipeline_constants.service_ports.phpipam_web }
+    minio            = { backend = "minio", port = local.pipeline_constants.service_ports.minio_console }
+    "object-storage" = { backend = "object-storage", port = local.pipeline_constants.service_ports.object_storage_console }
+    infisical        = { backend = "infisical", port = local.pipeline_constants.service_ports.infisical_api }
+    openbao          = { backend = "openbao1", port = local.pipeline_constants.service_ports.openbao_api }
+    mailpit          = { backend = "mailpit", port = local.pipeline_constants.notification_ports.mailpit_web }
+    ntfy             = { backend = "ntfy", port = local.pipeline_constants.notification_ports.ntfy_http }
+    homeassistant    = { backend = "homeassistant", port = local.pipeline_constants.service_ports.homeassistant_web }
+    openproject      = { backend = "openproject", port = local.pipeline_constants.service_ports.openproject_web }
+    prometheus       = { backend = "prometheus", port = local.pipeline_constants.service_ports.prometheus_web }
+    llm              = { backend = "hermes-chat", port = local.pipeline_constants.service_ports.open_webui_web }
+    ollama           = { backend = "hermes-infer", port = local.pipeline_constants.service_ports.ollama_api }
+    qdrant           = { backend = "qdrant", port = local.pipeline_constants.vector_db_ports.qdrant_http }
+    smokeping        = { backend = "smokeping", port = local.pipeline_constants.service_ports.smokeping_web }
+    "haproxy-stats"  = { backend = "haproxy", port = local.pipeline_constants.service_ports.haproxy_stats }
   }
 
   # Proxmox cluster UI apex backend pool. Every commissioned node's web UI is
