@@ -269,7 +269,7 @@ resource "proxmox_virtual_environment_cluster_firewall_security_group" "minio_se
 
 resource "proxmox_virtual_environment_cluster_firewall_security_group" "object_storage_services" {
   name    = "object-storage-svc"
-  comment = "Object storage (RustFS): S3 API (9000) and Console (9001) from internal networks"
+  comment = "Object storage (RustFS): S3 API (${local.svc_ports.object_storage_s3}) and Console (${local.svc_ports.object_storage_console}) from internal networks"
 
   dynamic "rule" {
     for_each = local.object_storage_services_rules
