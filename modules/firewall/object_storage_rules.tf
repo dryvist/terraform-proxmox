@@ -30,7 +30,7 @@ resource "proxmox_virtual_environment_firewall_rules" "object_storage_container"
 
   rule {
     security_group = proxmox_virtual_environment_cluster_firewall_security_group.object_storage_services.name
-    comment        = "Object storage services (TCP/9000 S3 API, TCP/9001 Console)"
+    comment        = "Object storage services (TCP/${local.svc_ports.object_storage_s3} S3 API, TCP/${local.svc_ports.object_storage_console} Console)"
   }
 
   rule {
