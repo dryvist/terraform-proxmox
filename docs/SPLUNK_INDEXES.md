@@ -6,14 +6,14 @@ This document defines the Splunk indexes used in the logging pipeline, their pur
 
 ## Index Definitions
 
-| Index    | Purpose                   | Sources                        | Retention |
-| -------- | ------------------------- | ------------------------------ | --------- |
-| unifi    | UniFi network device logs | Network devices, switches, APs | 365 days  |
-| os       | Operating system logs     | Linux, macOS, Windows hosts    | 365 days  |
-| firewall | Firewall logs             | Palo Alto, Cisco ASA           | 365 days  |
-| network  | General network logs      | Switches, routers, other       | 365 days  |
-| netmon   | Per-WAN network diagnosis | Probes, DOCSIS SNMP, satellite | 90 days   |
-| netflow  | UniFi NetFlow/IPFIX flows | UniFi gateway (IPFIX 2055)     | 90 days   |
+| Index          | Purpose                   | Sources                        | Retention |
+| -------------- | ------------------------- | ------------------------------ | --------- |
+| unifi          | UniFi network device logs | Network devices, switches, APs | 365 days  |
+| os             | Operating system logs     | Linux, macOS, Windows hosts    | 365 days  |
+| firewall       | Firewall logs             | Palo Alto, Cisco ASA           | 365 days  |
+| network        | General network logs      | Switches, routers, other       | 365 days  |
+| netmon_metrics | Per-WAN network diagnosis | Probes, DOCSIS SNMP, satellite | 90 days   |
+| netflow        | UniFi NetFlow/IPFIX flows | UniFi gateway (IPFIX 2055)     | 90 days   |
 
 ## Index Configuration
 
@@ -89,13 +89,13 @@ frozenTimePeriodInSecs = 31536000
 - Port status changes
 - General network telemetry
 
-### netmon
+### netmon_metrics
 
 ```ini
-[netmon]
-homePath = $SPLUNK_DB/netmon/db
-coldPath = $SPLUNK_DB/netmon/colddb
-thawedPath = $SPLUNK_DB/netmon/thaweddb
+[netmon_metrics]
+homePath = $SPLUNK_DB/netmon_metrics/db
+coldPath = $SPLUNK_DB/netmon_metrics/colddb
+thawedPath = $SPLUNK_DB/netmon_metrics/thaweddb
 maxTotalDataSizeMB = 51200
 frozenTimePeriodInSecs = 7776000
 ```
@@ -127,7 +127,7 @@ frozenTimePeriodInSecs = 7776000
 ## Retention Policy
 
 Security-log indexes use a **365-day retention** period (`frozenTimePeriodInSecs = 31536000`).
-The `netmon` diagnostics and `netflow` flow-record indexes are the exceptions at **90 days**
+The `netmon_metrics` diagnostics and `netflow` flow-record indexes are the exceptions at **90 days**
 (`7776000`) — a troubleshooting / volume horizon, not a compliance window.
 
 **Rationale**:
@@ -138,34 +138,34 @@ The `netmon` diagnostics and `netflow` flow-record indexes are the exceptions at
 
 ## Size Limits
 
-Security-log indexes are limited to **100GB** each (`maxTotalDataSizeMB = 102400`); the `netmon`
+Security-log indexes are limited to **100GB** each (`maxTotalDataSizeMB = 102400`); the `netmon_metrics`
 diagnostics and `netflow` flow indexes are each capped at **50GB** (`51200`).
 
 **Capacity planning**:
 
-- Total: 500GB across 6 indexes (4 × 100GB security + netmon 50GB + netflow 50GB)
+- Total: 500GB across 6 indexes (4 × 100GB security + netmon_metrics 50GB + netflow 50GB)
 - Splunk VM disk: 500GB allocated
 - Caps now equal the 500GB VM disk — grow the VM disk (leaving ~50GB for Splunk internal
   indexes) before onboarding the broader host/container/firewall log sources
 
 ## Source Type Mapping
 
-| Source Type    | Index    | Description            |
-| -------------- | -------- | ---------------------- |
-| unifi:usg      | unifi    | UniFi Security Gateway |
-| unifi:switch   | unifi    | UniFi switches         |
-| unifi:ap       | unifi    | UniFi access points    |
-| syslog:linux   | os       | Linux syslog           |
-| syslog:macos   | os       | macOS syslog           |
-| syslog:windows | os       | Windows Event Log      |
-| pan:traffic    | firewall | Palo Alto traffic      |
-| pan:threat     | firewall | Palo Alto threats      |
-| cisco:asa      | firewall | Cisco ASA              |
-| syslog:network | network  | Generic network        |
-| netmon:probe   | netmon   | Telegraf active probes |
-| netmon:docsis  | netmon   | Cable modem SNMP       |
-| netmon:sat     | netmon   | satellite uplink probe |
-| ipfix          | netflow  | UniFi NetFlow/IPFIX    |
+| Source Type    | Index          | Description            |
+| -------------- | -------------- | ---------------------- |
+| unifi:usg      | unifi          | UniFi Security Gateway |
+| unifi:switch   | unifi          | UniFi switches         |
+| unifi:ap       | unifi          | UniFi access points    |
+| syslog:linux   | os             | Linux syslog           |
+| syslog:macos   | os             | macOS syslog           |
+| syslog:windows | os             | Windows Event Log      |
+| pan:traffic    | firewall       | Palo Alto traffic      |
+| pan:threat     | firewall       | Palo Alto threats      |
+| cisco:asa      | firewall       | Cisco ASA              |
+| syslog:network | network        | Generic network        |
+| netmon:probe   | netmon_metrics | Telegraf active probes |
+| netmon:docsis  | netmon_metrics | Cable modem SNMP       |
+| netmon:sat     | netmon_metrics | satellite uplink probe |
+| ipfix          | netflow        | UniFi NetFlow/IPFIX    |
 
 ## HEC Token Configuration
 
@@ -196,7 +196,7 @@ splunk_indexes:
   - name: network
     maxTotalDataSizeMB: 102400
     frozenTimePeriodInSecs: 31536000
-  - name: netmon
+  - name: netmon_metrics
     maxTotalDataSizeMB: 51200
     frozenTimePeriodInSecs: 7776000
   - name: netflow
