@@ -25,7 +25,7 @@ Telegraf inputs per prober (all native — no custom scripts):
 - `inputs.http_response` — HTTPS response time
 - `inputs.snmp` — DOCSIS-IF / DOCS-IF3 MIB on a cable modem
 - `inputs.prometheus` — scrapes the satellite gRPC exporter and the speedtest-exporter
-- `outputs.http` — Splunk-HEC format → Cribl Edge → Cribl Stream → Splunk `netmon` index
+- `outputs.http` — Splunk-HEC format → Cribl Edge → Cribl Stream → Splunk `netmon_metrics` index
 
 ```mermaid
 flowchart LR
@@ -33,7 +33,7 @@ flowchart LR
   S[netmon-sat] -->|policy route| WB[(uplink B)]
   C --> CE[Cribl Edge]
   S --> CE
-  CE --> CS[Cribl Stream] --> NM[(Splunk netmon index)]
+  CE --> CS[Cribl Stream] --> NM[(Splunk netmon_metrics index)]
 ```
 
 ## Implementation choices
@@ -51,7 +51,7 @@ A device diagnostic IP (commonly `192.168.100.1`) is shared across uplinks, so a
 per prober (owned by `tofu-unifi`) provides that. Until those routes apply, a prober measures the
 default-route uplink only; the per-link source counters still populate.
 
-## Splunk: the `netmon` index
+## Splunk: the `netmon_metrics` index
 
 Defined in [`SPLUNK_INDEXES.md`](./SPLUNK_INDEXES.md); created by the `ansible-splunk` role. Probe
 data is high-volume, so the index uses **90-day** retention — separate from the 365-day
@@ -61,9 +61,9 @@ security-log indexes.
 
 | Work | Repo |
 | --- | --- |
-| netmon LXC definitions, `netmon` index doc, ports | terraform-proxmox (this) |
+| netmon LXC definitions, `netmon_metrics` index doc, ports | terraform-proxmox (this) |
 | Telegraf + exporter + SmokePing container config | ansible-proxmox-apps |
-| `netmon` Splunk index creation | ansible-splunk |
+| `netmon_metrics` Splunk index creation | ansible-splunk |
 | Per-uplink source-IP policy routes | tofu-unifi (gated apply) |
 
 ## Prerequisites and caveats
