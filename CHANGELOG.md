@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.40.1](https://github.com/dryvist/terraform-proxmox/compare/v1.40.0...v1.40.1) (2026-06-20)
+
+
+### Bug Fixes
+
+* **docs:** rename netmon metric index to netmon_metrics ([#477](https://github.com/dryvist/terraform-proxmox/issues/477)) ([7ec6a15](https://github.com/dryvist/terraform-proxmox/commit/7ec6a153a44391efeee8c0f8f6e341bb9e57c0a6))
+
 ## [1.40.0](https://github.com/dryvist/terraform-proxmox/compare/v1.39.0...v1.40.0) (2026-06-19)
 
 
