@@ -14,3 +14,16 @@ jobs:
     uses: dryvist/.github/.github/workflows/_release-please.yml@main
     secrets:
       GH_ACTION_RELEASE_PLEASE_PRIVATE_KEY: ${{ secrets.GH_ACTION_RELEASE_PLEASE_PRIVATE_KEY }}
+
+  # On an actual release (not every push), fan out a real-time
+  # repository_dispatch so each downstream consumer re-validates against the
+  # freshly published inventory. Consumers are listed in the repo-level
+  # DISPATCH_CONSUMERS variable; auth + dispatch live in the shared workflow.
+  dispatch-consumers:
+    needs: release-please
+    if: needs.release-please.outputs.release_created == 'true'
+    permissions: {}
+    uses: dryvist/.github/.github/workflows/_dispatch-flake-consumers.yml@main
+    with:
+      event_type: upstream-released
+    secrets: inherit
