@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.41.0](https://github.com/dryvist/terraform-proxmox/compare/v1.40.1...v1.41.0) (2026-06-21)
+
+
+### Features
+
+* **ci:** dispatch downstream revalidation on release ([#479](https://github.com/dryvist/terraform-proxmox/issues/479)) ([ee9322d](https://github.com/dryvist/terraform-proxmox/commit/ee9322d2f58e070a714e937ec6e31f45a8088927))
+
 ## [1.40.1](https://github.com/dryvist/terraform-proxmox/compare/v1.40.0...v1.40.1) (2026-06-20)
 
 
