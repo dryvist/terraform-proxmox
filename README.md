@@ -47,7 +47,7 @@ Config is split across three layers:
 | ------ | -------- | ----------- |
 | `deployment.json` | Container/VM definitions, pools, node placement | Edit directly and commit |
 | `terraform.sops.json` | Per-VLAN network CIDRs, domain, SSH key paths | Decrypt with SOPS, edit, re-encrypt |
-| Doppler (`iac-conf-mgmt/prd`) | `PROXMOX_VE_*`, SSH key content, credentials | Doppler web UI or CLI |
+| Doppler | `PROXMOX_VE_*`, SSH key content, credentials | Doppler web UI or CLI |
 
 `terraform.tfvars` is gitignored and must not exist — it silently overrides
 `deployment.json` via Terraform variable precedence.

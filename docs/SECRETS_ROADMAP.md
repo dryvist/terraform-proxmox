@@ -17,12 +17,12 @@ Doppler is the primary secrets manager for all runtime credentials.
 
 **Repositories using Doppler:**
 
-| Repository | Doppler Project | Secrets Managed |
-| --- | --- | --- |
-| terraform-proxmox | iac-conf-mgmt | `PROXMOX_VE_*`, `SPLUNK_*` |
-| ansible-proxmox-apps | iac-conf-mgmt | `PROXMOX_*`, `SPLUNK_HEC_TOKEN` |
-| ansible-splunk | iac-conf-mgmt | `SPLUNK_*`, `PROXMOX_*` |
-| ansible-proxmox | iac-conf-mgmt | `PROXMOX_*` |
+| Repository | Secrets Managed |
+| --- | --- |
+| terraform-proxmox | `PROXMOX_VE_*`, `SPLUNK_*` |
+| ansible-proxmox-apps | `PROXMOX_*`, `SPLUNK_HEC_TOKEN` |
+| ansible-splunk | `SPLUNK_*`, `PROXMOX_*` |
+| ansible-proxmox | `PROXMOX_*` |
 
 **Strengths:**
 

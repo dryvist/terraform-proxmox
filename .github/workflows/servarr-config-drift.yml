@@ -39,10 +39,10 @@ jobs:
           GATE_MESSAGE: >-
             SERVARR_DRIFT_ENABLED is not 'true' -- scheduled *arr config drift
             detection is OFF, so out-of-band changes to Sonarr/Radarr go
-            unnoticed. Provision the iac-conf-mgmt/prd Doppler keys and repo
-            secret/variable (see servarr-config/README.md), then set the
-            variable to enable. Disable this schedule intentionally if drift
-            detection is meant to be off.
+            unnoticed. Provision the Doppler service token (repo secret
+            DOPPLER_TOKEN) and repo secret/variable (see
+            servarr-config/README.md), then set the variable to enable. Disable
+            this schedule intentionally if drift detection is meant to be off.
         run: |
           echo "::notice::${GATE_MESSAGE}"
 
@@ -69,9 +69,7 @@ jobs:
         id: doppler
         uses: dopplerhq/secrets-fetch-action@v2
         with:
-          doppler-token: ${{ secrets.GH_ACTION_DOPPLER_IAC_CONF_MGMT }}
-          doppler-project: iac-conf-mgmt
-          doppler-config: prd
+          doppler-token: ${{ secrets.DOPPLER_TOKEN }}
 
       - name: OpenTofu init (S3 backend)
         env:
