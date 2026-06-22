@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.43.0](https://github.com/dryvist/terraform-proxmox/compare/v1.42.0...v1.43.0) (2026-06-22)
+
+
+### Features
+
+* **firewall:** add hermes-agent egress group for the autonomous agent LXC ([#484](https://github.com/dryvist/terraform-proxmox/issues/484)) ([e4485c0](https://github.com/dryvist/terraform-proxmox/commit/e4485c0894fc59a0c57eddb1fd74ebd3c6c5e1c2))
+
 ## [1.42.0](https://github.com/dryvist/terraform-proxmox/compare/v1.41.0...v1.42.0) (2026-06-22)
 
 
