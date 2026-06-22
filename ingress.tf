@@ -72,6 +72,18 @@ locals {
         # Consumers default scheme=http / insecure_tls=false when absent.
         scheme       = "https"
         insecure_tls = true
+      },
+      {
+        # Splunk management / REST API (splunkd, 8089) fronted at
+        # splunk-mgmt.<domain>. Single label deliberately: the *.<domain>
+        # wildcard cert covers splunk-mgmt.<domain> but NOT a nested
+        # mgmt.splunk.<domain>. splunkd's mgmt port is HTTPS self-signed, so
+        # same https + skip-verify backend as the web route above.
+        name         = "splunk-mgmt"
+        ip           = split("/", local.splunk_derived_ip)[0]
+        port         = local.pipeline_constants.service_ports.splunk_mgmt
+        scheme       = "https"
+        insecure_tls = true
       }
     ],
     # Proxmox cluster UI apex (the ingress subdomain apex), load-balanced.
