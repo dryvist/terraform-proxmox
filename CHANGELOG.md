@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.43.1](https://github.com/dryvist/terraform-proxmox/compare/v1.43.0...v1.43.1) (2026-06-22)
+
+
+### Bug Fixes
+
+* use generic DOPPLER_TOKEN secret, drop vault-specific names ([#482](https://github.com/dryvist/terraform-proxmox/issues/482)) ([cd3a8d0](https://github.com/dryvist/terraform-proxmox/commit/cd3a8d0fd27280b2e36af6469cdc059dc121a1d3))
+
 ## [1.43.0](https://github.com/dryvist/terraform-proxmox/compare/v1.42.0...v1.43.0) (2026-06-22)
 
 
