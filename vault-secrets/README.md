@@ -32,7 +32,7 @@ Outputs expose only non-sensitive proof (`demo_secret_path`,
 
 - [Nix](https://nixos.org/download/) with flakes enabled (provides Terraform/Terragrunt via nix-devenv)
 - [aws-vault](https://github.com/99designs/aws-vault) with `tf-proxmox` profile configured (for the S3 state backend)
-- [Doppler CLI](https://docs.doppler.com/docs/install-cli) configured for your Doppler config
+- [Doppler CLI](https://docs.doppler.com/docs/install-cli) configured for `infra-project/prd`
 - A live OpenBao instance with the KV v2 engine enabled at `mount = "secret"`
 - `VAULT_ADDR`, `VAULT_ROLE_ID`, and `VAULT_SECRET_ID` present in Doppler
 

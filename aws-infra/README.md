@@ -35,7 +35,7 @@ terraform-proxmox/
 
 - [Nix](https://nixos.org/download/) with flakes enabled (provides Terraform/Terragrunt via nix-devenv)
 - [aws-vault](https://github.com/99designs/aws-vault) with `tf-proxmox` profile configured
-- [Doppler CLI](https://docs.doppler.com/docs/install-cli) configured for your Doppler config
+- [Doppler CLI](https://docs.doppler.com/docs/install-cli) configured for `infra-project/prd`
 - Route53 hosted zone for the Proxmox domain
 
 ## Usage
