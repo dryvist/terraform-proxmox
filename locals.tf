@@ -224,4 +224,14 @@ locals {
     for k, v in var.containers : k => v.vm_id
     if contains(coalesce(try(v.tags, null), []), "monitoring")
   }
+
+  # Hermes Agent LXC: tagged "hermes-agent". Autonomous agent that runs arbitrary
+  # terminal + web tools; gets internal access + outbound-internal (reach the model
+  # endpoint, DNS, NTP, Splunk logging) + outbound HTTPS for its web tools. The LXC
+  # is the blast-radius boundary. (Hardening follow-up: route egress through a Squid
+  # forward-proxy and replace outbound-internal with a microsegmented allowlist.)
+  hermes_agent_container_ids = {
+    for k, v in var.containers : k => v.vm_id
+    if contains(coalesce(try(v.tags, null), []), "hermes-agent")
+  }
 }

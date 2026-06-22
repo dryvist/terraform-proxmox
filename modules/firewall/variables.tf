@@ -93,6 +93,12 @@ variable "monitoring_container_ids" {
   default     = {}
 }
 
+variable "hermes_agent_container_ids" {
+  description = "Map of Hermes Agent LXC names to IDs (tag-driven). Autonomous agent: internal access + outbound to internal services + outbound HTTPS for its web tools."
+  type        = map(number)
+  default     = {}
+}
+
 variable "management_network" {
   description = "CIDR of management network for SSH/Web access. Configure in terraform.tfvars for your environment."
   type        = string
