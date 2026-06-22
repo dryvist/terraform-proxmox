@@ -107,7 +107,7 @@ LXC containers in the `logging` resource pool — no Docker Swarm in this path.
 ```mermaid
 flowchart TD
     subgraph Runtime["Runtime Secrets (Active)"]
-        DOP[Doppler<br/>Project: iac-conf-mgmt]
+        DOP[Doppler]
         AV[aws-vault<br/>Profile: terraform]
         KC[macOS Keychain<br/>ai-secrets keychain]
     end

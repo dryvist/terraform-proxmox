@@ -96,12 +96,12 @@ variable `SERVARR_DRIFT_ENABLED` and these secrets, supplied via the same
 | Where | Key | Note |
 | --- | --- | --- |
 | Repo variable | `SERVARR_DRIFT_ENABLED` | set to `true` to enable |
-| Repo secret | `GH_ACTION_DOPPLER_IAC_CONF_MGMT` | Doppler service token, read `iac-conf-mgmt/prd` |
-| Doppler `iac-conf-mgmt/prd` | `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` | the **read-only** AWS account — the read counterpart of the `tf-proxmox` write role (one read role per write role). Plan runs `-lock=false`, so it needs S3 read only, no DynamoDB |
-| Doppler `iac-conf-mgmt/prd` | `SONARR_URL`, `SONARR_API_KEY`, `RADARR_URL`, `RADARR_API_KEY` | *arr endpoints + keys |
-| Doppler `iac-conf-mgmt/prd` | `QBITTORRENT_HOST`, `QBITTORRENT_ADMIN_PASSWORD` | download-client check |
-| Doppler `iac-conf-mgmt/prd` | `AWS_ACCOUNT_ID` | already present; builds the bucket name (no aws CLI on the runner) |
-| Doppler `iac-conf-mgmt/prd` | `NTFY_BASE_URL` | optional; without it, the job failure is the only signal |
+| Repo secret | `DOPPLER_TOKEN` | Doppler service token (project + config scoped) |
+| Doppler | `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` | the **read-only** AWS account — the read counterpart of the `tf-proxmox` write role (one read role per write role). Plan runs `-lock=false`, so it needs S3 read only, no DynamoDB |
+| Doppler | `SONARR_URL`, `SONARR_API_KEY`, `RADARR_URL`, `RADARR_API_KEY` | *arr endpoints + keys |
+| Doppler | `QBITTORRENT_HOST`, `QBITTORRENT_ADMIN_PASSWORD` | download-client check |
+| Doppler | `AWS_ACCOUNT_ID` | already present; builds the bucket name (no aws CLI on the runner) |
+| Doppler | `NTFY_BASE_URL` | optional; without it, the job failure is the only signal |
 
 The read-only AWS account is the one genuinely new principal. It can read state
 (which contains the *arr keys), so keep it read-only — one shared read role
