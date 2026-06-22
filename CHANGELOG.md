@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.42.0](https://github.com/dryvist/terraform-proxmox/compare/v1.41.0...v1.42.0) (2026-06-22)
+
+
+### Features
+
+* **ingress:** front Splunk management API (8089) at splunk-mgmt ([#485](https://github.com/dryvist/terraform-proxmox/issues/485)) ([6ca9145](https://github.com/dryvist/terraform-proxmox/commit/6ca9145c90cd2600d5b1a590762b8fa999d892ff))
+
 ## [1.41.0](https://github.com/dryvist/terraform-proxmox/compare/v1.40.1...v1.41.0) (2026-06-21)
 
 
