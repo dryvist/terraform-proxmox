@@ -45,9 +45,13 @@ Config is split across three layers:
 
 | Source | Contents | How to edit |
 | ------ | -------- | ----------- |
-| `deployment.json` | Container/VM definitions, pools, node placement | Edit directly and commit |
+| `deployment.json` | Container/VM definitions, pools, node placement | Private (not committed): edit a copy, then `aws s3 cp` it to `s3://iac-inventory/deployment.json` in the on-prem `s3` store |
 | `terraform.sops.json` | Per-VLAN network CIDRs, domain, SSH key paths | Decrypt with SOPS, edit, re-encrypt |
 | Doppler | `PROXMOX_VE_*`, SSH key content, credentials | Doppler web UI or CLI |
+
+The live `deployment.json` lives only in the private on-prem `s3` object store;
+terragrunt fetches it at plan/apply via the Doppler `S3_*` creds. The repo keeps
+only `deployment.json.example` as a shape reference.
 
 `terraform.tfvars` is gitignored and must not exist — it silently overrides
 `deployment.json` via Terraform variable precedence.

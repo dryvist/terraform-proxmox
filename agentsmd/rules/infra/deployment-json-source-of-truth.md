@@ -8,13 +8,21 @@ type: feedback
 
 `deployment.json` is the **single source of truth** for Terraform resource definitions (containers, VMs, pools, sizing) in this repo.
 
+It is **private and NOT committed**: the live file lives only in the on-prem `s3`
+object store at `s3://iac-inventory/deployment.json` (a versioned bucket), fetched
+by terragrunt at plan/apply via the Doppler `S3_*` creds (`DEPLOYMENT_JSON_PATH`
+overrides with a local file for offline/bootstrap work). The repo keeps only
+`deployment.json.example` as a shape reference.
+
 **Why:** `terraform.tfvars` was deleted because it silently overrides `deployment.json` via Terraform variable
 precedence (tfvars = level 3, TF_VAR_* env vars from Terragrunt = level 2). It was gitignored, so it didn't
 transfer to new worktrees, causing silent drift where changes appeared to apply but didn't.
 
 **How to apply:**
 
-- Edit `deployment.json` for ALL infrastructure changes: containers, VMs, pools, Splunk sizing
+- Make ALL infrastructure changes (containers, VMs, pools, Splunk sizing) in
+  `deployment.json`, then upload it back to `s3://iac-inventory/deployment.json`
+  in the on-prem `s3` store — never `git add deployment.json`
 - Never create or commit `terraform.tfvars` — it is gitignored and forbidden
 - If `terraform.tfvars` exists in your worktree, delete it immediately: `rm terraform.tfvars`
 - SOPS (`terraform.sops.json`) holds 5 env-specific values (not necessarily secret, but

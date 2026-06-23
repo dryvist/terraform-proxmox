@@ -5,7 +5,7 @@ This repository uses a 3-layer architecture for deployment configuration.
 ## The 3 Layers
 
 ```text
-LAYER 1: deployment.json (committed, plaintext, git-diffable)
+LAYER 1: deployment.json (private on-prem `s3` store, NOT committed)
   containers, VMs, pools, template IDs, disk sizes, CPU/memory/tags, proxmox_node
 
 LAYER 2: terraform.sops.json (committed, SOPS-encrypted, 3 values)
@@ -44,23 +44,30 @@ One command — always this, always both:
 aws-vault exec tf-proxmox -- doppler run -- terragrunt plan
 ```
 
-Terragrunt reads `deployment.json` automatically. Terragrunt decrypts `terraform.sops.json`
+Terragrunt fetches `deployment.json` automatically from the on-prem `s3` store
+(via the Doppler `S3_*` creds). Terragrunt decrypts `terraform.sops.json`
 automatically. Doppler injects credentials. No extra flags needed.
 
 ## Setting Up Layer 1: deployment.json
 
-`deployment.json` is committed plaintext. Edit it directly and commit like any other file.
+`deployment.json` is **not committed**. The live file lives only in the private
+on-prem `s3` object store at `s3://iac-inventory/deployment.json`; terragrunt
+fetches it at plan/apply via the Doppler `S3_*` creds. To change it, edit a local
+copy, validate it against `deployment.schema.json`, then upload it back — never
+`git add deployment.json` (it is gitignored).
 
 ```bash
-# Edit directly and commit like any other file
+# Fetch the current copy from the on-prem `s3` store
+aws --endpoint-url "$S3_ENDPOINT" s3 cp s3://iac-inventory/deployment.json deployment.json
+
+# Edit, then validate against the committed schema
 $EDITOR deployment.json
 
-# Commit — no encryption needed
-git add deployment.json
-git commit -m "chore: add deployment config"
+# Upload the new authoritative copy (versioned bucket keeps history)
+aws --endpoint-url "$S3_ENDPOINT" s3 cp deployment.json s3://iac-inventory/deployment.json
 ```
 
-Changes to `deployment.json` produce clean, readable `git diff` output.
+The committed `deployment.json.example` is the shape reference only.
 
 ## Setting Up Layer 2: terraform.sops.json
 
@@ -138,5 +145,6 @@ To re-encrypt the SOPS file with a new age key:
 - The age private key (`keys.txt`) must **never** be committed to git
 - The `.sops.yaml` file contains only the **public** key (safe to commit)
 - `terraform.sops.json` is safe to commit once encrypted (values are ciphertext)
-- `deployment.json` contains no secrets — commit freely, edit directly
+- `deployment.json` is **not committed** — the live file lives in the private
+  on-prem `s3` store (`s3://iac-inventory/deployment.json`), fetched via Doppler `S3_*`
 - `management_network` and `splunk_network` are derived from other values — never set manually
