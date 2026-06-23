@@ -32,12 +32,16 @@ locals {
       }
     }
     # Regular VMs - using SSH connection
-    # DRY: IP derived from vm_id (consistent with containers and cloud-init config)
+    # DRY: static VMs advertise their vm_id-derived IP; DHCP-first VMs advertise
+    # their FQDN (local.vm_address) with a deterministic MAC + reserved IP, exactly
+    # like the containers block above.
     vms = {
       for k, v in module.vms.vm_details : k => {
         vmid               = v.id
         hostname           = v.name
-        ip                 = split("/", local.vm_ipv4[k])[0]
+        ip                 = local.vm_address[k]
+        mac                = try(var.vms[k].dhcp, false) ? local.vm_mac[k] : null
+        reserved_ip        = local.vm_reserved_ip[k]
         node               = v.node_name
         ansible_connection = "ssh"
         tags               = v.tags
@@ -49,7 +53,9 @@ locals {
       for k, v in module.vms.vm_details : k => {
         vmid               = v.id
         hostname           = v.name
-        ip                 = split("/", local.vm_ipv4[k])[0]
+        ip                 = local.vm_address[k]
+        mac                = try(var.vms[k].dhcp, false) ? local.vm_mac[k] : null
+        reserved_ip        = local.vm_reserved_ip[k]
         node               = v.node_name
         ansible_connection = "ssh"
         tags               = v.tags

@@ -14,6 +14,7 @@ This document defines the Splunk indexes used in the logging pipeline, their pur
 | network        | General network logs      | Switches, routers, other       | 365 days  |
 | netmon_metrics | Per-WAN network diagnosis | Probes, DOCSIS SNMP, satellite | 90 days   |
 | netflow        | UniFi NetFlow/IPFIX flows | UniFi gateway (IPFIX 2055)     | 90 days   |
+| honeypot       | Honeypot deception events | OpenCanary tripwires, T-Pot (syslog 519) | 365 days  |
 
 ## Index Configuration
 
@@ -124,6 +125,24 @@ frozenTimePeriodInSecs = 7776000
 - High-volume traffic-flow telemetry, split from `network` so its volume has its own
   size and retention envelope
 
+### honeypot
+
+```ini
+[honeypot]
+homePath = $SPLUNK_DB/honeypot/db
+coldPath = $SPLUNK_DB/honeypot/colddb
+thawedPath = $SPLUNK_DB/honeypot/thaweddb
+maxTotalDataSizeMB = 51200
+frozenTimePeriodInSecs = 31536000
+```
+
+**Data types**:
+
+- OpenCanary tripwire interactions (per-VLAN decoy SSH/HTTP/SMB/DB/RDP/SNMP/... touches)
+- T-Pot honeypot events (Cowrie sessions, Dionaea captures, etc.)
+- Forensic/correlation copy (Path B) of the same events that fire the real-time
+  apprise phone/Slack alert (Path A). See [HONEYPOTS.md](./HONEYPOTS.md).
+
 ## Retention Policy
 
 Security-log indexes use a **365-day retention** period (`frozenTimePeriodInSecs = 31536000`).
@@ -143,10 +162,11 @@ diagnostics and `netflow` flow indexes are each capped at **50GB** (`51200`).
 
 **Capacity planning**:
 
-- Total: 500GB across 6 indexes (4 × 100GB security + netmon_metrics 50GB + netflow 50GB)
+- Total: 550GB across 7 indexes (4 × 100GB security + netmon_metrics 50GB + netflow 50GB + honeypot 50GB)
 - Splunk VM disk: 500GB allocated
-- Caps now equal the 500GB VM disk — grow the VM disk (leaving ~50GB for Splunk internal
-  indexes) before onboarding the broader host/container/firewall log sources
+- Caps now exceed the 500GB VM disk — grow the VM disk (leaving ~50GB for Splunk internal
+  indexes) before onboarding the broader host/container/firewall log sources. Honeypot
+  volume is low in practice (alert-grade events), but the cap bounds a decoy flood.
 
 ## Source Type Mapping
 
@@ -166,6 +186,8 @@ diagnostics and `netflow` flow indexes are each capped at **50GB** (`51200`).
 | netmon:docsis  | netmon_metrics | Cable modem SNMP       |
 | netmon:sat     | netmon_metrics | satellite uplink probe |
 | ipfix          | netflow        | UniFi NetFlow/IPFIX    |
+| honeypot:opencanary | honeypot  | OpenCanary tripwires   |
+| honeypot:tpot  | honeypot       | T-Pot deep sensor      |
 
 ## HEC Token Configuration
 
@@ -202,6 +224,9 @@ splunk_indexes:
   - name: netflow
     maxTotalDataSizeMB: 51200
     frozenTimePeriodInSecs: 7776000
+  - name: honeypot
+    maxTotalDataSizeMB: 51200
+    frozenTimePeriodInSecs: 31536000
 ```
 
 ## Related Documentation

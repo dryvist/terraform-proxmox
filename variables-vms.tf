@@ -18,6 +18,15 @@ variable "vms" {
     # (the primary node). Set to "proxmox-2"/"proxmox-3" to place a VM on another cluster node.
     node_name = optional(string)
 
+    # DHCP/DNS-first addressing (optional), mirroring containers. dhcp = true
+    # means no vm_id-derived IP — the lease provides the address and the guest is
+    # reached by {name}.{domain}; this is what lets a VM carry a 6-7-digit
+    # positional VMID (which would overflow the /24 host space). reserved_host is
+    # the host octet tofu-unifi pins the deterministic MAC to (and the DNS A
+    # record resolves to). Omit both for legacy ≤254 static-derived VMs.
+    dhcp          = optional(bool, false)
+    reserved_host = optional(number)
+
     # Resource configuration
     cpu_cores        = optional(number, 4)
     cpu_type         = optional(string, "x86-64-v2-AES")

@@ -73,8 +73,14 @@ module "vms" {
         ipv4_gateway = local.vm_gateway[k]
       }
       # Tag every NIC onto the VM's service VLAN (802.1Q id from var.vlan_ids).
+      # DHCP-first VMs also get a deterministic MAC (local.vm_mac) so tofu-unifi
+      # can pin a stable reservation; static VMs keep a null MAC (provider
+      # auto-generates) so they are not replaced — same pattern as containers.
       network_interfaces = [
-        for ni in v.network_interfaces : merge(ni, { vlan_id = lookup(var.vlan_ids, v.vlan, null) })
+        for ni in v.network_interfaces : merge(ni, {
+          vlan_id     = lookup(var.vlan_ids, v.vlan, null)
+          mac_address = try(v.dhcp, false) ? local.vm_mac[k] : null
+        })
       ]
       user_account = {
         username = v.user_account.username
@@ -242,6 +248,17 @@ module "firewall" {
 
   # Langfuse LLM-observability LXC: tagged "langfuse"
   langfuse_container_ids = local.langfuse_container_ids
+
+  # Honeypot LXCs: per-VLAN OpenCanary tripwires + apprise notify gateway (honeypot tag)
+  honeypot_container_ids        = local.honeypot_container_ids
+  honeypot_notify_container_ids = local.honeypot_notify_container_ids
+
+  # T-Pot deep-sensor VM(s): tagged "tpot"
+  tpot_vm_ids = {
+    for k, v in var.vms : k => v.vm_id
+    if contains(try(v.tags, []), "tpot")
+  }
+
 
   # Pipeline constants: single source of truth for service ports (DRY)
   pipeline_constants = local.pipeline_constants

@@ -31,6 +31,7 @@ locals {
   notification_ports = var.pipeline_constants.notification_ports
   vector_db_ports    = var.pipeline_constants.vector_db_ports
   netflow_ports      = var.pipeline_constants.netflow_ports
+  honeypot_ports     = var.pipeline_constants.honeypot_ports
 
   # Syslog ports — derived from syslog_port_map so that adding a new source
   # family auto-expands the firewall surface. standard = app-facing HAProxy
@@ -88,6 +89,38 @@ locals {
   vectordb_services_rules = [
     { proto = "tcp", dport = tostring(local.vector_db_ports.qdrant_http), source = local.internal_src, comment = "Qdrant HTTP API from internal" },
     { proto = "tcp", dport = tostring(local.vector_db_ports.qdrant_grpc), source = local.internal_src, comment = "Qdrant gRPC from internal" },
+  ]
+
+  # Honeypot decoy surface: the low-interaction services each per-VLAN OpenCanary
+  # tripwire emulates. ACCEPT+log from internal so any touch on a fake service
+  # trips an alert (the whole point — these are NOT real services). SSH (22) is
+  # already opened by internal_access. Ports are DRY from honeypot_ports.
+  honeypot_services_rules = [
+    { proto = "tcp", dport = tostring(local.honeypot_ports.ftp), source = local.internal_src, comment = "Honeypot FTP decoy from internal" },
+    { proto = "tcp", dport = tostring(local.honeypot_ports.telnet), source = local.internal_src, comment = "Honeypot Telnet decoy from internal" },
+    { proto = "tcp", dport = tostring(local.honeypot_ports.http), source = local.internal_src, comment = "Honeypot HTTP decoy from internal" },
+    { proto = "tcp", dport = tostring(local.honeypot_ports.https), source = local.internal_src, comment = "Honeypot HTTPS decoy from internal" },
+    { proto = "tcp", dport = tostring(local.honeypot_ports.smb), source = local.internal_src, comment = "Honeypot SMB decoy from internal" },
+    { proto = "tcp", dport = tostring(local.honeypot_ports.mssql), source = local.internal_src, comment = "Honeypot MSSQL decoy from internal" },
+    { proto = "tcp", dport = tostring(local.honeypot_ports.mysql), source = local.internal_src, comment = "Honeypot MySQL decoy from internal" },
+    { proto = "tcp", dport = tostring(local.honeypot_ports.postgres), source = local.internal_src, comment = "Honeypot PostgreSQL decoy from internal" },
+    { proto = "tcp", dport = tostring(local.honeypot_ports.rdp), source = local.internal_src, comment = "Honeypot RDP decoy from internal" },
+    { proto = "tcp", dport = tostring(local.honeypot_ports.vnc), source = local.internal_src, comment = "Honeypot VNC decoy from internal" },
+    { proto = "tcp", dport = tostring(local.honeypot_ports.redis), source = local.internal_src, comment = "Honeypot Redis decoy from internal" },
+    { proto = "tcp", dport = tostring(local.honeypot_ports.git), source = local.internal_src, comment = "Honeypot git decoy from internal" },
+    { proto = "tcp", dport = tostring(local.honeypot_ports.http_proxy), source = local.internal_src, comment = "Honeypot HTTP-proxy decoy from internal" },
+    { proto = "udp", dport = tostring(local.honeypot_ports.snmp), source = local.internal_src, comment = "Honeypot SNMP decoy from internal" },
+    { proto = "udp", dport = tostring(local.honeypot_ports.sip), source = local.internal_src, comment = "Honeypot SIP decoy from internal" },
+    { proto = "udp", dport = tostring(local.honeypot_ports.tftp), source = local.internal_src, comment = "Honeypot TFTP decoy from internal" },
+    { proto = "udp", dport = tostring(local.honeypot_ports.ntp), source = local.internal_src, comment = "Honeypot NTP decoy from internal" },
+  ]
+
+  # The honeypot-notify gateway (apprise-api) inbound surface: just its REST port.
+  # Open egress is set on its firewall_options (output_policy ACCEPT) so it can
+  # reach external notifiers (Slack/Pushover/ntfy.sh) — same posture as the
+  # Mailpit/ntfy notification containers.
+  honeypot_notify_services_rules = [
+    { proto = "tcp", dport = tostring(local.honeypot_ports.apprise_api), source = local.internal_src, comment = "apprise-api alert gateway from internal" },
   ]
 
   apt_cacher_ng_services_rules = [

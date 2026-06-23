@@ -20,17 +20,23 @@ variables {
       splunk_forwarding = 9997
       cribl_edge_api    = 9420
       cribl_stream_api  = 9000
-      apt_cacher_ng     = 3142
-      minio_api         = 9000
-      minio_console     = 9001
-      infisical_api     = 8080
-      openbao_api       = 8200
-      openbao_cluster   = 8201
-      postgres_default  = 5432
-      redis_default     = 6379
-      ntp               = 123
-      idrac_kvm_r410    = 5800
-      idrac_kvm_r710    = 5801
+      # Cribl S2S + Prometheus remote_write (referenced by pipeline/cribl_stream rules)
+      cribl_s2s           = 10300
+      cribl_prometheus_rw = 9201
+      apt_cacher_ng       = 3142
+      minio_api           = 9000
+      minio_console       = 9001
+      # Object storage (RustFS) — referenced by object_storage_services_rules
+      object_storage_s3      = 9000
+      object_storage_console = 9001
+      infisical_api          = 8080
+      openbao_api            = 8200
+      openbao_cluster        = 8201
+      postgres_default       = 5432
+      redis_default          = 6379
+      ntp                    = 123
+      idrac_kvm_r410         = 5800
+      idrac_kvm_r710         = 5801
       # monitoring ports (own alignment group — longest key in the map)
       smokeping_web      = 80
       speedtest_exporter = 9798
@@ -65,6 +71,26 @@ variables {
     vector_db_ports = {
       qdrant_http = 6333
       qdrant_grpc = 6334
+    }
+    honeypot_ports = {
+      apprise_api = 8000
+      ftp         = 21
+      telnet      = 23
+      http        = 80
+      https       = 443
+      smb         = 445
+      tftp        = 69
+      snmp        = 161
+      ntp         = 123
+      sip         = 5060
+      mssql       = 1433
+      mysql       = 3306
+      postgres    = 5432
+      rdp         = 3389
+      vnc         = 5900
+      redis       = 6379
+      git         = 9418
+      http_proxy  = 8080
     }
   }
 }
@@ -120,10 +146,10 @@ run "pipeline_services_rules_always_three" {
     internal_networks = ["192.168.10.0/24", "192.168.20.0/24", "192.168.30.0/24"]
   }
 
-  # HAProxy stats (8404) + Cribl Edge API (9420) + Cribl Edge HEC input (8088)
+  # HAProxy stats (8404) + Cribl Edge API (9420) + Cribl Edge HEC input (8088) + Cribl S2S frontend (10300)
   assert {
-    condition     = length(local.pipeline_services_rules) == 3
-    error_message = "pipeline_services_rules must be exactly 3, got ${length(local.pipeline_services_rules)}"
+    condition     = length(local.pipeline_services_rules) == 4
+    error_message = "pipeline_services_rules must be exactly 4, got ${length(local.pipeline_services_rules)}"
   }
 }
 
@@ -161,9 +187,10 @@ run "cribl_stream_rules_always_one" {
     internal_networks = ["192.168.10.0/24", "192.168.20.0/24", "192.168.30.0/24"]
   }
 
+  # Cribl Stream API (9000) + Cribl S2S input (10300) + Prometheus remote_write (9201)
   assert {
-    condition     = length(local.cribl_stream_services_rules) == 1
-    error_message = "cribl_stream_services_rules must be exactly 1 (TCP 9000), got ${length(local.cribl_stream_services_rules)}"
+    condition     = length(local.cribl_stream_services_rules) == 3
+    error_message = "cribl_stream_services_rules must be exactly 3, got ${length(local.cribl_stream_services_rules)}"
   }
 }
 
@@ -424,6 +451,51 @@ run "syslog_standard_range_tracks_port_map" {
   assert {
     condition     = !contains(local.syslog_standard_ports, 1514)
     error_message = "syslog_standard_ports must not contain backend ports, got '${jsonencode(local.syslog_standard_ports)}'"
+  }
+}
+
+run "honeypot_notify_rule_tracks_constant" {
+  command = plan
+
+  variables {
+    internal_networks = ["192.168.0.0/16"]
+  }
+
+  # The alert gateway exposes exactly its apprise-api REST port.
+  assert {
+    condition     = length(local.honeypot_notify_services_rules) == 1
+    error_message = "honeypot_notify_services_rules must be exactly 1 (apprise_api), got ${length(local.honeypot_notify_services_rules)}"
+  }
+
+  assert {
+    condition     = local.honeypot_notify_services_rules[0].dport == tostring(var.pipeline_constants.honeypot_ports.apprise_api)
+    error_message = "honeypot_notify rule must track honeypot_ports.apprise_api, got '${local.honeypot_notify_services_rules[0].dport}'"
+  }
+}
+
+run "honeypot_decoy_rules_track_constants_and_split_proto" {
+  command = plan
+
+  variables {
+    internal_networks = ["192.168.10.0/24", "192.168.20.0/24"]
+  }
+
+  # First decoy rule is FTP (TCP), sourced from the comma-joined internal nets.
+  assert {
+    condition     = local.honeypot_services_rules[0].dport == tostring(var.pipeline_constants.honeypot_ports.ftp) && local.honeypot_services_rules[0].proto == "tcp"
+    error_message = "honeypot decoy rule 0 must be TCP ftp, got proto='${local.honeypot_services_rules[0].proto}' dport='${local.honeypot_services_rules[0].dport}'"
+  }
+
+  assert {
+    condition     = local.honeypot_services_rules[0].source == "192.168.10.0/24,192.168.20.0/24"
+    error_message = "honeypot decoy rule source must be comma-joined networks, got '${local.honeypot_services_rules[0].source}'"
+  }
+
+  # The UDP decoys (SNMP/SIP/TFTP/NTP) must be present so OpenCanary's UDP
+  # modules are reachable — assert at least one udp rule exists.
+  assert {
+    condition     = length([for r in local.honeypot_services_rules : r if r.proto == "udp"]) == 4
+    error_message = "honeypot_services_rules must include exactly 4 UDP decoys (snmp/sip/tftp/ntp), got ${length([for r in local.honeypot_services_rules : r if r.proto == "udp"])}"
   }
 }
 
