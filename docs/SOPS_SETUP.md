@@ -50,25 +50,18 @@ automatically. Doppler injects credentials. No extra flags needed.
 
 ## Setting Up Layer 1: deployment.json
 
-`deployment.json` is **not committed**. The live file lives only in the private
-on-prem `s3` object store at `s3://iac-inventory/deployment.json`; terragrunt
-fetches it at plan/apply via the Doppler `S3_*` creds. To change it, edit a local
-copy, validate it against `deployment.schema.json`, then upload it back — never
-`git add deployment.json` (it is gitignored).
+Private desired-state input — see
+[the source-of-truth rule](../agentsmd/rules/infra/deployment-json-source-of-truth.md)
+for where it lives and why. Bucket and key default to `S3_INVENTORY_BUCKET` /
+`S3_INVENTORY_KEY` in `terragrunt.hcl`; export those (or substitute the values) to
+read/edit it. Never `git add deployment.json` (it is gitignored).
 
 ```bash
-# Fetch the current copy from the on-prem `s3` store
-aws --endpoint-url "$S3_ENDPOINT" s3 cp s3://iac-inventory/deployment.json deployment.json
-
-# Edit it
+obj="s3://$S3_INVENTORY_BUCKET/$S3_INVENTORY_KEY"
+aws --endpoint-url "$S3_ENDPOINT" s3 cp "$obj" deployment.json   # fetch
 $EDITOR deployment.json
-
-# Validate against the committed schema BEFORE uploading — a bad input would
-# otherwise fail loud at the next plan/apply (no devshell change needed)
-nix run nixpkgs#check-jsonschema -- --schemafile deployment.schema.json deployment.json
-
-# Upload the new authoritative copy (versioned bucket keeps history)
-aws --endpoint-url "$S3_ENDPOINT" s3 cp deployment.json s3://iac-inventory/deployment.json
+nix run nixpkgs#check-jsonschema -- --schemafile deployment.schema.json deployment.json  # validate
+aws --endpoint-url "$S3_ENDPOINT" s3 cp deployment.json "$obj"   # upload (versioned)
 ```
 
 The committed `deployment.json.example` is the shape reference only.
@@ -149,6 +142,6 @@ To re-encrypt the SOPS file with a new age key:
 - The age private key (`keys.txt`) must **never** be committed to git
 - The `.sops.yaml` file contains only the **public** key (safe to commit)
 - `terraform.sops.json` is safe to commit once encrypted (values are ciphertext)
-- `deployment.json` is **not committed** — the live file lives in the private
-  on-prem `s3` store (`s3://iac-inventory/deployment.json`), fetched via Doppler `S3_*`
+- `deployment.json` is **not committed** — it is the private input in the on-prem
+  `s3` store (see "Setting Up Layer 1" above)
 - `management_network` and `splunk_network` are derived from other values — never set manually

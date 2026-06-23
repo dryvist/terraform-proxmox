@@ -33,10 +33,9 @@ and no terraform toolchain.
 
 ## Freshness contract
 
-The published object reflects the **last apply**. Updating `deployment.json` (the
-private desired-state INPUT, which lives in the on-prem `s3` store at
-`s3://iac-inventory/deployment.json`, not in this repo) without applying changes
-nothing downstream — `apply` is the only publish point. This makes `apply` the
+The published object reflects the **last apply**. Updating the desired-state input
+(`deployment.json`, the private INPUT — see the source-of-truth rule) without applying
+changes nothing downstream — `apply` is the only publish point. This makes `apply` the
 single, auditable way to change what every consumer sees.
 
 ## Relationship to `scripts/sync-inventory.sh`

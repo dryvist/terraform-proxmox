@@ -126,9 +126,8 @@ scripts/timing-results.txt
 .mcp.json
 
 # Live deployment config — contains real node names, VM inventory, and ZFS pool names.
-# The live file lives only in the private on-prem `s3` object store at
-# s3://iac-inventory/deployment.json and is fetched by terragrunt at plan/apply
-# via the Doppler `S3_*` creds. This repo keeps only deployment.json.example.
+# Private desired-state input — lives in the on-prem `s3` store, fetched by terragrunt
+# (see agentsmd/rules/infra/deployment-json-source-of-truth.md). Repo keeps only the example.
 deployment.json
 
 # ---------------------------------------------------------------------

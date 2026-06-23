@@ -54,11 +54,8 @@ locals.tf derivations    (computed)             — management_network, splunk_n
 ```
 
 - `deployment.json` — resource definitions (containers, VMs, pools, sizing).
-  Private and NOT committed: the live file lives only in the on-prem `s3`
-  object store at `s3://iac-inventory/deployment.json`, fetched at plan/apply by
-  terragrunt via the Doppler `S3_*` creds (`DEPLOYMENT_JSON_PATH` overrides with
-  a local file for offline/bootstrap work). The committed `deployment.json.example`
-  is the shape reference only.
+  Private, not committed; fetched from the on-prem `s3` store at plan/apply. See
+  [`deployment-json-source-of-truth`](agentsmd/rules/infra/deployment-json-source-of-truth.md).
 - `terraform.sops.json` — five env-specific values: `network_prefix`,
   `domain`, `vm_ssh_public_key_path`, `vm_ssh_private_key_path`,
   `proxmox_ssh_username`. Decrypted automatically by Terragrunt.
