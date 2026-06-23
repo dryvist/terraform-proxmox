@@ -46,6 +46,7 @@ When adding containers to `deployment.json`:
   "description": "Description of the container",
   "cpu_cores": 2,
   "memory_dedicated": 2048,
+  "vlan": "compute",
   "tags": ["terraform", "container", "some-tag"],
   "pool_id": "infrastructure",
   "root_disk": { "size": 16 }

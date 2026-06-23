@@ -60,8 +60,12 @@ copy, validate it against `deployment.schema.json`, then upload it back — neve
 # Fetch the current copy from the on-prem `s3` store
 aws --endpoint-url "$S3_ENDPOINT" s3 cp s3://iac-inventory/deployment.json deployment.json
 
-# Edit, then validate against the committed schema
+# Edit it
 $EDITOR deployment.json
+
+# Validate against the committed schema BEFORE uploading — a bad input would
+# otherwise fail loud at the next plan/apply (no devshell change needed)
+nix run nixpkgs#check-jsonschema -- --schemafile deployment.schema.json deployment.json
 
 # Upload the new authoritative copy (versioned bucket keeps history)
 aws --endpoint-url "$S3_ENDPOINT" s3 cp deployment.json s3://iac-inventory/deployment.json

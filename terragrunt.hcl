@@ -21,7 +21,7 @@ locals {
     ? file(get_env("DEPLOYMENT_JSON_PATH"))
     : run_cmd(
       "--terragrunt-quiet", "bash", "-c",
-      "AWS_SESSION_TOKEN= AWS_ACCESS_KEY_ID=\"$S3_ACCESS_KEY\" AWS_SECRET_ACCESS_KEY=\"$S3_SECRET_KEY\" AWS_REGION=${local.s3_inventory_region} aws --endpoint-url \"$S3_ENDPOINT\" s3 cp s3://${local.s3_inventory_bucket}/${local.s3_inventory_key} - --quiet"
+      "unset AWS_PROFILE AWS_SESSION_TOKEN; AWS_ACCESS_KEY_ID=\"$S3_ACCESS_KEY\" AWS_SECRET_ACCESS_KEY=\"$S3_SECRET_KEY\" AWS_REGION=${local.s3_inventory_region} aws --endpoint-url \"$S3_ENDPOINT\" s3 cp s3://${local.s3_inventory_bucket}/${local.s3_inventory_key} - --quiet"
     )
   )
   deployment_config = jsondecode(trimspace(local.deployment_json))
