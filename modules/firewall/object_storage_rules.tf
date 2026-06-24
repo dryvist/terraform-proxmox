@@ -14,6 +14,12 @@ resource "proxmox_virtual_environment_firewall_options" "object_storage_containe
   log_level_in  = local.firewall_defaults.log_level_in
   log_level_out = local.firewall_defaults.log_level_out
 
+  # This is a DHCP-first guest (deployment.json dhcp=true) behind DROP in/out
+  # policies. Without the firewall's dhcp allow, its own DHCPDISCOVER/OFFER is
+  # dropped and it never leases its reserved siem IP. Static-IP firewalled
+  # guests don't need this, so it's set here rather than in firewall_defaults.
+  dhcp = true
+
   depends_on = [proxmox_virtual_environment_cluster_firewall.main]
 }
 
