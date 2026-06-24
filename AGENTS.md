@@ -47,14 +47,15 @@ The BPG Proxmox provider reads `PROXMOX_VE_*` env vars directly — no
 ## Config-file architecture (single source of truth)
 
 ```text
-deployment.json          (committed, plaintext) — containers, VMs, pools, proxmox_node
+deployment.json          (private s3, fetched)  — containers, VMs, pools, proxmox_node
 terraform.sops.json      (committed, encrypted) — network_prefix, domain, vm_ssh_*_key_path, proxmox_ssh_username
 Doppler env vars         (runtime only)         — PROXMOX_VE_*, SPLUNK_*, SSH key content
 locals.tf derivations    (computed)             — management_network, splunk_network_ips
 ```
 
 - `deployment.json` — resource definitions (containers, VMs, pools, sizing).
-  Committed plaintext, edit directly.
+  Private, not committed; fetched from the on-prem `s3` store at plan/apply. See
+  [`deployment-json-source-of-truth`](agentsmd/rules/infra/deployment-json-source-of-truth.md).
 - `terraform.sops.json` — five env-specific values: `network_prefix`,
   `domain`, `vm_ssh_public_key_path`, `vm_ssh_private_key_path`,
   `proxmox_ssh_username`. Decrypted automatically by Terragrunt.

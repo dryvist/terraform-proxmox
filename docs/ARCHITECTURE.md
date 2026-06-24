@@ -167,7 +167,10 @@ Cribl Edge and Cribl Stream were previously planned for Docker Swarm on
 
 ### LXC Containers (terraform-proxmox)
 
-Authoritative list lives in `deployment.json` `containers.*`. Summary by pool:
+Authoritative list lives in `deployment.json` `containers.*` — the source of truth
+for infrastructure (private, in the on-prem `s3` store; see
+[the source-of-truth rule](../agentsmd/rules/infra/deployment-json-source-of-truth.md)).
+Summary by pool:
 
 - **`infrastructure`** — `ansible`, `pve-scripts-local`, `technitium-dns`,
   `pi-hole`, `phpipam`, `apt-cacher-ng`, `minio`, `mailpit`, `ntfy`,

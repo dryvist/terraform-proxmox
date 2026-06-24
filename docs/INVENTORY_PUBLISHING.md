@@ -33,9 +33,10 @@ and no terraform toolchain.
 
 ## Freshness contract
 
-The published object reflects the **last apply**. Editing `deployment.json`
-without applying changes nothing downstream — `apply` is the only publish point.
-This makes `apply` the single, auditable way to change what every consumer sees.
+The published object reflects the **last apply**. Updating the desired-state input
+(`deployment.json`, the private INPUT — see the source-of-truth rule) without applying
+changes nothing downstream — `apply` is the only publish point. This makes `apply` the
+single, auditable way to change what every consumer sees.
 
 ## Relationship to `scripts/sync-inventory.sh`
 

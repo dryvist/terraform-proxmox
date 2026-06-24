@@ -1,9 +1,30 @@
 # Terragrunt configuration for Proxmox infrastructure
 
 locals {
-  # Layer 1: Non-secret deployment config (committed plaintext — edit directly, no SOPS).
-  # Contains container/VM definitions, pool names, Splunk VM sizing, template IDs, etc.
-  deployment_config = try(jsondecode(file("${get_terragrunt_dir()}/deployment.json")), {})
+  # Layer 1: private desired-state INPUT, fetched from the on-prem S3-compatible
+  # object store (endpoint + creds come from Doppler S3_*). NOT committed and NOT
+  # git-versioned by design — the single shared home is the versioned object, so
+  # every session/agent reads the same authoritative copy with no local drift.
+  # Bucket / key / region are parameterized: the preferred value is the default
+  # here, overridable per environment via env without editing this file (and the
+  # endpoint/creds never appear in-repo — they live in Doppler S3_*). NOTE: this
+  # store is NOT the AWS S3 tfstate backend (remote_state below); they never share
+  # a credential (AWS_* from aws-vault for state vs S3_* for this fetch).
+  # DEPLOYMENT_JSON_PATH overrides with a local file for offline / bootstrap work.
+  # FAIL-LOUD: a missing object makes the fetch exit non-zero so run_cmd raises — a
+  # blank input can never silently become {} and plan a full destroy (no try()).
+  s3_inventory_bucket = get_env("S3_INVENTORY_BUCKET", "iac-inventory")
+  s3_inventory_key    = get_env("S3_INVENTORY_KEY", "deployment.json")
+  s3_inventory_region = get_env("S3_INVENTORY_REGION", "us-east-1")
+  deployment_json = (
+    get_env("DEPLOYMENT_JSON_PATH", "") != ""
+    ? file(get_env("DEPLOYMENT_JSON_PATH"))
+    : run_cmd(
+      "--terragrunt-quiet", "bash", "-c",
+      "unset AWS_PROFILE AWS_SESSION_TOKEN; AWS_ACCESS_KEY_ID=\"$S3_ACCESS_KEY\" AWS_SECRET_ACCESS_KEY=\"$S3_SECRET_KEY\" AWS_REGION=${local.s3_inventory_region} aws --endpoint-url \"$S3_ENDPOINT\" s3 cp s3://${local.s3_inventory_bucket}/${local.s3_inventory_key} - --quiet"
+    )
+  )
+  deployment_config = jsondecode(trimspace(local.deployment_json))
 
   # Strip any "_"-prefixed key: deployment.json uses "_comment" / "_*_comment"
   # keys for inline documentation (JSON has no comment syntax). These are not

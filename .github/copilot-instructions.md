@@ -37,7 +37,9 @@ aws-vault exec tf-proxmox -- doppler run -- terragrunt apply
 ## HCL Conventions
 
 - Module inputs in `variables.tf`, outputs in `outputs.tf`, providers in `providers.tf`
-- Use `deployment.json` for environment-specific non-secret config
+- Use `deployment.json` for environment-specific non-secret config — private, not
+  committed, fetched from the on-prem `s3` store (see
+  `agentsmd/rules/infra/deployment-json-source-of-truth.md`)
 - Use `terraform.sops.json` for encrypted secrets (edit with `sops terraform.sops.json`)
 - Terragrunt config in `terragrunt.hcl` at each module root
 

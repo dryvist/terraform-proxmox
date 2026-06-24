@@ -45,7 +45,7 @@ Config is split across three layers:
 
 | Source | Contents | How to edit |
 | ------ | -------- | ----------- |
-| `deployment.json` | Container/VM definitions, pools, node placement | Edit directly and commit |
+| `deployment.json` | Container/VM definitions, pools, node placement | Private, in the on-prem `s3` store (see [AGENTS.md](AGENTS.md)) |
 | `terraform.sops.json` | Per-VLAN network CIDRs, domain, SSH key paths | Decrypt with SOPS, edit, re-encrypt |
 | Doppler | `PROXMOX_VE_*`, SSH key content, credentials | Doppler web UI or CLI |
 

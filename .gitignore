@@ -126,7 +126,8 @@ scripts/timing-results.txt
 .mcp.json
 
 # Live deployment config — contains real node names, VM inventory, and ZFS pool names.
-# Populate from deployment.json.example and keep locally only.
+# Private desired-state input — lives in the on-prem `s3` store, fetched by terragrunt
+# (see agentsmd/rules/infra/deployment-json-source-of-truth.md). Repo keeps only the example.
 deployment.json
 
 # ---------------------------------------------------------------------

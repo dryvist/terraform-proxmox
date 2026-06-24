@@ -1,0 +1,91 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "terraform-proxmox deployment.json (desired-state INPUT)",
+  "description": "Contract for the private desired-state input fetched from the on-prem S3-compatible object store at plan/apply. Its job is to REJECT an empty or structurally-broken input before any plan runs, so a missing/blank file can never produce a destroy-all plan. additionalProperties stays true so per-environment extras and `_*comment` keys never false-fail; only the load-bearing shape is enforced.",
+  "type": "object",
+  "required": [
+    "containers",
+    "nodes",
+    "pools",
+    "proxmox_node"
+  ],
+  "additionalProperties": true,
+  "properties": {
+    "containers": {
+      "type": "object",
+      "description": "LXC desired-state, keyed by name. At least one is required — an empty map is the empty-{} destroy footgun this schema exists to catch. `_`-prefixed keys are inline `_*comment` docs (terragrunt strips them) and are exempt from the entry shape.",
+      "minProperties": 1,
+      "patternProperties": {
+        "^_": {}
+      },
+      "additionalProperties": {
+        "$ref": "#/definitions/container_input"
+      }
+    },
+    "vms": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "pools": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": true
+    },
+    "nodes": {
+      "type": "object",
+      "description": "Cluster node identity, keyed by node name. At least one required.",
+      "minProperties": 1,
+      "additionalProperties": true
+    },
+    "node_storage": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "datastores": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "host_services": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "proxmox_node": {
+      "type": "string",
+      "minLength": 1
+    },
+    "environment": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "definitions": {
+    "container_input": {
+      "type": "object",
+      "description": "A single container's desired-state. Only the fields that break addressing/identity if absent are required; everything else is free.",
+      "required": [
+        "vm_id",
+        "hostname",
+        "vlan"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "vm_id": {
+          "type": "integer",
+          "minimum": 100
+        },
+        "hostname": {
+          "type": "string",
+          "minLength": 1
+        },
+        "vlan": {
+          "type": "string",
+          "minLength": 1
+        },
+        "pool_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}
