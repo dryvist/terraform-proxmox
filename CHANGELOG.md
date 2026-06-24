@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.44.0](https://github.com/dryvist/terraform-proxmox/compare/v1.43.1...v1.44.0) (2026-06-24)
+
+
+### Features
+
+* **inventory:** deployment.json desired-state from a private s3 store (fail-loud) ([#489](https://github.com/dryvist/terraform-proxmox/issues/489)) ([c239c12](https://github.com/dryvist/terraform-proxmox/commit/c239c12d8cef8bef796b7ac6bd1236a4329190b7))
+
+
+### Bug Fixes
+
+* **firewall:** allow DHCP on the object-storage container ([#490](https://github.com/dryvist/terraform-proxmox/issues/490)) ([dba2519](https://github.com/dryvist/terraform-proxmox/commit/dba25196fc0d1869685ae3e1a2ef4672b4b7bfd1))
+
 ## [1.43.1](https://github.com/dryvist/terraform-proxmox/compare/v1.43.0...v1.43.1) (2026-06-22)
 
 
