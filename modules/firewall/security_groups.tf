@@ -352,39 +352,7 @@ resource "proxmox_virtual_environment_cluster_firewall_security_group" "idrac_kv
   }
 }
 
-resource "proxmox_virtual_environment_cluster_firewall_security_group" "honeypot_services" {
-  name    = "honeypot-svc"
-  comment = "Honeypot decoy services (FTP/Telnet/HTTP/SMB/DB/RDP/VNC/SNMP/SIP/TFTP/NTP/...) — ACCEPT+log from internal so any interaction with a per-VLAN OpenCanary tripwire fires an alert"
-
-  dynamic "rule" {
-    for_each = local.honeypot_services_rules
-    content {
-      type    = "in"
-      action  = "ACCEPT"
-      proto   = rule.value.proto
-      dport   = rule.value.dport
-      source  = rule.value.source
-      comment = rule.value.comment
-    }
-  }
-}
-
-resource "proxmox_virtual_environment_cluster_firewall_security_group" "honeypot_notify_services" {
-  name    = "honeypot-notify-svc"
-  comment = "Honeypot alert gateway: apprise-api REST port (${local.honeypot_ports.apprise_api}) from internal networks"
-
-  dynamic "rule" {
-    for_each = local.honeypot_notify_services_rules
-    content {
-      type    = "in"
-      action  = "ACCEPT"
-      proto   = rule.value.proto
-      dport   = rule.value.dport
-      source  = rule.value.source
-      comment = rule.value.comment
-    }
-  }
-}
+# honeypot_services + honeypot_notify_services groups are in honeypot_rules.tf (size gate).
 
 resource "proxmox_virtual_environment_cluster_firewall_security_group" "monitoring_services" {
   name    = "monitoring-svc"

@@ -88,48 +88,9 @@ locals {
       : split("/", local.container_ipv4[k])[0]
     )
   }
-  # Per-VM IPv4/gateway, same DRY + short-circuit rules as containers above, so a
-  # VM can carry a 6-7-digit positional VMID (which overflows the /24 host space)
-  # by going DHCP-first (dhcp = true) or pinning a static ipv4_address. The
-  # cidrhost derive branch is reached ONLY when neither is set (legacy ≤254 ids),
-  # exactly mirroring container_ipv4 — see the extended note in that block.
-  vm_ipv4 = {
-    for k, v in var.vms : k => (
-      try(v.dhcp, false) ? "dhcp" : (
-        try(v.ip_config.ipv4_address, null) != null
-        ? nonsensitive(v.ip_config.ipv4_address)
-        : nonsensitive("${cidrhost(var.network_cidrs[v.vlan], v.vm_id)}/${split("/", var.network_cidrs[v.vlan])[1]}")
-      )
-    )
-  }
-  vm_gateway = {
-    for k, v in var.vms : k => (
-      try(v.dhcp, false) ? null : nonsensitive(cidrhost(var.network_cidrs[v.vlan], 1))
-    )
-  }
-
-  # Deterministic MAC + reserved IP + advertised address for DHCP-first VMs —
-  # identical join-key shape to the container_* locals so tofu-unifi pins the
-  # reservation and technitium_dns points the A record at the same address.
-  vm_mac = {
-    for k, v in var.vms : k => format("02:%s:%s:%s:%s:%s",
-      substr(md5(v.name), 0, 2), substr(md5(v.name), 2, 2),
-      substr(md5(v.name), 4, 2), substr(md5(v.name), 6, 2),
-    substr(md5(v.name), 8, 2))
-  }
-  vm_reserved_ip = {
-    for k, v in var.vms : k => (
-      try(v.dhcp, false) && try(v.reserved_host, null) != null
-      ? nonsensitive(cidrhost(var.network_cidrs[v.vlan], v.reserved_host)) : null
-    )
-  }
-  vm_address = {
-    for k, v in var.vms : k => (
-      try(v.dhcp, false)
-      ? (var.domain != "" ? "${v.name}.${var.domain}" : v.name)
-      : split("/", local.vm_ipv4[k])[0]
-    )
-  }
+  # VM IPv4/gateway + DHCP-first MAC/reserved-IP/advertised-address locals are
+  # extracted into locals-vm-network.tf (locals merge across files in a module)
+  # to keep this file under the shared _file-size workflow's 12 KB limit.
 
   # VGA type validation helper
   valid_vga_types = ["std", "cirrus", "vmware", "qxl"]
@@ -178,20 +139,9 @@ locals {
     if contains(coalesce(try(v.tags, null), []), "notifications")
   }
 
-  # Honeypot LXCs (honeypot tag): per-VLAN OpenCanary tripwires + the apprise-api
-  # alert gateway. The notify gateway additionally carries the "notify" tag so the
-  # firewall module can split it out (open egress + apprise port) from the
-  # tripwires (decoy ports + internal-only egress). Kept distinct from
-  # notification_container_ids (Mailpit/ntfy) so a guest is never double-claimed
-  # by two firewall_options resources.
-  honeypot_container_ids = {
-    for k, v in var.containers : k => v.vm_id
-    if contains(coalesce(try(v.tags, null), []), "honeypot")
-  }
-  honeypot_notify_container_ids = {
-    for k, v in var.containers : k => v.vm_id
-    if contains(coalesce(try(v.tags, null), []), "honeypot") && contains(coalesce(try(v.tags, null), []), "notify")
-  }
+  # Honeypot tag-filter locals (honeypot_container_ids,
+  # honeypot_notify_container_ids) live in locals-honeypot.tf to keep this file
+  # under the 12 KB size gate; locals merge across files in the module.
 
   # Vector database containers: Qdrant (vectordb tag)
   vectordb_container_ids = {

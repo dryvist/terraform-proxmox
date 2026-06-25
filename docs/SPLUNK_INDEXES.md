@@ -14,7 +14,7 @@ This document defines the Splunk indexes used in the logging pipeline, their pur
 | network        | General network logs      | Switches, routers, other       | 365 days  |
 | netmon_metrics | Per-WAN network diagnosis | Probes, DOCSIS SNMP, satellite | 90 days   |
 | netflow        | UniFi NetFlow/IPFIX flows | UniFi gateway (IPFIX 2055)     | 90 days   |
-| honeypot       | Honeypot deception events | OpenCanary tripwires, T-Pot (syslog 519) | 365 days  |
+| honeypot       | Honeypot deception events | OpenCanary tripwires, T-Pot    | 365 days  |
 
 ## Index Configuration
 
@@ -170,24 +170,24 @@ diagnostics and `netflow` flow indexes are each capped at **50GB** (`51200`).
 
 ## Source Type Mapping
 
-| Source Type    | Index          | Description            |
-| -------------- | -------------- | ---------------------- |
-| unifi:usg      | unifi          | UniFi Security Gateway |
-| unifi:switch   | unifi          | UniFi switches         |
-| unifi:ap       | unifi          | UniFi access points    |
-| syslog:linux   | os             | Linux syslog           |
-| syslog:macos   | os             | macOS syslog           |
-| syslog:windows | os             | Windows Event Log      |
-| pan:traffic    | firewall       | Palo Alto traffic      |
-| pan:threat     | firewall       | Palo Alto threats      |
-| cisco:asa      | firewall       | Cisco ASA              |
-| syslog:network | network        | Generic network        |
-| netmon:probe   | netmon_metrics | Telegraf active probes |
-| netmon:docsis  | netmon_metrics | Cable modem SNMP       |
-| netmon:sat     | netmon_metrics | satellite uplink probe |
-| ipfix          | netflow        | UniFi NetFlow/IPFIX    |
-| honeypot:opencanary | honeypot  | OpenCanary tripwires   |
-| honeypot:tpot  | honeypot       | T-Pot deep sensor      |
+| Source Type         | Index          | Description            |
+| ------------------- | -------------- | ---------------------- |
+| unifi:usg           | unifi          | UniFi Security Gateway |
+| unifi:switch        | unifi          | UniFi switches         |
+| unifi:ap            | unifi          | UniFi access points    |
+| syslog:linux        | os             | Linux syslog           |
+| syslog:macos        | os             | macOS syslog           |
+| syslog:windows      | os             | Windows Event Log      |
+| pan:traffic         | firewall       | Palo Alto traffic      |
+| pan:threat          | firewall       | Palo Alto threats      |
+| cisco:asa           | firewall       | Cisco ASA              |
+| syslog:network      | network        | Generic network        |
+| netmon:probe        | netmon_metrics | Telegraf active probes |
+| netmon:docsis       | netmon_metrics | Cable modem SNMP       |
+| netmon:sat          | netmon_metrics | satellite uplink probe |
+| ipfix               | netflow        | UniFi NetFlow/IPFIX    |
+| honeypot:opencanary | honeypot       | OpenCanary tripwires   |
+| honeypot:tpot       | honeypot       | T-Pot deep sensor      |
 
 ## HEC Token Configuration
 

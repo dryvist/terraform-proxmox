@@ -15,7 +15,7 @@ notification gateway** that pages you on Slack and your phone in seconds.
 
 ## Architecture
 
-```
+```text
             EVERY live VLAN gets its own OpenCanary tripwire (DHCP/DNS-first LXC)
   Default Mgmt DNS  Core Storage Data Obs/Sec AI Apps Media Home Untrusted
     │      │    │    │     │      │     │     │   │     │     │       │
@@ -180,4 +180,8 @@ untrusted segment and never holds anything real.
 - [INFRASTRUCTURE_NUMBERING.md](./INFRASTRUCTURE_NUMBERING.md) — VMID scheme
 - [SPLUNK_INDEXES.md](./SPLUNK_INDEXES.md) — the `honeypot` index
 - [LOGGING_PIPELINE.md](./LOGGING_PIPELINE.md) — syslog → Cribl → Splunk
-- Upstream: [T-Pot](https://github.com/telekom-security/tpotce) · [OpenCanary](https://github.com/thinkst/opencanary) · [Apprise](https://github.com/caronc/apprise) · [awesome-honeypots](https://github.com/paralax/awesome-honeypots)
+- Upstream:
+  [T-Pot](https://github.com/telekom-security/tpotce) ·
+  [OpenCanary](https://github.com/thinkst/opencanary) ·
+  [Apprise](https://github.com/caronc/apprise) ·
+  [awesome-honeypots](https://github.com/paralax/awesome-honeypots)

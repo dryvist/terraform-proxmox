@@ -91,37 +91,10 @@ locals {
     { proto = "tcp", dport = tostring(local.vector_db_ports.qdrant_grpc), source = local.internal_src, comment = "Qdrant gRPC from internal" },
   ]
 
-  # Honeypot decoy surface: the low-interaction services each per-VLAN OpenCanary
-  # tripwire emulates. ACCEPT+log from internal so any touch on a fake service
-  # trips an alert (the whole point — these are NOT real services). SSH (22) is
-  # already opened by internal_access. Ports are DRY from honeypot_ports.
-  honeypot_services_rules = [
-    { proto = "tcp", dport = tostring(local.honeypot_ports.ftp), source = local.internal_src, comment = "Honeypot FTP decoy from internal" },
-    { proto = "tcp", dport = tostring(local.honeypot_ports.telnet), source = local.internal_src, comment = "Honeypot Telnet decoy from internal" },
-    { proto = "tcp", dport = tostring(local.honeypot_ports.http), source = local.internal_src, comment = "Honeypot HTTP decoy from internal" },
-    { proto = "tcp", dport = tostring(local.honeypot_ports.https), source = local.internal_src, comment = "Honeypot HTTPS decoy from internal" },
-    { proto = "tcp", dport = tostring(local.honeypot_ports.smb), source = local.internal_src, comment = "Honeypot SMB decoy from internal" },
-    { proto = "tcp", dport = tostring(local.honeypot_ports.mssql), source = local.internal_src, comment = "Honeypot MSSQL decoy from internal" },
-    { proto = "tcp", dport = tostring(local.honeypot_ports.mysql), source = local.internal_src, comment = "Honeypot MySQL decoy from internal" },
-    { proto = "tcp", dport = tostring(local.honeypot_ports.postgres), source = local.internal_src, comment = "Honeypot PostgreSQL decoy from internal" },
-    { proto = "tcp", dport = tostring(local.honeypot_ports.rdp), source = local.internal_src, comment = "Honeypot RDP decoy from internal" },
-    { proto = "tcp", dport = tostring(local.honeypot_ports.vnc), source = local.internal_src, comment = "Honeypot VNC decoy from internal" },
-    { proto = "tcp", dport = tostring(local.honeypot_ports.redis), source = local.internal_src, comment = "Honeypot Redis decoy from internal" },
-    { proto = "tcp", dport = tostring(local.honeypot_ports.git), source = local.internal_src, comment = "Honeypot git decoy from internal" },
-    { proto = "tcp", dport = tostring(local.honeypot_ports.http_proxy), source = local.internal_src, comment = "Honeypot HTTP-proxy decoy from internal" },
-    { proto = "udp", dport = tostring(local.honeypot_ports.snmp), source = local.internal_src, comment = "Honeypot SNMP decoy from internal" },
-    { proto = "udp", dport = tostring(local.honeypot_ports.sip), source = local.internal_src, comment = "Honeypot SIP decoy from internal" },
-    { proto = "udp", dport = tostring(local.honeypot_ports.tftp), source = local.internal_src, comment = "Honeypot TFTP decoy from internal" },
-    { proto = "udp", dport = tostring(local.honeypot_ports.ntp), source = local.internal_src, comment = "Honeypot NTP decoy from internal" },
-  ]
-
-  # The honeypot-notify gateway (apprise-api) inbound surface: just its REST port.
-  # Open egress is set on its firewall_options (output_policy ACCEPT) so it can
-  # reach external notifiers (Slack/Pushover/ntfy.sh) — same posture as the
-  # Mailpit/ntfy notification containers.
-  honeypot_notify_services_rules = [
-    { proto = "tcp", dport = tostring(local.honeypot_ports.apprise_api), source = local.internal_src, comment = "apprise-api alert gateway from internal" },
-  ]
+  # honeypot_services_rules + honeypot_notify_services_rules are defined in
+  # honeypot_rules.tf (alongside the honeypot resources) to keep this file under
+  # the shared _file-size workflow's 12 KB limit. locals merge across files in a
+  # module, so the rule lists referenced by the security groups resolve the same.
 
   apt_cacher_ng_services_rules = [
     { proto = "tcp", dport = tostring(local.svc_ports.apt_cacher_ng), source = local.internal_src, comment = "apt-cacher-ng from internal" },
