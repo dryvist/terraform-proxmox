@@ -21,17 +21,19 @@ locals {
     minio            = { backend = "minio", port = local.pipeline_constants.service_ports.minio_console }
     "object-storage" = { backend = "object-storage", port = local.pipeline_constants.service_ports.object_storage_console }
     infisical        = { backend = "infisical", port = local.pipeline_constants.service_ports.infisical_api }
-    openbao          = { backend = "openbao1", port = local.pipeline_constants.service_ports.openbao_api }
-    mailpit          = { backend = "mailpit", port = local.pipeline_constants.notification_ports.mailpit_web }
-    ntfy             = { backend = "ntfy", port = local.pipeline_constants.notification_ports.ntfy_http }
-    homeassistant    = { backend = "homeassistant", port = local.pipeline_constants.service_ports.homeassistant_web }
-    openproject      = { backend = "openproject", port = local.pipeline_constants.service_ports.openproject_web }
-    prometheus       = { backend = "prometheus", port = local.pipeline_constants.service_ports.prometheus_web }
-    llm              = { backend = "hermes-chat", port = local.pipeline_constants.service_ports.open_webui_web }
-    ollama           = { backend = "hermes-infer", port = local.pipeline_constants.service_ports.ollama_api }
-    qdrant           = { backend = "qdrant", port = local.pipeline_constants.vector_db_ports.qdrant_http }
-    smokeping        = { backend = "smokeping", port = local.pipeline_constants.service_ports.smokeping_web }
-    "haproxy-stats"  = { backend = "haproxy", port = local.pipeline_constants.service_ports.haproxy_stats }
+    # openbao is intentionally NOT here: it is a 3-node Raft HA cluster, fronted
+    # as a load-balanced multi-backend pool (openbao_backends below) so the
+    # ingress survives a single node loss — not a single-backend route.
+    mailpit         = { backend = "mailpit", port = local.pipeline_constants.notification_ports.mailpit_web }
+    ntfy            = { backend = "ntfy", port = local.pipeline_constants.notification_ports.ntfy_http }
+    homeassistant   = { backend = "homeassistant", port = local.pipeline_constants.service_ports.homeassistant_web }
+    openproject     = { backend = "openproject", port = local.pipeline_constants.service_ports.openproject_web }
+    prometheus      = { backend = "prometheus", port = local.pipeline_constants.service_ports.prometheus_web }
+    llm             = { backend = "hermes-chat", port = local.pipeline_constants.service_ports.open_webui_web }
+    ollama          = { backend = "hermes-infer", port = local.pipeline_constants.service_ports.ollama_api }
+    qdrant          = { backend = "qdrant", port = local.pipeline_constants.vector_db_ports.qdrant_http }
+    smokeping       = { backend = "smokeping", port = local.pipeline_constants.service_ports.smokeping_web }
+    "haproxy-stats" = { backend = "haproxy", port = local.pipeline_constants.service_ports.haproxy_stats }
   }
 
   # Proxmox cluster UI apex backend pool. Every commissioned node's web UI is
@@ -44,6 +46,17 @@ locals {
   proxmox_ui_backends = [
     for name, n in var.nodes : "${n.role}.${var.domain}"
     if n.commissioned
+  ]
+
+  # OpenBao 3-node Raft HA backend pool. The three peers (openbao1/2/3) are
+  # load-balanced behind a single openbao.<domain> route with health checks, so
+  # a node loss drops only that node from the pool and the ingress stays up.
+  # Standby peers transparently forward API requests to the active node, so the
+  # client sees one logical endpoint. Skips any peer not yet in var.containers
+  # (partial deployment never emits a dangling backend).
+  openbao_backends = [
+    for k in ["openbao1", "openbao2", "openbao3"] : local.container_address[k]
+    if contains(keys(var.containers), k)
   ]
 
   # Assembled routes: one {name, ip, port} per fronted service whose backend
@@ -99,6 +112,18 @@ locals {
         port         = local.pipeline_constants.service_ports.proxmox_web
         scheme       = "https"
         insecure_tls = true
+        sticky       = true
+        health_check = true
+      }
+    ] : [],
+    # OpenBao HA: one openbao.<domain> route load-balancing the 3 Raft peers.
+    # backends (plural) -> multi-server loadBalancer; health_check drops a down
+    # node; sticky keeps a browser UI session pinned. Omitted if no peer exists.
+    length(local.openbao_backends) > 0 ? [
+      {
+        name         = "openbao"
+        backends     = local.openbao_backends
+        port         = local.pipeline_constants.service_ports.openbao_api
         sticky       = true
         health_check = true
       }

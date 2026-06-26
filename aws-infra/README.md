@@ -80,55 +80,9 @@ nix develop "github:JacobPEvans/nix-devenv?dir=shells/terraform" --command bash 
 
 ## Modules
 
-| Module          | Purpose                                           |
-| --------------- | ------------------------------------------------- |
-| route53-records | Manages A record for Proxmox VE UI domain         |
-| openbao-unseal  | KMS key + scoped IAM user for OpenBao auto-unseal |
-
-## OpenBao Auto-Unseal
-
-The `openbao-unseal` module provisions an AWS KMS key and a least-privilege IAM
-user that OpenBao nodes use for AWS KMS auto-unseal. This removes the need to
-manually enter unseal keys after every OpenBao restart.
-
-> **WARNING — elevated AWS permissions required.**
->
-> Provisioning a KMS key + IAM user requires an AWS principal that holds:
->
-> - `kms:CreateKey`
-> - `kms:CreateAlias`
-> - `iam:CreateUser`
-> - `iam:PutUserPolicy`
-> - `iam:CreateAccessKey`
->
-> The aws-infra provider's current Route53-scoped credentials (`AWS_ROUTE53_*`)
-> most likely **LACK** these permissions. Do **NOT** silently assume the
-> existing credentials work. Apply this unit with an admin-capable principal —
-> e.g. the `tf-proxmox` profile if it carries IAM/KMS permissions, or a
-> dedicated bootstrap user.
-
-The IAM user policy grants only `kms:Encrypt`, `kms:Decrypt`, and
-`kms:DescribeKey` on the single created key ARN — nothing more.
-
-### Loading outputs into Doppler
-
-After a successful apply, load the module outputs into Doppler so the OpenBao
-nodes can authenticate to KMS:
-
-| Terraform output                   | Doppler secret                          |
-| ---------------------------------- | --------------------------------------- |
-| `openbao_unseal_access_key_id`     | `OPENBAO_UNSEAL_AWS_ACCESS_KEY_ID`      |
-| `openbao_unseal_secret_access_key` | `OPENBAO_UNSEAL_AWS_SECRET_ACCESS_KEY`  |
-| `openbao_unseal_kms_key_id`        | `OPENBAO_KMS_KEY_ID`                    |
-| `aws_region`                       | `OPENBAO_KMS_REGION`                    |
-
-The `openbao_unseal_secret_access_key` output is marked `sensitive`; read it
-with `terragrunt output -raw openbao_unseal_secret_access_key`.
-
-### Disabling
-
-Set `enable_openbao_unseal = false` to skip provisioning the KMS key and IAM
-user (mirrors the `enable_route53_dns` toggle).
+| Module          | Purpose                                   |
+| --------------- | ----------------------------------------- |
+| route53-records | Manages A record for Proxmox VE UI domain |
 
 ## Cross-Reference with Proxmox
 
