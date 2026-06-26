@@ -45,7 +45,12 @@
             "media/tv": { "quota": "2T", "properties": { "recordsize": "1M", "compression": "zstd" } },
             "media/movies": { "quota": "2T", "properties": { "recordsize": "1M", "compression": "zstd" } },
             "appdata": { "quota": "100G", "properties": { "recordsize": "16K", "atime": "off", "compression": "zstd" } },
-            "appdata/plex": {}
+            "appdata/plex": {},
+            "appdata/sonarr": {},
+            "appdata/radarr": {},
+            "appdata/qbittorrent": {},
+            "appdata/prowlarr": {},
+            "appdata/seerr": {}
           }
         },
         "example-nvme": {
