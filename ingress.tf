@@ -119,13 +119,21 @@ locals {
     # OpenBao HA: one openbao.<domain> route load-balancing the 3 Raft peers.
     # backends (plural) -> multi-server loadBalancer; health_check drops a down
     # node; sticky keeps a browser UI session pinned. Omitted if no peer exists.
+    #
+    # health_check_path forces ?standbyok=true: only the active OpenBao peer
+    # returns 200 on /v1/sys/health — standby peers return 429, which Traefik
+    # would otherwise read as unhealthy and evict from the pool, killing the
+    # standby-forwarding the HA design depends on. ?standbyok=true makes standbys
+    # return 200 so they stay in the pool. The `traefik` role renders this path
+    # for the route's health check (defaulting to "/" when unset).
     length(local.openbao_backends) > 0 ? [
       {
-        name         = "openbao"
-        backends     = local.openbao_backends
-        port         = local.pipeline_constants.service_ports.openbao_api
-        sticky       = true
-        health_check = true
+        name              = "openbao"
+        backends          = local.openbao_backends
+        port              = local.pipeline_constants.service_ports.openbao_api
+        sticky            = true
+        health_check      = true
+        health_check_path = "/v1/sys/health?standbyok=true"
       }
     ] : []
   )

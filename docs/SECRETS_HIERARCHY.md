@@ -49,6 +49,10 @@ OpenBao up), these live in Doppler tier-0, never in OpenBao:
 - **3-node Raft HA** (quorum 2) — survives one node loss with no downtime.
 - **On-prem static-key auto-unseal** — each node self-unseals on reboot from the
   seal key in its 0600 EnvironmentFile (sourced from Doppler tier-0). No cloud.
+  The 0600 EnvironmentFile is the at-rest exposure of the seal key: a node-disk
+  or backup compromise yields the key and thus the vault. Encrypt the underlying
+  VM/LXC disks at the Proxmox host (LUKS or ZFS native encryption) so the key —
+  and the Raft data it unseals — is protected at rest on disk and in snapshots.
 - **Automated encrypted snapshots** → on-prem `s3` bucket `openbao-snapshots` +
   NAS + offsite-encrypted. Snapshots are encrypted at rest; restore needs the
   seal key (Doppler) OR the recovery shares (paper).
