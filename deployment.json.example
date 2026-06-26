@@ -24,7 +24,8 @@
 
   "pools": {
     "logging": { "comment": "Logging and observability infrastructure" },
-    "infrastructure": { "comment": "Core infrastructure services" }
+    "infrastructure": { "comment": "Core infrastructure services" },
+    "ai": { "comment": "AI orchestration tier (n8n, Dify, LangFlow, agent-exec)" }
   },
 
   "datastores": {},

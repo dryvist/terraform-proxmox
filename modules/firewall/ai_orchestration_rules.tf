@@ -72,9 +72,14 @@ resource "proxmox_virtual_environment_firewall_rules" "ai_orchestration_containe
     comment        = "Internal access (SSH, ICMP)"
   }
 
-  rule {
-    security_group = proxmox_virtual_environment_cluster_firewall_security_group.ai_orchestration_services.name
-    comment        = "AI orchestration UIs (n8n, LangFlow, Dify)"
+  # agent-exec is an egress-only runtime (no web UI) — skip the UI security group
+  # for it so ports 5678/7860/80 are not opened on a guest that never serves them.
+  dynamic "rule" {
+    for_each = each.key != "agent-exec" ? [1] : []
+    content {
+      security_group = proxmox_virtual_environment_cluster_firewall_security_group.ai_orchestration_services.name
+      comment        = "AI orchestration UIs (n8n, LangFlow, Dify)"
+    }
   }
 
   rule {
