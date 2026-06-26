@@ -105,6 +105,16 @@ resource "proxmox_virtual_environment_firewall_rules" "pipeline_container" {
     }
   }
 
+  # Cribl Edge only: native OTLP ingest (traces/metrics/logs) from the AI
+  # orchestration apps on the ai VLAN. HAProxy in the same group gets no OTLP.
+  dynamic "rule" {
+    for_each = contains(keys(var.cribl_edge_container_ids), each.key) ? [1] : []
+    content {
+      security_group = proxmox_virtual_environment_cluster_firewall_security_group.otel_ingest.name
+      comment        = "OTLP ingest (traces/metrics/logs) from the AI VLAN"
+    }
+  }
+
   depends_on = [proxmox_virtual_environment_firewall_options.pipeline_container]
 }
 

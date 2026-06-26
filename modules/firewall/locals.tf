@@ -25,6 +25,11 @@ locals {
   # Comma-separated internal networks for use in source/dest fields
   internal_src = join(",", var.internal_networks)
 
+  # AI VLAN CIDR — least-privilege source for the Cribl Edge OTLP ingest path
+  # (only AI-orchestration apps emit OpenTelemetry). Inter-VLAN policy is also
+  # enforced at UniFi; this scopes the Proxmox guest firewall to match.
+  ai_src = var.ai_network
+
   # Local aliases to keep rule definitions readable
   svc_ports          = var.pipeline_constants.service_ports
   syslog_port_map    = var.pipeline_constants.syslog_port_map
@@ -160,5 +165,31 @@ locals {
     { proto = "tcp", dport = tostring(local.svc_ports.blackbox_exporter), source = local.internal_src, comment = "blackbox_exporter Prometheus metrics (TCP ${local.svc_ports.blackbox_exporter}) from internal" },
     { proto = "tcp", dport = tostring(local.svc_ports.atlas_exporter), source = local.internal_src, comment = "atlas_exporter (RIPE Atlas) Prometheus metrics (TCP ${local.svc_ports.atlas_exporter}) from internal" },
     { proto = "udp", dport = tostring(local.svc_ports.irtt), source = local.internal_src, comment = "irtt isochronous RTT/jitter server (UDP ${local.svc_ports.irtt}) from internal" },
+  ]
+
+  # AI orchestration UIs (n8n, LangFlow, Dify) — inbound from internal so admins
+  # reach the builders; egress (model endpoints, external APIs) via outbound
+  # internal/HTTPS groups on the container. Ports DRY from pipeline_constants.
+  ai_orchestration_services_rules = [
+    { proto = "tcp", dport = tostring(local.svc_ports.n8n_web), source = local.internal_src, comment = "n8n web UI (TCP ${local.svc_ports.n8n_web}) from internal" },
+    { proto = "tcp", dport = tostring(local.svc_ports.langflow_web), source = local.internal_src, comment = "LangFlow web UI (TCP ${local.svc_ports.langflow_web}) from internal" },
+    { proto = "tcp", dport = tostring(local.svc_ports.dify_web), source = local.internal_src, comment = "Dify web UI (TCP ${local.svc_ports.dify_web}) from internal" },
+  ]
+
+  # Langfuse — web UI + OTLP-receive on the same port (path-based). Inbound from
+  # internal covers both the admin UI and Cribl's trace push from the pipeline VLAN.
+  langfuse_services_rules = [
+    { proto = "tcp", dport = tostring(local.svc_ports.langfuse_web), source = local.internal_src, comment = "Langfuse web + OTLP ingest (TCP ${local.svc_ports.langfuse_web}) from internal" },
+  ]
+
+  # OTEL ingest on Cribl Edge — native OTLP sources, one port per signal type
+  # (traces/metrics/logs, gRPC+HTTP). Scoped to the AI VLAN (ai_src): only the
+  # AI-orchestration apps emit here. All ports are TCP. DRY from pipeline_constants.
+  otel_ingest_rules = [
+    { proto = "tcp", dport = join(",", [
+      tostring(local.svc_ports.otel_traces_grpc), tostring(local.svc_ports.otel_traces_http),
+      tostring(local.svc_ports.otel_metrics_grpc), tostring(local.svc_ports.otel_metrics_http),
+      tostring(local.svc_ports.otel_logs_grpc), tostring(local.svc_ports.otel_logs_http),
+    ]), source = local.ai_src, comment = "OTLP ingest (traces/metrics/logs gRPC+HTTP) from the AI VLAN" },
   ]
 }

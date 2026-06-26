@@ -99,10 +99,27 @@ variable "hermes_agent_container_ids" {
   default     = {}
 }
 
+variable "ai_orchestration_container_ids" {
+  description = "Map of AI orchestration LXC names to IDs (tag-driven: n8n, Dify, LangFlow, agent-exec). Inbound UI ports from internal + outbound internal/HTTPS (model endpoints, external APIs)."
+  type        = map(number)
+  default     = {}
+}
+
+variable "langfuse_container_ids" {
+  description = "Map of Langfuse LLM-observability LXC names to IDs (tag-driven). Inbound web/OTLP-ingest (3000) from internal + outbound internal/HTTPS."
+  type        = map(number)
+  default     = {}
+}
+
 variable "management_network" {
   description = "CIDR of management network for SSH/Web access. Configure in terraform.tfvars for your environment."
   type        = string
   # No default - must be specified in .tfvars for environment-specific configuration
+}
+
+variable "ai_network" {
+  description = "CIDR of the AI VLAN — source scope for the Cribl Edge OTLP ingest (only AI-orchestration apps emit OpenTelemetry). Derived from the Doppler-sourced network_cidrs map in root locals; never committed."
+  type        = string
 }
 
 variable "splunk_network" {

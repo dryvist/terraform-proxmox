@@ -120,6 +120,11 @@ locals {
   # the Proxmox host firewall keeps host-local protection only.
   management_network = nonsensitive(var.network_cidrs["compute"])
 
+  # AI VLAN CIDR — least-privilege source for the Cribl Edge OTLP ingest path.
+  # nonsensitive(): a single VLAN CIDR must flow into the firewall module input;
+  # the full network_cidrs map stays sensitive.
+  ai_network = nonsensitive(var.network_cidrs["ai"])
+
   # Splunk cluster IPs (host-form, no mask) for the firewall splunk-cluster
   # rules: the Splunk VM on siem + any containers tagged "splunk" (e.g.
   # splunk-mgmt), each at its own VLAN address.
@@ -233,5 +238,19 @@ locals {
   hermes_agent_container_ids = {
     for k, v in var.containers : k => v.vm_id
     if contains(coalesce(try(v.tags, null), []), "hermes-agent")
+  }
+
+  # AI orchestration LXCs (ai-orchestration tag): n8n, Dify, LangFlow, agent-exec.
+  # Inbound UI ports from internal + outbound internal/HTTPS (model endpoints,
+  # external APIs). agent-exec carries the tag too (egress-only; no UI rule fires).
+  ai_orchestration_container_ids = {
+    for k, v in var.containers : k => v.vm_id
+    if contains(coalesce(try(v.tags, null), []), "ai-orchestration")
+  }
+
+  # Langfuse LLM-observability LXC (langfuse tag): web + OTLP ingest on 3000.
+  langfuse_container_ids = {
+    for k, v in var.containers : k => v.vm_id
+    if contains(coalesce(try(v.tags, null), []), "langfuse")
   }
 }

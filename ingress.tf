@@ -32,6 +32,11 @@ locals {
     llm             = { backend = "hermes-chat", port = local.pipeline_constants.service_ports.open_webui_web }
     ollama          = { backend = "hermes-infer", port = local.pipeline_constants.service_ports.ollama_api }
     qdrant          = { backend = "qdrant", port = local.pipeline_constants.vector_db_ports.qdrant_http }
+    # AI orchestration stack UIs (ai VLAN) + Langfuse LLM observability (siem VLAN).
+    n8n             = { backend = "n8n", port = local.pipeline_constants.service_ports.n8n_web }
+    dify            = { backend = "dify", port = local.pipeline_constants.service_ports.dify_web }
+    langflow        = { backend = "langflow", port = local.pipeline_constants.service_ports.langflow_web }
+    langfuse        = { backend = "langfuse", port = local.pipeline_constants.service_ports.langfuse_web }
     smokeping       = { backend = "smokeping", port = local.pipeline_constants.service_ports.smokeping_web }
     "haproxy-stats" = { backend = "haproxy", port = local.pipeline_constants.service_ports.haproxy_stats }
   }
