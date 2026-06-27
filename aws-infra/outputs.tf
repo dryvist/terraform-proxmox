@@ -32,31 +32,3 @@ output "acme_domain" {
   description = "Domain to use for ACME certificate requests"
   value       = var.proxmox_domain
 }
-
-# OpenBao auto-unseal outputs
-# Load these into Doppler for the OpenBao nodes (see aws-infra/README.md).
-output "openbao_unseal_kms_key_id" {
-  description = "KMS key ID for OpenBao auto-unseal"
-  value       = try(module.openbao_unseal[0].kms_key_id, "")
-}
-
-output "openbao_unseal_kms_key_arn" {
-  description = "KMS key ARN for OpenBao auto-unseal"
-  value       = try(module.openbao_unseal[0].kms_key_arn, "")
-}
-
-output "openbao_unseal_iam_user" {
-  description = "IAM user name the OpenBao nodes authenticate as for auto-unseal"
-  value       = try(module.openbao_unseal[0].unseal_iam_user, "")
-}
-
-output "openbao_unseal_access_key_id" {
-  description = "AWS access key ID for the OpenBao auto-unseal IAM user"
-  value       = try(module.openbao_unseal[0].unseal_access_key_id, "")
-}
-
-output "openbao_unseal_secret_access_key" {
-  description = "AWS secret access key for the OpenBao auto-unseal IAM user"
-  value       = try(module.openbao_unseal[0].unseal_secret_access_key, "")
-  sensitive   = true
-}

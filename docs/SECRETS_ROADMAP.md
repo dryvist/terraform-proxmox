@@ -115,6 +115,44 @@ aws-vault exec tf-proxmox -- doppler run -- terragrunt plan
 
 See [docs/SOPS_SETUP.md](./SOPS_SETUP.md) for full setup and usage instructions.
 
+### PLANNED-FOR-DEPLOY: Self-Hosted OpenBao (Machine / IaC Secrets Engine)
+
+<!-- DO NOT DELETE - Active planning item -->
+
+OpenBao is the machine/IaC/dynamic-secrets engine — the counterpart to Infisical
+(the human UI + developer integration hub). The two are domain-split with **no
+sync between them**. The IaC and Ansible roles exist; the cluster stands up in
+Phase 1.
+
+**Architecture:**
+
+- **3-node Raft HA** — `openbao1`/`openbao2`/`openbao3` spread across
+  `proxmox-1`/`proxmox-2`/`proxmox-3` on the apps VLAN. Quorum 2 survives one
+  node loss with no downtime.
+- **On-prem static-key auto-unseal (no cloud)** — each node self-unseals on
+  reboot from a 32-byte AES-256 seal key in its `0600` EnvironmentFile, sourced
+  from Doppler tier-0. This replaces the earlier AWS-KMS unseal design; the seal
+  carries no cloud dependency.
+- **Automated encrypted Raft snapshots** → on-prem `s3` bucket
+  `openbao-snapshots` + NAS + offsite-encrypted.
+- **Paper break-glass** — recovery shares (5, threshold 3) + initial root token
+  transcribed to paper and split across custodians.
+
+**Tier-0 kernel (stays OUT of OpenBao):**
+
+These bootstrap OpenBao itself, so they live in Doppler tier-0 and never migrate
+in — otherwise a cold cluster could not unseal itself:
+
+| Doppler tier-0 secret | Purpose |
+| --- | --- |
+| `OPENBAO_STATIC_SEAL_KEY` | 32-byte AES-256 auto-unseal key (base64) |
+| `OPENBAO_STATIC_SEAL_KEY_ID` | Seal-key rotation id (e.g. `YYYYMMDD-1`) |
+| `VAULT_ADDR` | OpenBao API address |
+| `VAULT_ROLE_ID` / `VAULT_SECRET_ID` | Terraform AppRole credentials |
+
+See [docs/SECRETS_HIERARCHY.md](./SECRETS_HIERARCHY.md) for the KV v2
+categorization and RBAC groups (including least-privilege AI-agent groups).
+
 ### PLANNED: Self-Hosted Infisical
 
 <!-- DO NOT DELETE - Active planning item -->
@@ -172,8 +210,13 @@ SOPS + Age (ACTIVE) — deployment config (not credentials)
     └── sops_decrypt_file() ──→ Terragrunt inputs
         (proxmox_node, IPs, networks, container/VM definitions)
 
-Infisical (planned) — future replacement for Doppler
-└── Self-hosted ───────→ Replace/complement Doppler
+OpenBao (planned-for-deploy) — machine/IaC secrets engine
+└── 3-node Raft HA, on-prem static-key auto-unseal (no cloud)
+    └── AppRole (VAULT_ROLE_ID/SECRET_ID) ──→ Terraform/Ansible reads
+        (tier-0 kernel stays in Doppler; see SECRETS_HIERARCHY.md)
+
+Infisical (planned) — human UI + developer integration hub
+└── Self-hosted ───────→ domain-split from OpenBao (no sync)
 ```
 
 ## Migration Path
@@ -185,8 +228,11 @@ Current:  Doppler → credentials (API tokens, passwords, SSH keys)
 
 Near-term: + Extend SOPS pattern to ansible-proxmox-apps and ansible-splunk
            + Pre-commit guards against committing unencrypted secrets
+           + Stand up OpenBao 3-node Raft HA (Phase 1); new generated secrets
+             land greenfield-first in OpenBao, consumers read via AppRole
 
-Future:    Infisical (self-hosted) as primary credential manager
-           Doppler as fallback/migration source
+Future:    OpenBao (self-hosted) as the machine/IaC/dynamic-secrets engine
+           Infisical (self-hosted) as the human UI + developer integration hub
+           Doppler retains the tier-0 kernel (incl. OpenBao seal key) + fallback
            SOPS/Age continues for git-committed deployment config
 ```

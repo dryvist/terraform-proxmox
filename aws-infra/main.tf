@@ -31,35 +31,6 @@ module "route53_records" {
   environment        = var.environment
 }
 
-# =============================================================================
-# OpenBao auto-unseal — KMS key + scoped IAM user
-# =============================================================================
-# WARNING: ELEVATED AWS PERMISSIONS REQUIRED TO APPLY THIS MODULE.
-#
-# Provisioning a KMS key + IAM user requires an AWS principal that holds:
-#   kms:CreateKey, kms:CreateAlias, iam:CreateUser, iam:PutUserPolicy,
-#   iam:CreateAccessKey
-#
-# The aws-infra provider's current Route53-scoped credentials (AWS_ROUTE53_*)
-# most likely LACK these permissions. Do NOT assume the existing creds work.
-# Apply this unit with an admin-capable principal — e.g. the tf-proxmox profile
-# if it carries IAM/KMS permissions, or a dedicated bootstrap user.
-#
-# After apply, load the outputs into Doppler for the OpenBao nodes:
-#   unseal_access_key_id     -> OPENBAO_UNSEAL_AWS_ACCESS_KEY_ID
-#   unseal_secret_access_key -> OPENBAO_UNSEAL_AWS_SECRET_ACCESS_KEY
-#   kms_key_id               -> OPENBAO_KMS_KEY_ID
-#   aws_region               -> OPENBAO_KMS_REGION
-#
-# See aws-infra/README.md ("OpenBao Auto-Unseal") for the full procedure.
-# =============================================================================
-module "openbao_unseal" {
-  count  = var.enable_openbao_unseal ? 1 : 0
-  source = "./modules/openbao-unseal"
-
-  environment = var.environment
-}
-
 # Future AWS resources go here:
 # - IAM users/roles for Terraform
 # - S3 buckets for backups
