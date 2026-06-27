@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.45.0](https://github.com/dryvist/terraform-proxmox/compare/v1.44.0...v1.45.0) (2026-06-27)
+
+
+### Features
+
+* **openbao:** on-prem static-key unseal + HA ingress + secret hierarchy ([#496](https://github.com/dryvist/terraform-proxmox/issues/496)) ([a740a84](https://github.com/dryvist/terraform-proxmox/commit/a740a8490c0d3737244ab4ed576d4d25d768c8e0))
+
 ## [1.44.0](https://github.com/dryvist/terraform-proxmox/compare/v1.43.1...v1.44.0) (2026-06-24)
 
 
