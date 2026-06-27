@@ -59,9 +59,8 @@ locals {
       # Local LLM: Ollama API (CT 167 hermes-infer) + Open WebUI (CT 168 hermes-chat)
       ollama_api     = 11434
       open_webui_web = 8080
-      # AI orchestration stack web UIs (Traefik-fronted) — n8n, Dify, LangFlow,
-      # and Langfuse (LLM trace/cost/eval). ingress.tf references these constants.
-      n8n_web      = 5678
+      # AI orchestration stack web UIs (Traefik-fronted) — Dify, LangFlow, and
+      # Langfuse (LLM trace/cost/eval). ingress.tf references these constants.
       dify_web     = 80
       langflow_web = 7860
       langfuse_web = 3000

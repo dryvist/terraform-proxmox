@@ -180,7 +180,8 @@ Summary by pool:
   `splunk-mgmt` (SH + DS + LM + MC + CM)
 - **`ai`** — `claude-code-01/02`, `gemini-01/02`, `qdrant`, `llamaindex`,
   `hermes-infer` (Ollama LLM inference on the RX 6800 GPU), `hermes-chat`
-  (Open WebUI chat frontend)
+  (Open WebUI chat frontend), `dify`, `langflow` (LLM orchestration / flow
+  builders), `agent-exec` (CrewAI + LangChain runtime with OpenLLMetry tracing)
 - **`media`** (v1 pinned to the primary media node — `node_name`,
   `node_storage`, and ansible inventory label all aligned on that node;
   v2 lives on the secondary media node) — `download-vpn` (qBittorrent +
@@ -204,6 +205,18 @@ Notable per-container facts:
   `hermes-chat` runs Open WebUI, fronted by Traefik via the `llm` ingress; the
   `ollama` ingress exposes the raw API. Full write-up:
   [docs.jacobpevans.com/infrastructure/local-llm](https://docs.jacobpevans.com/infrastructure/local-llm).
+- The **AI orchestration tier** adds `dify` and `langflow` (Docker-in-LXC visual
+  LLM-flow builders, fronted by Traefik at the `dify` / `langflow` ingresses),
+  `agent-exec` (a plain-LXC Python runtime for CrewAI + LangChain code,
+  auto-instrumented with OpenLLMetry → OTLP), and `langfuse` (Langfuse v3 LLM
+  observability on the siem VLAN, `infrastructure` pool, OTLP trace ingest at
+  `:3000/api/public/otel`). Orchestration apps emit OpenTelemetry to Cribl Edge,
+  which forks traces to Langfuse and Splunk. The model endpoint each tool calls
+  resolves by DNS to an OpenAI-compatible runner, so the inference backend is
+  swappable without touching app config. **Tools evaluated:** n8n was
+  investigated and not adopted — its Community Edition gates features required
+  here, and its paid tiers cost more than the self-hosted alternatives even for
+  on-prem use.
 - `mailpit` and `ntfy` run Docker-in-LXC (`nesting: true`, `keyctl: true`) for
   internal notifications.
 - `download-vpn` is an unprivileged LXC with `/dev/net/tun` passed through

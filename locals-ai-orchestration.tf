@@ -7,7 +7,7 @@ locals {
   # the full network_cidrs map stays sensitive.
   ai_network = nonsensitive(var.network_cidrs["ai"])
 
-  # AI orchestration LXCs (ai-orchestration tag): n8n, Dify, LangFlow, agent-exec.
+  # AI orchestration LXCs (ai-orchestration tag): Dify, LangFlow, agent-exec.
   # Inbound UI ports from internal + outbound internal/HTTPS (model endpoints,
   # external APIs). agent-exec carries the tag too (egress-only; no UI rule fires).
   ai_orchestration_container_ids = {
