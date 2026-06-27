@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.46.0](https://github.com/dryvist/terraform-proxmox/compare/v1.45.0...v1.46.0) (2026-06-27)
+
+
+### Features
+
+* **ai:** firewall + ports + ingress for AI orchestration stack ([#494](https://github.com/dryvist/terraform-proxmox/issues/494)) ([abbaa0c](https://github.com/dryvist/terraform-proxmox/commit/abbaa0c2606c3d3f246f3d163b15c19ad0aae2ab))
+
 ## [1.45.0](https://github.com/dryvist/terraform-proxmox/compare/v1.44.0...v1.45.0) (2026-06-27)
 
 
