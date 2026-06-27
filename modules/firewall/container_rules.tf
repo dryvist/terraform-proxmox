@@ -105,6 +105,16 @@ resource "proxmox_virtual_environment_firewall_rules" "pipeline_container" {
     }
   }
 
+  # Cribl Edge only: native OTLP ingest (traces/metrics/logs) from the AI
+  # orchestration apps on the ai VLAN. HAProxy in the same group gets no OTLP.
+  dynamic "rule" {
+    for_each = contains(keys(var.cribl_edge_container_ids), each.key) ? [1] : []
+    content {
+      security_group = proxmox_virtual_environment_cluster_firewall_security_group.otel_ingest.name
+      comment        = "OTLP ingest (traces/metrics/logs) from the AI VLAN"
+    }
+  }
+
   depends_on = [proxmox_virtual_environment_firewall_options.pipeline_container]
 }
 
@@ -308,45 +318,9 @@ resource "proxmox_virtual_environment_firewall_rules" "rag_container" {
   depends_on = [proxmox_virtual_environment_firewall_options.rag_container]
 }
 
-# MinIO containers (S3-compatible — API 9000, Console 9001)
-
-resource "proxmox_virtual_environment_firewall_options" "minio_container" {
-  for_each = var.minio_container_ids
-
-  node_name     = var.node_name
-  container_id  = each.value
-  enabled       = local.firewall_defaults.enabled
-  input_policy  = local.firewall_defaults.input_policy
-  output_policy = local.firewall_defaults.output_policy
-  log_level_in  = local.firewall_defaults.log_level_in
-  log_level_out = local.firewall_defaults.log_level_out
-
-  depends_on = [proxmox_virtual_environment_cluster_firewall.main]
-}
-
-resource "proxmox_virtual_environment_firewall_rules" "minio_container" {
-  for_each = var.minio_container_ids
-
-  node_name    = var.node_name
-  container_id = each.value
-
-  rule {
-    security_group = proxmox_virtual_environment_cluster_firewall_security_group.internal_access.name
-    comment        = "Internal access (SSH, ICMP)"
-  }
-
-  rule {
-    security_group = proxmox_virtual_environment_cluster_firewall_security_group.minio_services.name
-    comment        = "MinIO services (TCP/9000 API, TCP/9001 Console)"
-  }
-
-  rule {
-    security_group = proxmox_virtual_environment_cluster_firewall_security_group.outbound_internal.name
-    comment        = "Outbound to internal only"
-  }
-
-  depends_on = [proxmox_virtual_environment_firewall_options.minio_container]
-}
+# MinIO container firewall resources live in modules/firewall/minio_rules.tf
+# (extracted to keep container_rules.tf under the shared _file-size 12 KB error
+# threshold; minio is deprecated and removed after the RustFS cutover soak).
 
 # Object storage container firewall resources: modules/firewall/object_storage_rules.tf
 

@@ -59,6 +59,22 @@ locals {
       # Local LLM: Ollama API (CT 167 hermes-infer) + Open WebUI (CT 168 hermes-chat)
       ollama_api     = 11434
       open_webui_web = 8080
+      # AI orchestration stack web UIs (Traefik-fronted) — n8n, Dify, LangFlow,
+      # and Langfuse (LLM trace/cost/eval). ingress.tf references these constants.
+      n8n_web      = 5678
+      dify_web     = 80
+      langflow_web = 7860
+      langfuse_web = 3000
+      # OpenTelemetry ingest on Cribl Edge — native OTLP sources, one port per
+      # signal type (gRPC/HTTP) so Cribl routes by type without inspecting payload.
+      # AI orchestration apps (OpenLLMetry) emit here; Cribl forks to Langfuse +
+      # Splunk. Standalone sources, unrelated to the cc-edge-copilot-otel pack.
+      otel_traces_grpc  = 4317
+      otel_traces_http  = 4318
+      otel_metrics_grpc = 4327
+      otel_metrics_http = 4328
+      otel_logs_grpc    = 4337
+      otel_logs_http    = 4338
       # Network-quality monitoring (Prometheus-native stack — see docs/SMOKEPING.md):
       #   smokeping_web      — SmokePing RRD/CGI UI (optional, fronted by Traefik)
       #   speedtest_exporter — throughput (Mbps) exporter, scraped by Prometheus

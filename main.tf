@@ -237,6 +237,12 @@ module "firewall" {
   # Hermes Agent LXC: tagged "hermes-agent" (autonomous agent, broad HTTPS egress)
   hermes_agent_container_ids = local.hermes_agent_container_ids
 
+  # AI orchestration LXCs: tagged "ai-orchestration" (n8n, Dify, LangFlow, agent-exec)
+  ai_orchestration_container_ids = local.ai_orchestration_container_ids
+
+  # Langfuse LLM-observability LXC: tagged "langfuse"
+  langfuse_container_ids = local.langfuse_container_ids
+
   # Pipeline constants: single source of truth for service ports (DRY)
   pipeline_constants = local.pipeline_constants
 
@@ -244,6 +250,8 @@ module "firewall" {
   splunk_network     = join(",", local.splunk_network_ips)
   # Derived from the Doppler-sourced VLAN CIDR map (locals.tf) — no committed ranges.
   internal_networks = local.internal_networks
+  # AI VLAN CIDR — least-privilege source scope for the Cribl Edge OTLP ingest.
+  ai_network = local.ai_network
 
   depends_on = [module.vms, module.containers, module.splunk_vm]
 }
