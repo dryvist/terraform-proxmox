@@ -1,6 +1,6 @@
 ---
 name: deployment-json-source-of-truth
-description: deployment.json is the single source of truth for all Terraform infrastructure config; it is a single-writer S3 object and terraform.tfvars must never exist
+description: deployment.json is the single source of truth for Terraform config; it is a single-writer S3 object and terraform.tfvars must never exist
 type: feedback
 ---
 
@@ -34,15 +34,15 @@ only. The repo keeps only `deployment.json.example`. Read/edit recipe:
   immediately: `rm terraform.tfvars`.
 - One writer at a time: the OpenTofu state lock serializes applies and
   `-lock-timeout` makes concurrent runs wait. Don't bypass it.
-- Container keys MUST match the Terraform state keys exactly — a mismatch
+- Container and VM keys MUST match the Terraform state keys exactly — a mismatch
   triggers destroy + recreate. Verify against `terragrunt state list` first.
   (Authoring details: see the contract page above.)
 
 **Repo-specific layer split (not on the public page — installation-specific):**
 
-- SOPS (`terraform.sops.json`) holds 5 env-specific values (not necessarily
-  secret, but installation-specific — they'd reveal private infra details if
-  committed plaintext): `network_prefix`, `domain`, `vm_ssh_public_key_path`,
-  `vm_ssh_private_key_path`, `proxmox_ssh_username`.
+- SOPS (`terraform.sops.json`) holds installation-specific values (not
+  necessarily secret, but they'd reveal private infra details if committed
+  plaintext): `network_prefix`, `domain`, the `vm_ssh_*` key paths,
+  `proxmox_ssh_username`, and `rack_servers` (BMC IPs/MACs, chassis, service tags).
 - Doppler holds only runtime credentials: `PROXMOX_VE_*`, `SPLUNK_*`,
   `PROXMOX_SSH_PRIVATE_KEY`.
