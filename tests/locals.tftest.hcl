@@ -139,8 +139,8 @@ run "splunk_derived_ip_uses_siem_vlan" {
   command = plan
 
   assert {
-    condition     = local.splunk_derived_ip == "192.168.20.200/24"
-    error_message = "splunk_derived_ip should be siem-VLAN 192.168.20.200/24, got ${local.splunk_derived_ip}"
+    condition     = local.splunk_derived_ip == "192.168.20.99/24"
+    error_message = "splunk_derived_ip should be siem-VLAN 192.168.20.99/24 (placeholder default splunk_vm_id), got ${local.splunk_derived_ip}"
   }
 
   assert {
@@ -188,8 +188,8 @@ run "splunk_network_ips_default_no_containers" {
   }
 
   assert {
-    condition     = contains(local.splunk_network_ips, "192.168.20.200")
-    error_message = "splunk_network_ips should contain splunk VM IP 192.168.20.200"
+    condition     = contains(local.splunk_network_ips, "192.168.20.99")
+    error_message = "splunk_network_ips should contain splunk VM IP 192.168.20.99 (placeholder default)"
   }
 }
 
@@ -208,7 +208,7 @@ run "splunk_network_ips_includes_splunk_tagged_container" {
   }
 
   assert {
-    condition     = contains(local.splunk_network_ips, "192.168.20.200")
+    condition     = contains(local.splunk_network_ips, "192.168.20.99")
     error_message = "splunk_network_ips must include splunk VM IP"
   }
 
@@ -453,7 +453,7 @@ run "monitoring_ids_picks_up_monitoring_tagged" {
   variables {
     containers = {
       "smokeping" = {
-        vm_id         = 412000
+        vm_id         = 990001
         dhcp          = true
         reserved_host = 30
         hostname      = "smokeping"
@@ -464,8 +464,8 @@ run "monitoring_ids_picks_up_monitoring_tagged" {
   }
 
   assert {
-    condition     = local.monitoring_container_ids["smokeping"] == 412000
-    error_message = "monitoring_container_ids should map 'smokeping' to its 6-digit VMID 412000"
+    condition     = local.monitoring_container_ids["smokeping"] == 990001
+    error_message = "monitoring_container_ids should map 'smokeping' to its 6-digit VMID 990001"
   }
 
   # DNS-first guest: no vm_id-derived IP. cidrhost is skipped (a 6-digit id would
@@ -486,7 +486,7 @@ run "container_dhcp_resolves_fqdn_and_null_gateway" {
     domain = "example.com"
     containers = {
       "speedtest" = {
-        vm_id         = 416000
+        vm_id         = 990002
         dhcp          = true
         reserved_host = 31
         hostname      = "speedtest"
@@ -508,7 +508,7 @@ run "container_dhcp_resolves_fqdn_and_null_gateway" {
 }
 
 # Static-IP exception host (a DNS server, reachable before DNS is up) carrying a
-# 7-digit positional VMID. cidrhost(<dns cidr>, 5310010) would overflow the /24,
+# 7-digit positional VMID. cidrhost(<dns cidr>, 9900001) would overflow the /24,
 # so this run only passes because the static ip_config short-circuits the derive
 # branch — the regression guard for the coalesce -> if/else change in locals.tf.
 run "container_static_ip_with_positional_vmid_skips_cidrhost" {
@@ -517,7 +517,7 @@ run "container_static_ip_with_positional_vmid_skips_cidrhost" {
   variables {
     containers = {
       "technitium-dns-2" = {
-        vm_id     = 5310010
+        vm_id     = 9900001
         hostname  = "technitium-dns-2"
         vlan      = "dns"
         ip_config = { ipv4_address = "192.168.2.3/24" }
@@ -605,7 +605,7 @@ run "container_mac_is_deterministic_locally_administered" {
   variables {
     containers = {
       "smokeping" = {
-        vm_id         = 412000
+        vm_id         = 990001
         dhcp          = true
         reserved_host = 30
         hostname      = "smokeping"
@@ -644,7 +644,7 @@ run "container_reserved_ip_from_reserved_host" {
       # DHCP-first media-VLAN guest: reserved_host 210 -> 192.168.55.210, decoupled
       # from the 6-digit positional vm_id (which the /24 cidrhost math can't express).
       "netq-probe-media" = {
-        vm_id         = 415000
+        vm_id         = 990003
         dhcp          = true
         reserved_host = 210
         hostname      = "netq-probe-media"
