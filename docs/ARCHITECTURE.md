@@ -190,58 +190,45 @@ Summary by pool:
 
 Notable per-container facts:
 
-- `haproxy` LXC fronts syslog on standard ports 514-518 (UDP/TCP, forwarded
-  to Cribl Edge backends 1514-1518) and NetFlow 2055 (UDP) — see
-  [LOGGING_PIPELINE.md](./LOGGING_PIPELINE.md).
-- `cribl-edge-01/02` (port 9420 API) and `cribl-stream-01/02` (port 9000 API)
-  form the two-tier processing pipeline.
-- `splunk-mgmt` is the LXC search head + deployment server + license manager +
-  monitoring console + cluster manager. The `splunk-aio` VM 200 is the
-  dedicated indexing node.
+- `haproxy` LXC fronts syslog 514-518 (UDP/TCP → Cribl Edge backends 1514-1518)
+  and NetFlow 2055 (UDP) — see [LOGGING_PIPELINE.md](./LOGGING_PIPELINE.md).
+- `cribl-edge-01/02` (API 9420) + `cribl-stream-01/02` (API 9000) form the
+  two-tier pipeline.
+- `splunk-mgmt` runs the Splunk management roles (SH/DS/LM/MC/CM); the
+  `splunk-aio` VM 200 is the dedicated indexer.
 - `hermes-infer` is a **privileged** LXC with the AMD RX 6800 passed through
-  (`/dev/kfd` + `/dev/dri`, via the `ansible-proxmox` `lxc_gpu_features` role)
-  running Ollama on ROCm; it serves the `hermes4` model (NousResearch
-  Hermes-4-14B) on port 11434 from a 120 GB volume at `/var/lib/ollama`.
-  `hermes-chat` runs Open WebUI, fronted by Traefik via the `llm` ingress; the
-  `ollama` ingress exposes the raw API. Full write-up:
-  [docs.jacobpevans.com/infrastructure/local-llm](https://docs.jacobpevans.com/infrastructure/local-llm).
-- The **AI orchestration tier** adds `dify` and `langflow` (Docker-in-LXC visual
-  LLM-flow builders, fronted by Traefik at the `dify` / `langflow` ingresses),
-  `agent-exec` (a plain-LXC Python runtime for CrewAI + LangChain code,
-  auto-instrumented with OpenLLMetry → OTLP), and `langfuse` (Langfuse v3 LLM
-  observability on the siem VLAN, `infrastructure` pool, OTLP trace ingest at
-  `:3000/api/public/otel`). Orchestration apps emit OpenTelemetry to Cribl Edge,
-  which forks traces to Langfuse and Splunk. The model endpoint each tool calls
-  resolves by DNS to an OpenAI-compatible runner, so the inference backend is
-  swappable without touching app config. **Tools evaluated:** n8n was
-  investigated and not adopted — its Community Edition gates features required
-  here, and its paid tiers cost more than the self-hosted alternatives even for
-  on-prem use.
+  (`/dev/kfd` + `/dev/dri`, via `ansible-proxmox` `lxc_gpu_features`) running
+  Ollama on ROCm; it serves `hermes4` (NousResearch Hermes-4-14B) on port 11434
+  from a 120 GB `/var/lib/ollama` volume.
+  `hermes-chat` runs Open WebUI (`llm` ingress); `ollama` exposes the raw API.
+  Full write-up: [local-llm](https://docs.jacobpevans.com/infrastructure/local-llm).
+- The **AI orchestration tier** — `dify`/`langflow` (Traefik-fronted) and
+  `agent-exec` on the `ai` VLAN, plus `langfuse` (Langfuse v3 observability on the
+  **siem** VLAN, `infrastructure` pool, OTLP ingest `:3000/api/public/otel`) —
+  emits OpenTelemetry to Cribl Edge, which forks traces to Langfuse + Splunk. Each
+  tool's model endpoint resolves by DNS to an OpenAI-compatible runner, so the
+  backend is swappable. **Tools evaluated:** n8n — not adopted; Community Edition
+  gates needed features and paid tiers cost more than self-hosted even on-prem.
 - `mailpit` and `ntfy` run Docker-in-LXC (`nesting: true`, `keyctl: true`) for
   internal notifications.
 - `download-vpn` is an unprivileged LXC with `/dev/net/tun` passed through
-  (`device_passthrough`) so WireGuard can create `wg0` inside the container.
-  The unified `bulk/data` dataset is bind-mounted from the media-node host as
-  `/data` (size-less `mount_points`) — a single filesystem so torrents and the
-  library hardlink with zero duplication; the `ansible-proxmox` `zfs_pools` role
-  provisions the dataset and `media_lxc_features` applies the mount ahead of use.
-  Egress is locked to the VPN by an in-LXC
-  nftables killswitch (config + continuous validation owned by
-  `ansible-proxmox-apps` `download_vpn` role); Proxmox-level firewall is
-  intentionally not applied to the media pool — the killswitch is the security
-  boundary.
+  (`device_passthrough`) so WireGuard creates `wg0` inside it. The unified
+  `bulk/data` dataset is bind-mounted from the media-node host as `/data`
+  (size-less `mount_points`) so torrents and the library hardlink with zero
+  duplication (`ansible-proxmox` `zfs_pools` provisions it; `media_lxc_features`
+  applies the mount). Egress is VPN-locked by an in-LXC nftables killswitch
+  (`ansible-proxmox-apps` `download_vpn` role); no Proxmox firewall on the media
+  pool — the killswitch is the boundary.
 - `sonarr`, `radarr`, `plex` are LAN-only (no VPN); they reach Prowlarr +
   qBittorrent on `download-vpn` over the LAN and read/write the same unified
   `bulk/data` (`/data`) dataset.
-- `traefik` (VMID 101) is the HTTPS reverse-proxy / TLS ingress on the
-  management VLAN (VLAN 5), co-located with `haproxy`; backends on other VLANs
-  are reached via inter-VLAN routing (UniFi allow rules per UI port). It
-  fronts every service web UI at `https://<name>.<subdomain>` (no ports) and
-  fetches + auto-renews a wildcard `*.<subdomain>` Let's Encrypt certificate
-  itself via the Route53 DNS-01 challenge (lego) — no inbound internet required.
-  Install, dynamic routers (generated from this inventory), and the cert
-  lifecycle are owned by the `ansible-proxmox-apps` `traefik` role; it
-  supersedes the legacy `nginx-proxy-manager` LXC.
+- `traefik` (VMID 101) is the HTTPS reverse-proxy / TLS ingress on the management
+  VLAN (VLAN 5), co-located with `haproxy`; other-VLAN backends are reached via
+  inter-VLAN routing (UniFi allow rules per UI port). It fronts every web UI at
+  `https://<name>.<subdomain>` and auto-renews a wildcard `*.<subdomain>` Let's
+  Encrypt cert via Route53 DNS-01 (lego) — no inbound internet. Install, dynamic
+  routers (from this inventory), and certs are owned by the `ansible-proxmox-apps`
+  `traefik` role; supersedes the legacy `nginx-proxy-manager`.
 
 #### Client reachability of `<name>.<subdomain>`
 
