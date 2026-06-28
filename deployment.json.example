@@ -25,7 +25,7 @@
   "pools": {
     "logging": { "comment": "Logging and observability infrastructure" },
     "infrastructure": { "comment": "Core infrastructure services" },
-    "ai": { "comment": "AI orchestration tier (n8n, Dify, LangFlow, agent-exec)" }
+    "ai": { "comment": "AI orchestration tier (Dify, LangFlow, agent-exec)" }
   },
 
   "datastores": {},
@@ -217,23 +217,7 @@
       "unprivileged": true,
       "features": { "nesting": true }
     },
-    "_ai_orchestration_comment": "AI orchestration tier (AI/ML target tier 5). n8n/Dify/LangFlow are Docker-in-LXC visual builders; agent-exec is a plain Python LXC running CrewAI + LangChain code with OpenLLMetry. VMIDs follow the 6-digit positional convention (docs vmid-network-tiers): 505030 = tier 5 (AI) / sub 0 (user-facing) / crit 5 / instance 0 / OS 3 (Docker) / env 0; agent-exec 505340 has OS digit 4 (LXC); langfuse 405030 is tier 4 (observability). They sit on the CURRENT 'ai'/'siem' VLANs (the 40->50 / 20->40 renumber is deferred), addressed DNS-first (dhcp + reserved_host). Each tool's model provider + vector store is configured per its own install standard; Dify keeps its bundled vector store rather than the shared qdrant. Docker guests carry only nesting (the API token cannot set keyctl/fuse on unprivileged LXC; ansible-proxmox adds those via root@pam, same as the media guests). Firewall: ai-orchestration-svc (UI ports) + native OTLP egress to Cribl Edge; Langfuse adds langfuse-svc (3000). Node placement is set in the live (private) deployment input; the example omits node_name and uses the default.",
-    "n8n": {
-      "vm_id": 505030,
-      "dhcp": true,
-      "reserved_host": 40,
-      "vlan": "ai",
-      "hostname": "n8n",
-      "description": "n8n workflow automation + LLM orchestration glue (Docker-in-LXC)",
-      "cpu_cores": 2,
-      "memory_dedicated": 4096,
-      "tags": ["terraform", "container", "ai", "ai-orchestration", "n8n", "docker"],
-      "pool_id": "ai",
-      "unprivileged": true,
-      "root_disk": { "size": 16 },
-      "mount_points": [{ "volume": "local-zfs", "size": "30G", "path": "/opt/n8n" }],
-      "features": { "nesting": true }
-    },
+    "_ai_orchestration_comment": "AI orchestration tier (AI/ML target tier 5). Dify/LangFlow are Docker-in-LXC visual builders; agent-exec is a plain Python LXC running CrewAI + LangChain code with OpenLLMetry. VMIDs follow the 6-digit positional convention (docs vmid-network-tiers): 505130 = tier 5 (AI) / sub 0 (user-facing) / crit 5 / instance 1 / OS 3 (Docker) / env 0; agent-exec 505340 has OS digit 4 (LXC); langfuse 405030 is tier 4 (observability). They sit on the CURRENT 'ai'/'siem' VLANs (the 40->50 / 20->40 renumber is deferred), addressed DNS-first (dhcp + reserved_host). Each tool's model provider + vector store is configured per its own install standard; Dify keeps its bundled vector store rather than the shared qdrant. Docker guests carry only nesting (the API token cannot set keyctl/fuse on unprivileged LXC; ansible-proxmox adds those via root@pam, same as the media guests). Firewall: ai-orchestration-svc (UI ports) + native OTLP egress to Cribl Edge; Langfuse adds langfuse-svc (3000). Node placement is set in the live (private) deployment input; the example omits node_name and uses the default.",
     "dify": {
       "vm_id": 505130,
       "dhcp": true,

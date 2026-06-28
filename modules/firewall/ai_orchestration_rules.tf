@@ -1,4 +1,4 @@
-# AI orchestration tier firewall resources. The orchestration UIs (n8n, Dify,
+# AI orchestration tier firewall resources. The orchestration UIs (Dify,
 # LangFlow) and the agent-exec runtime live on the ai VLAN; Langfuse lives on the
 # siem VLAN. All are DHCP-first guests behind DROP in/out policies, so each gets
 # `dhcp = true` (same reason as object_storage_rules.tf). The Cribl Edge OTLP
@@ -14,11 +14,10 @@ locals {
   # enforced at UniFi; this scopes the Proxmox guest firewall to match.
   ai_src = var.ai_network
 
-  # AI orchestration UIs (n8n, LangFlow, Dify) — inbound from internal so admins
+  # AI orchestration UIs (Dify, LangFlow) — inbound from internal so admins
   # reach the builders; egress (model endpoints, external APIs) via outbound
   # internal/HTTPS groups on the container. Ports DRY from pipeline_constants.
   ai_orchestration_services_rules = [
-    { proto = "tcp", dport = tostring(local.svc_ports.n8n_web), source = local.internal_src, comment = "n8n web UI (TCP ${local.svc_ports.n8n_web}) from internal" },
     { proto = "tcp", dport = tostring(local.svc_ports.langflow_web), source = local.internal_src, comment = "LangFlow web UI (TCP ${local.svc_ports.langflow_web}) from internal" },
     { proto = "tcp", dport = tostring(local.svc_ports.dify_web), source = local.internal_src, comment = "Dify web UI (TCP ${local.svc_ports.dify_web}) from internal" },
   ]
@@ -41,7 +40,7 @@ locals {
   ]
 }
 
-# AI orchestration containers (n8n, Dify, LangFlow, agent-exec)
+# AI orchestration containers (Dify, LangFlow, agent-exec)
 
 resource "proxmox_virtual_environment_firewall_options" "ai_orchestration_container" {
   for_each = var.ai_orchestration_container_ids
@@ -78,7 +77,7 @@ resource "proxmox_virtual_environment_firewall_rules" "ai_orchestration_containe
     for_each = each.key != "agent-exec" ? [1] : []
     content {
       security_group = proxmox_virtual_environment_cluster_firewall_security_group.ai_orchestration_services.name
-      comment        = "AI orchestration UIs (n8n, LangFlow, Dify)"
+      comment        = "AI orchestration UIs (Dify, LangFlow)"
     }
   }
 

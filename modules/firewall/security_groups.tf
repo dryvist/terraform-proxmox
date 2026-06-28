@@ -371,7 +371,7 @@ resource "proxmox_virtual_environment_cluster_firewall_security_group" "monitori
 
 resource "proxmox_virtual_environment_cluster_firewall_security_group" "ai_orchestration_services" {
   name    = "ai-orchestration-svc"
-  comment = "AI orchestration UIs (n8n 5678, LangFlow 7860, Dify 80) from internal networks"
+  comment = "AI orchestration UIs (LangFlow 7860, Dify 80) from internal networks"
 
   dynamic "rule" {
     for_each = local.ai_orchestration_services_rules

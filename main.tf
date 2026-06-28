@@ -237,7 +237,7 @@ module "firewall" {
   # Hermes Agent LXC: tagged "hermes-agent" (autonomous agent, broad HTTPS egress)
   hermes_agent_container_ids = local.hermes_agent_container_ids
 
-  # AI orchestration LXCs: tagged "ai-orchestration" (n8n, Dify, LangFlow, agent-exec)
+  # AI orchestration LXCs: tagged "ai-orchestration" (Dify, LangFlow, agent-exec)
   ai_orchestration_container_ids = local.ai_orchestration_container_ids
 
   # Langfuse LLM-observability LXC: tagged "langfuse"
