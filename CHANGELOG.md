@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.46.2](https://github.com/dryvist/terraform-proxmox/compare/v1.46.1...v1.46.2) (2026-06-29)
+
+
+### Bug Fixes
+
+* **containers:** ignore out-of-band idmap drift to protect media ([#505](https://github.com/dryvist/terraform-proxmox/issues/505)) ([692b23d](https://github.com/dryvist/terraform-proxmox/commit/692b23d20ec548cfc9e7b9e812ff5e65b7b19783))
+
 ## [1.46.1](https://github.com/dryvist/terraform-proxmox/compare/v1.46.0...v1.46.1) (2026-06-29)
 
 
