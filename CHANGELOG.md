@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.46.1](https://github.com/dryvist/terraform-proxmox/compare/v1.46.0...v1.46.1) (2026-06-29)
+
+
+### Bug Fixes
+
+* **ci:** repair and enable the ci-fix wrapper ([#502](https://github.com/dryvist/terraform-proxmox/issues/502)) ([0ee7e0d](https://github.com/dryvist/terraform-proxmox/commit/0ee7e0dbf4b50d5ff58e76d74b85ef472aa049b5))
+
 ## [1.46.0](https://github.com/dryvist/terraform-proxmox/compare/v1.45.0...v1.46.0) (2026-06-27)
 
 
