@@ -15,10 +15,10 @@
   "proxmox_ct_template_debian": "debian-13-standard_13.1-2_amd64.tar.zst",
   "ansible_cloud_init_file": "cloud-init/ansible-server-example.yml",
 
-  "splunk_vm_id": 200,
+  "splunk_vm_id": 110,
   "splunk_vm_name": "splunk-aio",
   "splunk_vm_pool_id": "logging",
-  "template_id": 9200,
+  "template_id": 9100,
   "splunk_boot_disk_size": 25,
   "splunk_data_disk_size": 200,
 
@@ -129,7 +129,7 @@
     },
     "_smokeping_comment": "Network-quality monitoring — Prometheus-native stack (Docker-in-LXC). The central `smokeping` collector runs smokeping_prober (:9374, ICMP/UDP latency-distribution histograms = system of record), blackbox_exporter (:9115, DNS/HTTP/TLS/TCP + SLO probes), atlas_exporter (:9400, RIPE Atlas outside-in), an irtt server (:2112/udp, real RFC-3393 jitter/MOS), and optionally the classic SmokePing RRD/CGI UI (:80). Throughput is DECOUPLED onto its own `speedtest` host so saturation never corrupts latency samples. Add a per-segment `netq-probe-*` vantage on each VLAN you care about (multi-vantage) — one example below. See docs/SMOKEPING.md for the full blueprint the ansible-proxmox-apps roles apply. These adopt the 6-digit positional VMID + DNS-first convention (docs.jacobpevans.com/infrastructure/vmid-network-tiers): observability = tier 4, so VMIDs are 41xxxx; `dhcp:true` means no vm_id-derived IP — DHCP leases the address and each guest is reached by {hostname}.{domain}. `vlan` stays at today's value during the incremental tier renumber.",
     "smokeping": {
-      "vm_id": 412000,
+      "vm_id": 410000,
       "dhcp": true,
       "reserved_host": 30,
       "vlan": "mgmt",
@@ -144,7 +144,7 @@
       "features": { "nesting": true, "keyctl": true }
     },
     "speedtest": {
-      "vm_id": 416000,
+      "vm_id": 410010,
       "dhcp": true,
       "reserved_host": 31,
       "vlan": "mgmt",
@@ -160,7 +160,7 @@
       "features": { "nesting": true, "keyctl": true }
     },
     "netq-probe-media": {
-      "vm_id": 415000,
+      "vm_id": 410020,
       "dhcp": true,
       "reserved_host": 32,
       "vlan": "media_svc",
@@ -201,9 +201,9 @@
       "unprivileged": true,
       "features": { "nesting": true, "keyctl": true }
     },
-    "_unifi_metrics_comment": "UniFi controller telemetry collector (Docker-in-LXC, observability tier 4). Runs unpoller (polls the UniFi controller API, exposes Prometheus) + a Telegraf inputs.prometheus scrape that ships Splunk-HEC to Cribl Edge then the Splunk unifi_metrics index. Captures device cpu/mem/temp/uptime, per-port bytes/errors/drops/PoE/STP, per-client signal/rate/satisfaction, and WAN quality. Controller creds via UNIFI_* env. See ansible-proxmox-apps roles/unifi_metrics. VMID follows the 6-digit positional convention (docs vmid-network-tiers): 415040 = tier 4 (observability) / sub-tier 1 (mgmt) / crit 5 / instance 0 / OS 4 (LXC) / env 0. DNS-first (dhcp:true + reserved_host); features carry only nesting because the API token cannot set keyctl/fuse on unprivileged containers (root@pam adds those via ansible-proxmox, same as the media guests).",
+    "_unifi_metrics_comment": "UniFi controller telemetry collector (Docker-in-LXC, observability tier 4). Runs unpoller (polls the UniFi controller API, exposes Prometheus) + a Telegraf inputs.prometheus scrape that ships Splunk-HEC to Cribl Edge then the Splunk unifi_metrics index. Captures device cpu/mem/temp/uptime, per-port bytes/errors/drops/PoE/STP, per-client signal/rate/satisfaction, and WAN quality. Controller creds via UNIFI_* env. See ansible-proxmox-apps roles/unifi_metrics. VMID follows the 6-digit positional convention (docs vmid-network-tiers); the value here is illustrative. DNS-first (dhcp:true + reserved_host); features carry only nesting because the API token cannot set keyctl/fuse on unprivileged containers (root@pam adds those via ansible-proxmox, same as the media guests).",
     "unifi-metrics": {
-      "vm_id": 415040,
+      "vm_id": 410030,
       "dhcp": true,
       "reserved_host": 33,
       "vlan": "mgmt",
@@ -217,9 +217,9 @@
       "unprivileged": true,
       "features": { "nesting": true }
     },
-    "_ai_orchestration_comment": "AI orchestration tier (AI/ML target tier 5). Dify/LangFlow are Docker-in-LXC visual builders; agent-exec is a plain Python LXC running CrewAI + LangChain code with OpenLLMetry. VMIDs follow the 6-digit positional convention (docs vmid-network-tiers): 505130 = tier 5 (AI) / sub 0 (user-facing) / crit 5 / instance 1 / OS 3 (Docker) / env 0; agent-exec 505340 has OS digit 4 (LXC); langfuse 405030 is tier 4 (observability). They sit on the CURRENT 'ai'/'siem' VLANs (the 40->50 / 20->40 renumber is deferred), addressed DNS-first (dhcp + reserved_host). Each tool's model provider + vector store is configured per its own install standard; Dify keeps its bundled vector store rather than the shared qdrant. Docker guests carry only nesting (the API token cannot set keyctl/fuse on unprivileged LXC; ansible-proxmox adds those via root@pam, same as the media guests). Firewall: ai-orchestration-svc (UI ports) + native OTLP egress to Cribl Edge; Langfuse adds langfuse-svc (3000). Node placement is set in the live (private) deployment input; the example omits node_name and uses the default.",
+    "_ai_orchestration_comment": "AI orchestration tier (AI/ML target tier 5). Dify/LangFlow are Docker-in-LXC visual builders; agent-exec is a plain Python LXC running CrewAI + LangChain code with OpenLLMetry. VMIDs follow the 6-digit positional convention (docs vmid-network-tiers); the values here are illustrative. They sit on the CURRENT 'ai'/'siem' VLANs (the 40->50 / 20->40 renumber is deferred), addressed DNS-first (dhcp + reserved_host). Each tool's model provider + vector store is configured per its own install standard; Dify keeps its bundled vector store rather than the shared qdrant. Docker guests carry only nesting (the API token cannot set keyctl/fuse on unprivileged LXC; ansible-proxmox adds those via root@pam, same as the media guests). Firewall: ai-orchestration-svc (UI ports) + native OTLP egress to Cribl Edge; Langfuse adds langfuse-svc (3000). Node placement is set in the live (private) deployment input; the example omits node_name and uses the default.",
     "dify": {
-      "vm_id": 505130,
+      "vm_id": 510000,
       "dhcp": true,
       "reserved_host": 41,
       "vlan": "ai",
@@ -235,7 +235,7 @@
       "features": { "nesting": true }
     },
     "langflow": {
-      "vm_id": 505230,
+      "vm_id": 510010,
       "dhcp": true,
       "reserved_host": 42,
       "vlan": "ai",
@@ -251,7 +251,7 @@
       "features": { "nesting": true }
     },
     "agent-exec": {
-      "vm_id": 505340,
+      "vm_id": 510020,
       "dhcp": true,
       "reserved_host": 43,
       "vlan": "ai",
@@ -265,7 +265,7 @@
       "root_disk": { "size": 24 }
     },
     "langfuse": {
-      "vm_id": 405030,
+      "vm_id": 410040,
       "dhcp": true,
       "reserved_host": 40,
       "vlan": "siem",
