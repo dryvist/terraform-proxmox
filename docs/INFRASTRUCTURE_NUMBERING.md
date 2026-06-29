@@ -70,16 +70,16 @@ How `locals.tf` resolves a guest's address (`container_ipv4`):
 
 `cidrhost` is evaluated **only** on the derive branch (an if/else, not `coalesce`, so it
 short-circuits — see PR #444). That is what lets a static-IP exception host carry a 6-7-digit
-positional VMID: a `cidrhost(cidr, 5310010)` would overflow the /24, but it is never
+positional VMID: a `cidrhost(cidr, 5310090)` would overflow the /24, but it is never
 evaluated when a static `ip_config` is present.
 
 ### DNS servers (special VLAN 53, static exception) — worked example
 
 DNS = VLAN 53, outside the tier÷10 rule, so DNS guests use a **7-digit `53`-prefixed** ID and
-a **static** IP. The pve2 DNS secondary `technitium-dns-2`:
+a **static** IP. An illustrative DNS secondary (the real IDs live only in `deployment.json`):
 
-- VMID **5310010** = `53` (DNS VLAN) · sub 1 (mgmt) · crit 0 (most critical) · OS 0 (LXC) ·
-  instance 1 · env 0 (prod).
+- VMID **5310090** = `53` (DNS VLAN) · sub 1 (mgmt) · crit 0 (most critical) · OS 0 (LXC) ·
+  instance 9 · env 0 (prod).
 - static `ip_config` `<dns-subnet>.3` (gateway `.1`, primary `.2`, secondary `.3`).
 
 > IP examples on this page use the `192.168.<vlan>.x` placeholder shape (committed-file rule);

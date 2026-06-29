@@ -1,9 +1,9 @@
 # Splunk variables: VM sizing, identity, and SSH access for the Splunk deployment
 
 variable "splunk_vm_id" {
-  description = "VM ID for the Splunk VM. Default matches the canonical homelab deployment so tests and consumers do not need to redeclare it."
+  description = "VM ID for the Splunk VM. The real VM ID is the single source of truth in deployment.json (injected by terragrunt); this default is a non-production placeholder (kept a valid /24 host octet so the derived siem IP resolves) so tests and standalone plans resolve without redeclaring it."
   type        = number
-  default     = 200
+  default     = 99
   validation {
     condition     = var.splunk_vm_id > 0 && var.splunk_vm_id < 10000
     error_message = "Splunk VM ID must be between 1 and 9999."

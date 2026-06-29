@@ -303,7 +303,7 @@ run "ansible_inventory_ingress_route_table" {
       # Network-quality monitoring LXC — DNS-first (dhcp) with a 6-digit positional
       # VMID (observability tier 4). No vm_id-derived IP; fronted by FQDN.
       "smokeping" = {
-        vm_id         = 412000
+        vm_id         = 990001
         dhcp          = true
         reserved_host = 30
         hostname      = "smokeping"

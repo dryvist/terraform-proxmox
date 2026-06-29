@@ -323,7 +323,7 @@ run "object_storage_tagged_container_in_object_storage_ids" {
   variables {
     containers = {
       "object-storage" = {
-        vm_id         = 202000
+        vm_id         = 990004
         hostname      = "object-storage"
         vlan          = "siem"
         dhcp          = true
@@ -339,8 +339,8 @@ run "object_storage_tagged_container_in_object_storage_ids" {
   }
 
   assert {
-    condition     = local.object_storage_container_ids["object-storage"] == 202000
-    error_message = "object_storage_container_ids['object-storage'] should be vm_id 202000"
+    condition     = local.object_storage_container_ids["object-storage"] == 990004
+    error_message = "object_storage_container_ids['object-storage'] should be vm_id 990004"
   }
 
   assert {
