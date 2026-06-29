@@ -186,6 +186,14 @@ resource "proxmox_virtual_environment_container" "containers" {
       # are still created at provision time; only post-creation reconciliation is
       # ignored (mounts are effectively set-once here).
       mount_point,
+      # Ignore idmap drift, same rationale as mount_point. The media containers'
+      # uid/gid passthrough (e.g. gid 13000 ↔ 13000 for the /data mount) is applied
+      # post-creation by the ansible-proxmox `media_lxc_features` role — it is
+      # root@pam-only, so the BPG API token cannot set it. Without this, every
+      # refresh reads the live idmap back into state and tries to strip it, which
+      # would revert the media stack's write access. idmap is not declared in
+      # deployment.json, so this only suppresses out-of-band reconciliation.
+      idmap,
     ]
   }
 }
