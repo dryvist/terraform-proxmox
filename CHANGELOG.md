@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.46.3](https://github.com/dryvist/terraform-proxmox/compare/v1.46.2...v1.46.3) (2026-06-30)
+
+
+### Bug Fixes
+
+* **proxmox:** unblock the AI-orchestration tier apply (docker features + firewall group name) ([#508](https://github.com/dryvist/terraform-proxmox/issues/508)) ([f4788e2](https://github.com/dryvist/terraform-proxmox/commit/f4788e2bf892a34c0f8e6a66b58282e9125b77b3))
+
 ## [1.46.2](https://github.com/dryvist/terraform-proxmox/compare/v1.46.1...v1.46.2) (2026-06-29)
 
 
