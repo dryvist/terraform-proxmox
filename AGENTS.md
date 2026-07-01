@@ -174,19 +174,23 @@ For slow operations and "context deadline exceeded" debugging:
 ## Ansible inventory output
 
 The `ansible_inventory` output provides structured data for downstream
-Ansible (full schema in `outputs.tf`):
+Ansible. The full shape is assembled in `local.ansible_inventory`
+(`inventory_publish.tf`) and shared by both the `ansible_inventory` output
+(`outputs.tf`, a one-line passthrough) and the native `aws_s3_object`
+publish resource:
 
 ```hcl
-output "ansible_inventory" {
-  value = {
-    containers = { ... }
-    vms        = { ... }
-    docker_vms = { ... }
-    splunk_vm  = { splunk = { vmid = 200, hostname = "splunk", ip = "<derived>" } }
-    constants  = local.pipeline_constants
-    host_services = var.host_services
-    domain        = var.domain
-  }
+local.ansible_inventory = {
+  containers    = { ... }
+  vms           = { ... }
+  docker_vms    = { ... }
+  splunk_vm     = { splunk = { vmid = 200, hostname = "splunk-aio", ip = "<derived>" } }
+  constants     = local.pipeline_constants
+  ingress       = { ... }
+  host_services = var.host_services
+  nodes         = { ... }
+  node_storage  = { ... }
+  domain        = var.domain
 }
 ```
 

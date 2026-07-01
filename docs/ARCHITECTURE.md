@@ -173,9 +173,9 @@ for infrastructure (private, in the on-prem `s3` store; see
 Summary by pool:
 
 - **`infrastructure`** — `ansible`, `pve-scripts-local`, `technitium-dns`,
-  `pi-hole`, `phpipam`, `apt-cacher-ng`, `minio`, `mailpit`, `ntfy`,
-  `homeassistant`, `mssql`, `nginx-proxy-manager`, `prometheus`, `traefik`
-  (HTTPS/TLS ingress)
+  `pi-hole`, `phpipam`, `apt-cacher-ng`, `object-storage` (RustFS, hostname
+  `s3`), `mailpit`, `ntfy`, `homeassistant`, `mssql`, `nginx-proxy-manager`,
+  `prometheus`, `traefik` (HTTPS/TLS ingress)
 - **`logging`** — `haproxy`, `cribl-edge-01/02`, `cribl-stream-01/02`,
   `splunk-mgmt` (SH + DS + LM + MC + CM)
 - **`ai`** — `claude-code-01/02`, `gemini-01/02`, `qdrant`, `llamaindex`,
