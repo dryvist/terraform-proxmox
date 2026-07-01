@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.47.0](https://github.com/dryvist/terraform-proxmox/compare/v1.46.3...v1.47.0) (2026-07-01)
+
+
+### Features
+
+* **honeypots:** network-wide deception fabric with instant phone alerting ([#491](https://github.com/dryvist/terraform-proxmox/issues/491)) ([39a8598](https://github.com/dryvist/terraform-proxmox/commit/39a8598475c0d1e3184dce6a0909075895563bb5))
+
 ## [1.46.3](https://github.com/dryvist/terraform-proxmox/compare/v1.46.2...v1.46.3) (2026-06-30)
 
 
