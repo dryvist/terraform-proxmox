@@ -88,13 +88,9 @@ locals {
       : split("/", local.container_ipv4[k])[0]
     )
   }
-  vm_ipv4 = {
-    for k, v in var.vms : k =>
-    nonsensitive("${cidrhost(var.network_cidrs[v.vlan], v.vm_id)}/${split("/", var.network_cidrs[v.vlan])[1]}")
-  }
-  vm_gateway = {
-    for k, v in var.vms : k => nonsensitive(cidrhost(var.network_cidrs[v.vlan], 1))
-  }
+  # VM IPv4/gateway + DHCP-first MAC/reserved-IP/advertised-address locals are
+  # extracted into locals-vm-network.tf (locals merge across files in a module)
+  # to keep this file under the shared _file-size workflow's 12 KB limit.
 
   # VGA type validation helper
   valid_vga_types = ["std", "cirrus", "vmware", "qxl"]
@@ -142,6 +138,10 @@ locals {
     for k, v in var.containers : k => v.vm_id
     if contains(coalesce(try(v.tags, null), []), "notifications")
   }
+
+  # Honeypot tag-filter locals (honeypot_container_ids,
+  # honeypot_notify_container_ids) live in locals-honeypot.tf to keep this file
+  # under the 12 KB size gate; locals merge across files in the module.
 
   # Vector database containers: Qdrant (vectordb tag)
   vectordb_container_ids = {

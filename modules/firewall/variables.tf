@@ -111,6 +111,23 @@ variable "langfuse_container_ids" {
   default     = {}
 }
 
+variable "honeypot_container_ids" {
+  description = "Map of honeypot LXC names to IDs (honeypot tag): per-VLAN OpenCanary tripwires + the apprise-api notify gateway. Tag-driven, set by root locals."
+  type        = map(number)
+  default     = {}
+}
+
+variable "honeypot_notify_container_ids" {
+  description = "Subset of honeypot_container_ids that is the alert gateway (honeypot + notify tags). These get the apprise-api inbound port and open egress (to reach Slack/Pushover/ntfy.sh) instead of the decoy service ports."
+  type        = map(number)
+  default     = {}
+}
+
+variable "tpot_vm_ids" {
+  description = "Map of T-Pot deep-sensor VM names to IDs (tpot tag). T-Pot is a deliberate wide-net sensor that manages its own container firewall, so its Proxmox input policy is permissive-but-logged; egress is restricted."
+  type        = map(number)
+  default     = {}
+}
 variable "management_network" {
   description = "CIDR of management network for SSH/Web access. Configure in terraform.tfvars for your environment."
   type        = string
@@ -142,6 +159,7 @@ variable "pipeline_constants" {
     netflow_ports      = map(number)
     notification_ports = map(number)
     vector_db_ports    = map(number)
+    honeypot_ports     = map(number)
   })
 }
 

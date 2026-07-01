@@ -494,3 +494,68 @@ run "non_idrac_container_not_in_idrac_kvm_container_ids" {
     error_message = "idrac_kvm_container_ids should be empty when no containers have the 'idrac' tag"
   }
 }
+
+# --- honeypot_container_ids / honeypot_notify_container_ids tests ---
+
+run "honeypot_tagged_containers_split_tripwire_vs_notify" {
+  command = plan
+
+  variables {
+    containers = {
+      "honeypot-tw-apps" = {
+        vm_id         = 695000
+        hostname      = "honeypot-tw-apps"
+        vlan          = "apps"
+        dhcp          = true
+        reserved_host = 66
+        tags          = ["terraform", "container", "honeypot", "docker"]
+      }
+      "honeypot-notify" = {
+        vm_id         = 492000
+        hostname      = "honeypot-notify"
+        vlan          = "mgmt"
+        dhcp          = true
+        reserved_host = 36
+        tags          = ["terraform", "container", "honeypot", "notify", "docker"]
+      }
+    }
+  }
+
+  # Both honeypot guests are in the base map.
+  assert {
+    condition     = contains(keys(local.honeypot_container_ids), "honeypot-tw-apps") && contains(keys(local.honeypot_container_ids), "honeypot-notify")
+    error_message = "both honeypot-tagged guests must be in honeypot_container_ids"
+  }
+
+  # Only the notify gateway is in the notify subset.
+  assert {
+    condition     = contains(keys(local.honeypot_notify_container_ids), "honeypot-notify") && !contains(keys(local.honeypot_notify_container_ids), "honeypot-tw-apps")
+    error_message = "only the honeypot+notify guest belongs to honeypot_notify_container_ids"
+  }
+
+  # A honeypot guest must never be double-claimed by the Mailpit/ntfy notification map.
+  assert {
+    condition     = !contains(keys(local.notification_container_ids), "honeypot-notify")
+    error_message = "honeypot notify gateway must not also land in notification_container_ids (would create duplicate firewall_options)"
+  }
+}
+
+run "non_honeypot_container_not_in_honeypot_ids" {
+  command = plan
+
+  variables {
+    containers = {
+      "mailpit" = {
+        vm_id    = 110
+        hostname = "mailpit"
+        vlan     = "apps"
+        tags     = ["terraform", "container", "notifications", "docker"]
+      }
+    }
+  }
+
+  assert {
+    condition     = length(local.honeypot_container_ids) == 0 && length(local.honeypot_notify_container_ids) == 0
+    error_message = "honeypot maps must be empty when no containers carry the 'honeypot' tag"
+  }
+}

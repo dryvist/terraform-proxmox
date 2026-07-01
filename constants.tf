@@ -15,6 +15,13 @@ locals {
     cisco_asa = { standard = 516, high = 1516, index = "firewall", sourcetype = "cisco:asa" }
     linux     = { standard = 517, high = 1517, index = "os", sourcetype = "syslog" }
     windows   = { standard = 518, high = 1518, index = "os", sourcetype = "syslog" }
+    # Honeypot deception events (OpenCanary tripwires per VLAN + T-Pot deep
+    # sensor). standard 519 = the HAProxy frontend honeypots ship to; high 1519
+    # = the Cribl Edge backend. Lands in the dedicated `honeypot` Splunk index
+    # (Path B — forensics/correlation) in parallel with the real-time apprise
+    # push (Path A). T-Pot reuses the same frontend with its sourcetype set by
+    # the Cribl Edge pipeline. See docs/HONEYPOTS.md + docs/SPLUNK_INDEXES.md.
+    honeypot = { standard = 519, high = 1519, index = "honeypot", sourcetype = "honeypot:opencanary" }
   }
 
   pipeline_constants = {
@@ -112,6 +119,35 @@ locals {
     vector_db_ports = {
       qdrant_http = 6333
       qdrant_grpc = 6334
+    }
+    # Honeypot / deception sensors. apprise_api = the honeypot-notify gateway's
+    # REST port (caronc/apprise-api): honeypots POST one webhook and Apprise fans
+    # it out to Slack + phone push (Path A). The remaining entries are the
+    # low-interaction decoy services the per-VLAN OpenCanary tripwires emulate —
+    # the firewall honeypot_services group ACCEPTs+logs these from internal so an
+    # intruder touching ANY of them trips an alert. SSH (22) is already covered by
+    # internal_access. The honeypot syslog frontend (519) lives in syslog_port_map
+    # above. Consumed by modules/firewall and the opencanary/apprise/tpot roles in
+    # ansible-proxmox-apps. See docs/HONEYPOTS.md.
+    honeypot_ports = {
+      apprise_api = 8000
+      ftp         = 21
+      telnet      = 23
+      http        = 80
+      https       = 443
+      smb         = 445
+      tftp        = 69   # udp
+      snmp        = 161  # udp
+      ntp         = 123  # udp — OpenCanary NTP module (honeypot CTs only; no host chrony clash)
+      sip         = 5060 # udp
+      mssql       = 1433
+      mysql       = 3306
+      postgres    = 5432
+      rdp         = 3389
+      vnc         = 5900
+      redis       = 6379
+      git         = 9418
+      http_proxy  = 8080
     }
     # Media stack web UIs. qBittorrent + Prowlarr run inside the download-vpn
     # LXC bound to wg0; their UIs are reachable on the LAN. Sonarr/Radarr/Plex

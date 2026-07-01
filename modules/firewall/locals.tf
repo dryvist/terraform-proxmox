@@ -31,6 +31,7 @@ locals {
   notification_ports = var.pipeline_constants.notification_ports
   vector_db_ports    = var.pipeline_constants.vector_db_ports
   netflow_ports      = var.pipeline_constants.netflow_ports
+  honeypot_ports     = var.pipeline_constants.honeypot_ports
 
   # Syslog ports — derived from syslog_port_map so that adding a new source
   # family auto-expands the firewall surface. standard = app-facing HAProxy
@@ -89,6 +90,11 @@ locals {
     { proto = "tcp", dport = tostring(local.vector_db_ports.qdrant_http), source = local.internal_src, comment = "Qdrant HTTP API from internal" },
     { proto = "tcp", dport = tostring(local.vector_db_ports.qdrant_grpc), source = local.internal_src, comment = "Qdrant gRPC from internal" },
   ]
+
+  # honeypot_services_rules + honeypot_notify_services_rules are defined in
+  # honeypot_rules.tf (alongside the honeypot resources) to keep this file under
+  # the shared _file-size workflow's 12 KB limit. locals merge across files in a
+  # module, so the rule lists referenced by the security groups resolve the same.
 
   apt_cacher_ng_services_rules = [
     { proto = "tcp", dport = tostring(local.svc_ports.apt_cacher_ng), source = local.internal_src, comment = "apt-cacher-ng from internal" },

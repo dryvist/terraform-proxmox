@@ -25,7 +25,8 @@
   "pools": {
     "logging": { "comment": "Logging and observability infrastructure" },
     "infrastructure": { "comment": "Core infrastructure services" },
-    "ai": { "comment": "AI orchestration tier (Dify, LangFlow, agent-exec)" }
+    "ai": { "comment": "AI orchestration tier (Dify, LangFlow, agent-exec)" },
+    "security": { "comment": "Honeypots and deception sensors (OpenCanary tripwires, T-Pot, apprise notify gateway)" }
   },
 
   "datastores": {},
@@ -112,6 +113,38 @@
       ],
       "cdrom_file_id": "local:iso/proxmox-backup-server.iso",
       "protection": true
+    },
+    "_tpot_comment": "T-Pot deep-sensor (telekom-security/tpotce) — the all-in-one platform bundling 20+ honeypots (Cowrie SSH/Telnet, Dionaea SMB/malware, Conpot ICS/SCADA, Heralding, Log4pot, the Beelzebub+Galah LLM pots, medical/printer pots, tarpits, ...) plus an Elastic attack-map dashboard. Runs Docker-on-VM (like the Splunk VM), placed on the high-CPU/fast node (proxmox-1) because the Elastic stack + many containers are resource-hungry. DNS-first (dhcp:true): VMs now carry positional VMIDs too (locals.tf vm_ipv4 short-circuits cidrhost when dhcp/static). VMID 495100 = tier 4 (observability/security) · sub 9 (deception) · crit 5 · OS 1 (VM/qemu) · instance 0 · env 0. The `tpot` tag drives the firewall (wide-net input, restricted egress); `docker` puts it in docker_vms for the ansible-proxmox-apps `tpot` role, which runs the installer + wires ElastAlert -> the apprise gateway. Reachable at https://tpot.{domain} (T-Pot serves its own dashboard). Sits on the nonprod/untrusted decoy segment.",
+    "tpot": {
+      "vm_id": 495100,
+      "dhcp": true,
+      "reserved_host": 38,
+      "vlan": "nonprod",
+      "name": "tpot",
+      "description": "T-Pot all-in-one multi-honeypot platform (Cowrie, Dionaea, Conpot, Galah/Beelzebub LLM, Log4pot, ...) + attack-map dashboard",
+      "node_name": "proxmox-1",
+      "cpu_cores": 8,
+      "memory_dedicated": 16384,
+      "tags": ["terraform", "docker", "honeypot", "tpot"],
+      "boot_disk": { "datastore_id": "local-zfs", "size": 256 },
+      "clone_template": { "template_id": 9000 },
+      "user_account": { "username": "debian", "password": "", "keys": [] }
+    },
+    "_tpot_warm_comment": "Warm standby of the deep sensor on the normally-shut-down backup node (proxmox-3). DR copy only — spun up when proxmox-3 is powered for backups or during failover (the VM schema has no on_boot field; proxmox-3 is commissioned:false so nothing is applied there until you commission it). instance 1 -> VMID 495110.",
+    "tpot-warm": {
+      "vm_id": 495110,
+      "dhcp": true,
+      "reserved_host": 39,
+      "vlan": "nonprod",
+      "name": "tpot-warm",
+      "description": "Warm-standby T-Pot (DR copy) on the backup node proxmox-3",
+      "node_name": "proxmox-3",
+      "cpu_cores": 8,
+      "memory_dedicated": 16384,
+      "tags": ["terraform", "docker", "honeypot", "tpot"],
+      "boot_disk": { "datastore_id": "local-zfs", "size": 256 },
+      "clone_template": { "template_id": 9000 },
+      "user_account": { "username": "debian", "password": "", "keys": [] }
     }
   },
 
@@ -279,6 +312,59 @@
       "root_disk": { "size": 24 },
       "mount_points": [{ "volume": "local-zfs", "size": "80G", "path": "/opt/langfuse" }],
       "features": { "nesting": true }
+    },
+
+    "_honeypot_comment": "DECEPTION FABRIC (see docs/HONEYPOTS.md). Three pieces: (1) honeypot-notify — the dedicated alert gateway (caronc/apprise-api). Honeypots POST one webhook; Apprise fans it to Slack + phone push (ntfy/Pushover). The `honeypot`+`notify` tags give it the apprise port inbound + OPEN egress (to reach external notifiers); Slack webhook/phone tokens come from Doppler at runtime, never committed. (2) honeypot-tw-* — one lightweight OpenCanary tripwire PER VLAN (clone the example below for every entry in your network_cidrs map: lan_main, dns, mgmt, bmc, compute, siem, pipeline, data, ai, apps, media_svc, homeauto, nonprod). Each fakes SSH/HTTP/SMB/DB/RDP/SNMP/... and alerts instantly on any touch; the `honeypot` tag opens the decoy ports + internal-only egress (a poked sensor can reach the gateway + syslog 519 but never the internet). (3) the T-Pot VM above. VMID convention (positional, DNS-first): a tripwire adopts the TIER of the VLAN it defends (tier = VLAN/10; specials 1/5/53 use the 7-digit prefix form) · sub 9 (deception) · crit 5 · OS 0 (LXC) · instance 0 · env 0 — e.g. nonprod(90)=995000, apps(60)=695000, compute(10)=195000, mgmt(5)=0595000. Placement honors the node roles: gateway + most tripwires on proxmox-2; put 1-2 tripwires (highest-value VLANs) + the T-Pot VM on the fast node proxmox-1; warm/backup copies on the normally-off proxmox-3. reserved_host octets (.36-.39 + per-tripwire) are illustrative — reconcile every VMID + octet against your live deployment.json before applying.",
+    "honeypot-notify": {
+      "vm_id": 492000,
+      "dhcp": true,
+      "reserved_host": 36,
+      "vlan": "mgmt",
+      "hostname": "honeypot-notify",
+      "description": "Honeypot alert gateway (caronc/apprise-api): fans honeypot hits out to Slack + phone push. Open egress for external notifiers.",
+      "node_name": "proxmox-2",
+      "cpu_cores": 1,
+      "memory_dedicated": 512,
+      "tags": ["terraform", "container", "honeypot", "notify", "docker"],
+      "pool_id": "security",
+      "root_disk": { "size": 8 },
+      "unprivileged": true,
+      "features": { "nesting": true, "keyctl": true }
+    },
+    "_honeypot_notify_warm_comment": "Cold spare of the alert path on the backup node (proxmox-3, normally off). start_on_boot:false so it stays dormant until DR; instance 1 -> VMID 492010.",
+    "honeypot-notify-warm": {
+      "vm_id": 492010,
+      "dhcp": true,
+      "reserved_host": 37,
+      "vlan": "mgmt",
+      "hostname": "honeypot-notify-warm",
+      "description": "Warm-standby apprise gateway (cold spare of the alert path) on proxmox-3",
+      "node_name": "proxmox-3",
+      "cpu_cores": 1,
+      "memory_dedicated": 512,
+      "tags": ["terraform", "container", "honeypot", "notify", "docker"],
+      "pool_id": "security",
+      "root_disk": { "size": 8 },
+      "unprivileged": true,
+      "start_on_boot": false,
+      "features": { "nesting": true, "keyctl": true }
+    },
+    "_honeypot_tripwire_comment": "Representative per-VLAN OpenCanary tripwire. CLONE ONE PER VLAN, swapping the leading tier digit to that VLAN's tier and the `vlan` field to its name. This example defends the nonprod/untrusted segment (tier 9). Place 1-2 of your highest-value tripwires (e.g. compute, siem) on proxmox-1; the rest on proxmox-2.",
+    "honeypot-tw-nonprod": {
+      "vm_id": 995000,
+      "dhcp": true,
+      "reserved_host": 66,
+      "vlan": "nonprod",
+      "hostname": "honeypot-tw-nonprod",
+      "description": "OpenCanary tripwire on the nonprod VLAN — fakes SSH/HTTP/SMB/DB/RDP/SNMP/... and alerts instantly via the apprise gateway + Splunk honeypot index",
+      "node_name": "proxmox-2",
+      "cpu_cores": 1,
+      "memory_dedicated": 256,
+      "tags": ["terraform", "container", "honeypot", "docker"],
+      "pool_id": "security",
+      "root_disk": { "size": 8 },
+      "unprivileged": true,
+      "features": { "nesting": true, "keyctl": true }
     }
   }
 }

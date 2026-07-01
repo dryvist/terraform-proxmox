@@ -72,9 +72,13 @@ module "vms" {
         ipv4_address = local.vm_ipv4[k]
         ipv4_gateway = local.vm_gateway[k]
       }
-      # Tag every NIC onto the VM's service VLAN (802.1Q id from var.vlan_ids).
+      # NIC onto the VM's service VLAN; DHCP-first VMs get a deterministic MAC
+      # (local.vm_mac) for a stable reservation, same pattern as containers.
       network_interfaces = [
-        for ni in v.network_interfaces : merge(ni, { vlan_id = lookup(var.vlan_ids, v.vlan, null) })
+        for ni in v.network_interfaces : merge(ni, {
+          vlan_id     = lookup(var.vlan_ids, v.vlan, null)
+          mac_address = try(v.dhcp, false) ? local.vm_mac[k] : null
+        })
       ]
       user_account = {
         username = v.user_account.username
@@ -242,6 +246,12 @@ module "firewall" {
 
   # Langfuse LLM-observability LXC: tagged "langfuse"
   langfuse_container_ids = local.langfuse_container_ids
+
+  # Honeypots (honeypot/notify/tpot tags); filters in locals-honeypot.tf.
+  honeypot_container_ids        = local.honeypot_container_ids
+  honeypot_notify_container_ids = local.honeypot_notify_container_ids
+  tpot_vm_ids                   = local.tpot_vm_ids
+
 
   # Pipeline constants: single source of truth for service ports (DRY)
   pipeline_constants = local.pipeline_constants

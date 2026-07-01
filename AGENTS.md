@@ -102,8 +102,8 @@ local gitignored cache. See `docs/INVENTORY_PUBLISHING.md`.
 | Repo | Consumes | Purpose |
 | --- | --- | --- |
 | `ansible-proxmox` | `ansible_inventory` (host_services, node_storage, nodes) | Host config (kernel, ZFS, monitoring, NAS/Samba) |
-| `ansible-proxmox-apps` | `ansible_inventory` (containers, docker_vms, constants, ingress) | Cribl, HAProxy, DNS, etc. |
-| `ansible-splunk` | `ansible_inventory` (splunk_vm) | Splunk Enterprise (Docker) |
+| `ansible-proxmox-apps` | `ansible_inventory` (containers, docker_vms, constants, ingress) | Cribl, HAProxy, DNS, honeypots (`opencanary`, `apprise`, `tpot` roles — see `docs/HONEYPOTS.md`), etc. |
+| `ansible-splunk` | `ansible_inventory` (splunk_vm) | Splunk Enterprise (Docker); incl. the `honeypot` index |
 
 ### Inventory publish + sync (automatic)
 
@@ -162,6 +162,7 @@ For slow operations and "context deadline exceeded" debugging:
 | Secrets roadmap | [`docs/SECRETS_ROADMAP.md`](./docs/SECRETS_ROADMAP.md) |
 | SOPS / age setup | [`docs/SOPS_SETUP.md`](./docs/SOPS_SETUP.md) |
 | Network-quality monitoring (SmokePing) | [`docs/SMOKEPING.md`](./docs/SMOKEPING.md) |
+| Honeypots / deception fabric + phone alerting | [`docs/HONEYPOTS.md`](./docs/HONEYPOTS.md) |
 | Per-WAN network diagnosis (modem/WAN telemetry) | [`docs/NETWORK_DIAGNOSIS.md`](./docs/NETWORK_DIAGNOSIS.md) |
 | Troubleshooting + timeout/debug logging | [`TROUBLESHOOTING.md`](./TROUBLESHOOTING.md) |
 | General docs | [`README.md`](./README.md) |
