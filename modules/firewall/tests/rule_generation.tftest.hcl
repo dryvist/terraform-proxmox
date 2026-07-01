@@ -220,6 +220,24 @@ run "syslog_rules_source_matches_joined_networks" {
 
 # --- DRY: rule dports are sourced from var.pipeline_constants, not literals ---
 
+run "object_storage_rules_track_constants_port" {
+  command = plan
+
+  variables {
+    internal_networks = ["192.168.0.0/16"]
+  }
+
+  assert {
+    condition     = local.object_storage_services_rules[0].dport == tostring(var.pipeline_constants.service_ports.object_storage_s3)
+    error_message = "object_storage_services_rules[0].dport must be tostring(pipeline_constants.service_ports.object_storage_s3), got '${local.object_storage_services_rules[0].dport}'"
+  }
+
+  assert {
+    condition     = local.object_storage_services_rules[1].dport == tostring(var.pipeline_constants.service_ports.object_storage_console)
+    error_message = "object_storage_services_rules[1].dport must be tostring(pipeline_constants.service_ports.object_storage_console), got '${local.object_storage_services_rules[1].dport}'"
+  }
+}
+
 run "notification_rules_track_constants_ports" {
   command = plan
 
