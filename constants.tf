@@ -36,12 +36,8 @@ locals {
       # Cribl-to-Cribl (S2S/TCP-JSON) ingestion: remote Edge nodes -> HAProxy -> Stream
       cribl_s2s = 10300
       # Cribl Stream Prometheus remote_write receiver (internal-only; no Traefik/DNS)
-      cribl_prometheus_rw = 9201
-      apt_cacher_ng       = 3142
-      minio_api           = 9000
-      minio_console       = 9001
-      # Object storage (RustFS) — replaces MinIO. Both kept during the migration
-      # soak; remove the minio_* pair once object-storage cutover is stable.
+      cribl_prometheus_rw    = 9201
+      apt_cacher_ng          = 3142
       object_storage_s3      = 9000
       object_storage_console = 9001
       infisical_api          = 8080

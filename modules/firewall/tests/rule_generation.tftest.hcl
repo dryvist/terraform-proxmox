@@ -24,8 +24,6 @@ variables {
       cribl_s2s           = 10300
       cribl_prometheus_rw = 9201
       apt_cacher_ng       = 3142
-      minio_api           = 9000
-      minio_console       = 9001
       # Object storage (RustFS) — referenced by object_storage_services_rules
       object_storage_s3      = 9000
       object_storage_console = 9001
@@ -222,7 +220,7 @@ run "syslog_rules_source_matches_joined_networks" {
 
 # --- DRY: rule dports are sourced from var.pipeline_constants, not literals ---
 
-run "minio_rules_track_constants_port" {
+run "object_storage_rules_track_constants_port" {
   command = plan
 
   variables {
@@ -230,13 +228,13 @@ run "minio_rules_track_constants_port" {
   }
 
   assert {
-    condition     = local.minio_services_rules[0].dport == tostring(var.pipeline_constants.service_ports.minio_api)
-    error_message = "minio_services_rules[0].dport must be tostring(pipeline_constants.service_ports.minio_api), got '${local.minio_services_rules[0].dport}'"
+    condition     = local.object_storage_services_rules[0].dport == tostring(var.pipeline_constants.service_ports.object_storage_s3)
+    error_message = "object_storage_services_rules[0].dport must be tostring(pipeline_constants.service_ports.object_storage_s3), got '${local.object_storage_services_rules[0].dport}'"
   }
 
   assert {
-    condition     = local.minio_services_rules[1].dport == tostring(var.pipeline_constants.service_ports.minio_console)
-    error_message = "minio_services_rules[1].dport must be tostring(pipeline_constants.service_ports.minio_console), got '${local.minio_services_rules[1].dport}'"
+    condition     = local.object_storage_services_rules[1].dport == tostring(var.pipeline_constants.service_ports.object_storage_console)
+    error_message = "object_storage_services_rules[1].dport must be tostring(pipeline_constants.service_ports.object_storage_console), got '${local.object_storage_services_rules[1].dport}'"
   }
 }
 
