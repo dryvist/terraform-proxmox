@@ -67,6 +67,10 @@ API keys for Claude Code and AI agents stored in a dedicated keychain.
 - Retrieved at runtime by Claude Code plugins
 - Never stored in files or environment variables
 
+> A cross-platform successor for this store (Proton Pass AI Access Tokens) is
+> being **explored** — see the exploratory entry under *Under Consideration*. It
+> is not implemented; the `ai-secrets` keychain remains the current store.
+
 ## Planned
 
 ### ACTIVE: SOPS + Age (Git-Committed Encrypted Deployment Config)
@@ -189,6 +193,38 @@ cloud-native workloads.
 
 **Decision:** On hold. Revisit if GCP workloads are added to the ecosystem.
 
+### EXPLORATORY: Proton Pass (Potential Future Tier-0 Root-of-Trust + AI Keychain)
+
+<!-- Exploratory only — NOT implemented. Does not change the current design. -->
+
+Proton Pass is being **explored** as a possible future, cross-platform,
+end-to-end-encrypted home for long-lived *secret-zero*, and as an auditable
+keychain for AI agents. It is **not implemented** and does **not** supersede the
+current design. Doppler remains the tier-0 kernel (including the
+`OPENBAO_STATIC_SEAL_KEY`), and the `ai-secrets` macOS Keychain remains the
+current AI-agent key store. Full exploratory design in
+[PROTON_PASS_STRATEGY.md](./PROTON_PASS_STRATEGY.md).
+
+**What it could offer (if adopted):**
+
+- **Cross-platform secret-zero home** — reachable identically on a laptop or a
+  Linux cloud agent, where the macOS Keychain and aws-vault Keychain backends do
+  not exist. A candidate portable home for the SOPS age private key, materialized
+  by `./scripts/secrets-bootstrap.sh`; references tracked in
+  `.proton-pass.refs.json`.
+- **Per-agent AI Access Tokens** — one read-only, expiring (≤90d), reason-tagged,
+  individually-revocable, logged token per agent, replacing the single shared
+  keychain entry. Unlimited/free minting on a Proton Family/Unlimited account.
+
+**Explicitly out of scope:** Proton Pass is not a rotation engine or runtime
+injector (no native rotation, no service-account REST API). It would **not** hold
+the OpenBao seal key — that stays in Doppler tier-0 so a cold cluster can always
+unseal itself. Rotation stays with OpenBao; runtime injection stays with
+Doppler/SOPS.
+
+**Decision:** Exploratory only. No adoption committed. Revisit if the
+cross-platform secret-zero and per-agent-token gaps become blocking.
+
 ## Secrets Flow Summary
 
 ```text
@@ -217,6 +253,12 @@ OpenBao (planned-for-deploy) — machine/IaC secrets engine
 
 Infisical (planned) — human UI + developer integration hub
 └── Self-hosted ───────→ domain-split from OpenBao (no sync)
+
+Proton Pass (EXPLORATORY — not implemented; see PROTON_PASS_STRATEGY.md)
+╌╌ Tier 0 ╌╌╌╌╌╌╌╌╌╌╌╌╌⤍ potential future cross-platform secret-zero home
+╌╌ └╌ age private key ╌⤍ candidate portable home for the SOPS age key
+╌╌ Tier 1 ╌╌╌╌╌╌╌╌╌╌╌╌╌⤍ potential per-agent AI Access Tokens (replace ai-secrets)
+   (would NOT hold the OpenBao seal key — that stays in Doppler tier-0)
 ```
 
 ## Migration Path
@@ -235,4 +277,9 @@ Future:    OpenBao (self-hosted) as the machine/IaC/dynamic-secrets engine
            Infisical (self-hosted) as the human UI + developer integration hub
            Doppler retains the tier-0 kernel (incl. OpenBao seal key) + fallback
            SOPS/Age continues for git-committed deployment config
+
+Exploratory (not implemented): Proton Pass as a potential future cross-platform
+           secret-zero home (SOPS age key + per-agent AI Access Tokens). Would
+           not change the Doppler tier-0 kernel or the OpenBao seal-key location.
+           See PROTON_PASS_STRATEGY.md.
 ```

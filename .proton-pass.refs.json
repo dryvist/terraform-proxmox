@@ -1,0 +1,13 @@
+{
+  "_comment": "Proton Pass secret-zero reference manifest. Paths ONLY — never secret values (analogous to .sops.yaml holding only the public key). Every repo/agent resolves the same pass:// references via the Proton Pass CLI. See docs/PROTON_PASS_STRATEGY.md.",
+  "_format": "pass://<vault>/<item>/<field>",
+  "references": {
+    "sops_age_key": "pass://infra/sops-age/keys.txt"
+  },
+  "_planned": {
+    "_comment": "Reserved for Tier 2/4 rollout — not consumed by PR-1. Uncomment and populate as OpenBao / CI OIDC land.",
+    "openbao_approle": "pass://infra/openbao/approle",
+    "openbao_unseal": "pass://infra/openbao/unseal-keys",
+    "aws_bootstrap": "pass://infra/aws-bootstrap/credentials"
+  }
+}

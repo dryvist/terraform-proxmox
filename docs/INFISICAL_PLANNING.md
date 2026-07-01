@@ -2,11 +2,21 @@
 
 <!-- DO NOT DELETE - Active planning document -->
 
+> **ℹ️ Domain-split with OpenBao.** The roadmap splits the credential plane into
+> two domain-split systems with **no sync between them**: **OpenBao** (the Vault
+> fork in `aws-infra/modules/openbao-unseal`) is the machine/IaC/dynamic-secrets
+> engine, and **Infisical** (this document) is the human UI + developer
+> integration hub. OpenBao's seal key stays in the **Doppler tier-0 kernel** — see
+> [SECRETS_ROADMAP.md](./SECRETS_ROADMAP.md). A cross-platform secret-zero home in
+> Proton Pass is **exploratory only** (not implemented) —
+> [PROTON_PASS_STRATEGY.md](./PROTON_PASS_STRATEGY.md).
+
 Self-hosted Infisical deployment on Proxmox infrastructure.
 
 **Status:** IN PROGRESS — Phase 1 deploy (LXC + firewall landing via
 `terraform-proxmox`; Ansible role + HAProxy frontend land via
-`ansible-proxmox-apps` PR 3).
+`ansible-proxmox-apps` PR 3). Scoped to the human UI + developer hub role,
+domain-split from OpenBao (see banner).
 
 ## Phase 1 — concrete values
 
