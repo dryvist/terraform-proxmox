@@ -318,10 +318,6 @@ resource "proxmox_virtual_environment_firewall_rules" "rag_container" {
   depends_on = [proxmox_virtual_environment_firewall_options.rag_container]
 }
 
-# MinIO container firewall resources live in modules/firewall/minio_rules.tf
-# (extracted to keep container_rules.tf under the shared _file-size 12 KB error
-# threshold; minio is deprecated and removed after the RustFS cutover soak).
-
 # Object storage container firewall resources: modules/firewall/object_storage_rules.tf
 
 # Infisical container firewall resources live in modules/firewall/infisical_rules.tf

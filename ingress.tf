@@ -18,7 +18,6 @@ locals {
     prowlarr         = { backend = "download-vpn", port = local.pipeline_constants.media_ports.prowlarr_web }
     technitium       = { backend = "technitium-dns", port = local.pipeline_constants.service_ports.technitium_web }
     phpipam          = { backend = "phpipam", port = local.pipeline_constants.service_ports.phpipam_web }
-    minio            = { backend = "minio", port = local.pipeline_constants.service_ports.minio_console }
     "object-storage" = { backend = "object-storage", port = local.pipeline_constants.service_ports.object_storage_console }
     infisical        = { backend = "infisical", port = local.pipeline_constants.service_ports.infisical_api }
     # openbao is intentionally NOT here: it is a 3-node Raft HA cluster, fronted

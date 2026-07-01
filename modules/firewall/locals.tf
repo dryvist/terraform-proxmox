@@ -106,11 +106,6 @@ locals {
     { proto = "tcp", dport = tostring(local.svc_ports.cribl_prometheus_rw), source = local.internal_src, comment = "Prometheus remote_write receiver from internal" },
   ]
 
-  minio_services_rules = [
-    { proto = "tcp", dport = tostring(local.svc_ports.minio_api), source = local.internal_src, comment = "MinIO API from internal" },
-    { proto = "tcp", dport = tostring(local.svc_ports.minio_console), source = local.internal_src, comment = "MinIO Console from internal" },
-  ]
-
   object_storage_services_rules = [
     { proto = "tcp", dport = tostring(local.svc_ports.object_storage_s3), source = local.internal_src, comment = "Object storage (RustFS) S3 API from internal" },
     { proto = "tcp", dport = tostring(local.svc_ports.object_storage_console), source = local.internal_src, comment = "Object storage (RustFS) Console from internal" },
@@ -142,7 +137,7 @@ locals {
   # observed 2026-06-10 on every cribl LXC — listeners stayed bound while
   # each incoming event was silently dropped, killing the whole pipeline.
   # Outbound TCP 443 to any destination is the minimal opening that keeps
-  # inputs licensed; tarball downloads still come from the MinIO mirror, and
+  # inputs licensed; tarball downloads still come from the RustFS (s3) mirror, and
   # the group is attached only to cribl containers (not HAProxy).
   outbound_https_rules = [
     { proto = "tcp", dport = "443", dest = null, comment = "Outbound HTTPS — Cribl license telemetry (CDN-fronted, no stable dest CIDR)" },
