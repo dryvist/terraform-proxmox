@@ -75,7 +75,8 @@ resource "proxmox_virtual_environment_cluster_firewall_security_group" "honeypot
 }
 
 resource "proxmox_virtual_environment_cluster_firewall_security_group" "honeypot_notify_services" {
-  name    = "honeypot-notify-svc"
+  # Proxmox caps cluster security-group names at 18 chars; keep this <= that.
+  name    = "honeypot-ntfy-svc"
   comment = "Honeypot alert gateway: apprise-api REST port (${local.honeypot_ports.apprise_api}) from internal networks"
 
   dynamic "rule" {
