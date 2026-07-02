@@ -1,9 +1,12 @@
 # Secrets Hierarchy & RBAC
 
 The categorization of secrets in OpenBao and the broad RBAC groups that govern
-access — including least-privilege groups for AI agents. OpenBao is the
-machine/IaC/dynamic-secrets engine; Infisical (OSS) is the human UI + developer
-integration hub. They are domain-split with **no sync between them**.
+access — including least-privilege groups for AI agents. In the four-tier secrets
+model OpenBao (T2) is the **single** machine/IaC/dynamic-secrets engine and the
+primary runtime interface for AI agents and automation. There is no second,
+domain-split engine: the earlier OpenBao/Infisical split is dead, Infisical's
+contents migrate into OpenBao, and Infisical is decommissioned. See
+[SECRETS_ROADMAP.md](./SECRETS_ROADMAP.md) for the full four-tier design.
 
 ## KV v2 hierarchy (mount `secret/`)
 
@@ -34,15 +37,18 @@ AI agents are deliberately **read-only** and walled off from the infra kernel
 (`secret/infra/*` — Proxmox API token, AWS state creds, network CIDRs). Two broad
 groups for now: `ai-readonly` (default) and `ai-elevated` (broader read).
 
-## Tier-0 kernel — stays OUT of OpenBao
+## Secret-zero — stays OUT of OpenBao (in Doppler T3)
 
 To avoid a cold-cluster brick (OpenBao can't hold the secrets needed to bring
-OpenBao up), these live in Doppler tier-0, never in OpenBao:
+OpenBao up) or a locked-out actor (can't reach the lease authority), these live
+in the Doppler strict tier (T3), never in OpenBao:
 
-- AWS state-backend credentials (S3 + DynamoDB lock).
-- Proxmox API token (`PROXMOX_VE_*`).
-- The OpenBao AppRole `role_id`/`secret_id` (`VAULT_ROLE_ID`/`VAULT_SECRET_ID`).
 - The **static seal key** (`OPENBAO_STATIC_SEAL_KEY` + `OPENBAO_STATIC_SEAL_KEY_ID`).
+- The **flow-lock AppRole `secret_id`** — the credential to acquire the global
+  flow-lock lease that OpenBao arbitrates.
+- The OpenBao AppRole `role_id`/`secret_id` (`VAULT_ROLE_ID`/`VAULT_SECRET_ID`).
+- Proxmox API token (`PROXMOX_VE_*`).
+- AWS state-backend credentials (S3 + DynamoDB lock).
 
 ## Resilience (never lost, near-zero unavailability)
 
