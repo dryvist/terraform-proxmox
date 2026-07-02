@@ -2,13 +2,38 @@
 
 Unified secrets strategy across the Proxmox homelab ecosystem.
 
+The end-state is a **four-tier hierarchy**. Every credential has exactly one
+authoritative home, chosen by what the secret is for — git-committed config,
+machine/AI runtime, cloud secret-zero, or a human-only vault:
+
+| Tier | System | Role | AI / machine access |
+| --- | --- | --- | --- |
+| **T1** | SOPS + age | Git-committed, encrypted deployment config (not credentials) | Read at plan/apply via the age key |
+| **T2** | OpenBao (self-hosted LXC) | **Primary machine + AI runtime secrets engine**, dynamic secrets, rotation, and the global flow-lock lease authority | Yes — the default runtime interface, via least-privilege AppRoles |
+| **T3** | Doppler (SaaS) | Strict cloud tier: OpenBao secret-zero + rare user-approved keys-to-kingdom | Only for rare, explicitly user-approved operations |
+| **T4** | Bitwarden | Human-only vault | **Never** — no AI or automation identity ever reads T4 |
+
+This supersedes the earlier design in two specific ways, called out in full
+under [Superseded designs](#superseded-designs):
+
+- The **OpenBao / Infisical domain-split is dead.** OpenBao is the single
+  machine/IaC/runtime engine. Infisical's contents migrate into OpenBao and
+  Infisical is decommissioned.
+- **Proton Pass is out of the machine architecture.** It stays a personal,
+  human tool only; it holds no machine or AI secret-zero. Bitwarden (T4) is the
+  human-only tier of record.
+
 ## Current State
 
-### ACTIVE: Doppler (Primary Runtime Secrets)
+### ACTIVE: Doppler (Runtime Secrets, migrating to strict tier)
 
-Doppler is the primary secrets manager for all runtime credentials.
+Doppler is today the primary secrets manager for runtime credentials. In the
+four-tier end-state it narrows to the **strict cloud tier (T3)**: OpenBao's
+secret-zero plus a small set of rare, user-approved keys-to-kingdom values.
+Routine machine and AI runtime secrets migrate out of Doppler into OpenBao
+(T2) over time — see [Migration sequence](#migration-sequence).
 
-**How it works:**
+**How it works today:**
 
 - Secrets stored in Doppler projects, organized by config (dev/stg/prd)
 - Injected at runtime via `doppler run --` command wrapper
@@ -33,7 +58,10 @@ Doppler is the primary secrets manager for all runtime credentials.
 
 ### ACTIVE: aws-vault (AWS Credential Management)
 
-Secures AWS credentials for Terraform S3 backend access.
+Secures AWS credentials for Terraform S3 backend access. Orthogonal to the
+four-tier storage hierarchy — it is a local credential broker, not a secrets
+store. Its bootstrap creds are secret-zero (T3) and are a candidate for OpenBao
+dynamic AWS credentials (T2) later.
 
 **How it works:**
 
@@ -49,7 +77,8 @@ Secures AWS credentials for Terraform S3 backend access.
 
 ### ACTIVE: secrets-sync (Doppler to GitHub Actions)
 
-Synchronizes Doppler secrets to GitHub Actions repository secrets.
+Synchronizes Doppler secrets to GitHub Actions repository secrets. Retired once
+CI reads from OpenBao (T2) via JWT/OIDC — see [Migration sequence](#migration-sequence).
 
 **How it works:**
 
@@ -57,34 +86,35 @@ Synchronizes Doppler secrets to GitHub Actions repository secrets.
 - Automatically pushes secret updates to GitHub Actions secrets
 - CI/CD workflows reference secrets via `${{ secrets.SECRET_NAME }}`
 
-### ACTIVE: macOS Keychain (AI Agent Keys)
+### ACTIVE: macOS Keychain (AI Agent AppRole Bootstrap)
 
-API keys for Claude Code and AI agents stored in a dedicated keychain.
+Holds the local bootstrap for the AI-agent OpenBao AppRole `secret_id`. This
+feeds **T2**: once an agent has its AppRole credential it reads everything else
+from OpenBao. It is a local materialization point, not a tier of its own; it is
+macOS-only, so Linux cloud agents materialize the same bootstrap by their own
+means.
 
 **How it works:**
 
 - Dedicated `ai-secrets` keychain in macOS Keychain Access
-- Retrieved at runtime by Claude Code plugins
+- Retrieved at runtime by Claude Code plugins to obtain the OpenBao AppRole
 - Never stored in files or environment variables
 
-> A cross-platform successor for this store (Proton Pass AI Access Tokens) is
-> being **explored** — see the exploratory entry under *Under Consideration*. It
-> is not implemented; the `ai-secrets` keychain remains the current store.
+## The four tiers (end-state)
 
-## Planned
+### T1 — SOPS + Age (git-committed encrypted deployment config)
 
-### ACTIVE: SOPS + Age (Git-Committed Encrypted Deployment Config)
-
-Replaces `.env/terraform.tfvars` with an age-encrypted JSON file committed to git.
-**SOPS is the encrypted equivalent of tfvars — deployment config, not credentials.**
-Doppler continues to manage all credentials. They work together, not as alternatives.
+**Unchanged.** SOPS replaces `.env/terraform.tfvars` with an age-encrypted JSON
+file committed to git. **SOPS is the encrypted equivalent of tfvars —
+deployment config, not credentials.** OpenBao and Doppler manage credentials;
+SOPS carries the committed config alongside them.
 
 **Division of responsibility:**
 
 | What | Where | Examples |
 | --- | --- | --- |
-| API tokens, passwords, SSH keys | Doppler | `PROXMOX_VE_API_TOKEN`, `SPLUNK_PASSWORD` |
-| Node name, IPs, topology, container/VM definitions | SOPS | `proxmox_node`, `management_network`, `containers` |
+| API tokens, passwords, SSH keys | OpenBao (T2) / Doppler (T3) | `PROXMOX_VE_API_TOKEN`, `SPLUNK_PASSWORD` |
+| Node name, IPs, topology, container/VM definitions | SOPS (T1) | `proxmox_node`, `management_network`, `containers` |
 
 **Integration pattern:**
 
@@ -93,12 +123,6 @@ Doppler continues to manage all credentials. They work together, not as alternat
 sops_config = fileexists("${get_terragrunt_dir()}/terraform.sops.json") ?
   jsondecode(sops_decrypt_file("${get_terragrunt_dir()}/terraform.sops.json")) : {}
 inputs = merge(local.env_var_defaults, local.sops_inputs)
-```
-
-**Run command (always both together):**
-
-```bash
-aws-vault exec tf-proxmox -- doppler run -- terragrunt plan
 ```
 
 **Files:**
@@ -117,169 +141,192 @@ aws-vault exec tf-proxmox -- doppler run -- terragrunt plan
 | ansible-proxmox-apps | Planned |
 | ansible-splunk | Planned |
 
-See [docs/SOPS_SETUP.md](./SOPS_SETUP.md) for full setup and usage instructions.
+The age **private** key is set up per host today (`age-keygen`). A per-host
+age-key improvement (a portable, backed-up home so SOPS decryption works on
+Linux/cloud agents too) is a future refinement; it does not change T1's role.
+See [docs/SOPS_SETUP.md](./SOPS_SETUP.md) for full setup and usage.
 
-### PLANNED-FOR-DEPLOY: Self-Hosted OpenBao (Machine / IaC Secrets Engine)
+### T2 — Self-Hosted OpenBao (primary machine + AI runtime engine)
 
-<!-- DO NOT DELETE - Active planning item -->
-
-OpenBao is the machine/IaC/dynamic-secrets engine — the counterpart to Infisical
-(the human UI + developer integration hub). The two are domain-split with **no
-sync between them**. The IaC and Ansible roles exist; the cluster stands up in
-Phase 1.
+OpenBao is the **single** machine/IaC/dynamic-secrets engine and the **primary
+runtime interface for AI agents and automation**. The earlier OpenBao/Infisical
+domain-split is dead — there is no second engine and no sync. OpenBao owns
+AppRole RBAC, dynamic secrets, rotation, and Raft-snapshot DR, and it is also
+the **global flow-lock lease authority** (below).
 
 **Architecture:**
 
-- **3-node Raft HA** — `openbao1`/`openbao2`/`openbao3` spread across
-  `proxmox-1`/`proxmox-2`/`proxmox-3` on the apps VLAN. Quorum 2 survives one
-  node loss with no downtime.
-- **On-prem static-key auto-unseal (no cloud)** — each node self-unseals on
-  reboot from a 32-byte AES-256 seal key in its `0600` EnvironmentFile, sourced
-  from Doppler tier-0. This replaces the earlier AWS-KMS unseal design; the seal
-  carries no cloud dependency.
+- **Self-hosted on a Proxmox LXC** on the apps VLAN, backed by Raft storage with
+  automated snapshots. (HA quorum can be added later; the LXC is the initial
+  target.)
+- **On-prem static-key auto-unseal (no cloud)** — nodes self-unseal on reboot
+  from a 32-byte AES-256 seal key in a `0600` EnvironmentFile, sourced from the
+  Doppler strict tier (T3). This is the chosen seal model; there is no AWS-KMS
+  dependency.
 - **Automated encrypted Raft snapshots** → on-prem `s3` bucket
   `openbao-snapshots` + NAS + offsite-encrypted.
-- **Paper break-glass** — recovery shares (5, threshold 3) + initial root token
-  transcribed to paper and split across custodians.
+- **Paper break-glass** — recovery shares + initial root token transcribed to
+  paper and split across custodians.
 
-**Tier-0 kernel (stays OUT of OpenBao):**
+**Flow-lock lease authority.** OpenBao also holds the **global flow-lock** — a
+single mutual-exclusion lease that serializes infrastructure-mutating flows
+across repos and agents, so only one actor mutates shared state at a time. The
+flow-lock AppRole `secret_id` that lets an actor acquire the lease is
+secret-zero and stays in Doppler (T3) — see below.
 
-These bootstrap OpenBao itself, so they live in Doppler tier-0 and never migrate
-in — otherwise a cold cluster could not unseal itself:
+**AI-agent access.** AI agents reach OpenBao through least-privilege AppRoles
+and are read-only and walled off from the infra kernel. See
+[docs/SECRETS_HIERARCHY.md](./SECRETS_HIERARCHY.md) for the KV v2 layout and the
+RBAC groups.
 
-| Doppler tier-0 secret | Purpose |
+**Secret-zero stays out of OpenBao (in Doppler T3):**
+
+These bootstrap OpenBao itself or the lease that gates it, so they never migrate
+in — otherwise a cold cluster could not unseal or a locked-out actor could not
+acquire the lease:
+
+| Doppler secret-zero | Purpose |
 | --- | --- |
 | `OPENBAO_STATIC_SEAL_KEY` | 32-byte AES-256 auto-unseal key (base64) |
 | `OPENBAO_STATIC_SEAL_KEY_ID` | Seal-key rotation id (e.g. `YYYYMMDD-1`) |
+| flow-lock AppRole `secret_id` | Credential to acquire the global flow-lock lease |
 | `VAULT_ADDR` | OpenBao API address |
 | `VAULT_ROLE_ID` / `VAULT_SECRET_ID` | Terraform AppRole credentials |
 
-See [docs/SECRETS_HIERARCHY.md](./SECRETS_HIERARCHY.md) for the KV v2
-categorization and RBAC groups (including least-privilege AI-agent groups).
+### T3 — Doppler (strict cloud tier: secret-zero + keys-to-kingdom)
 
-### PLANNED: Self-Hosted Infisical
+Doppler narrows from primary runtime store to the **strict cloud tier**. It
+holds two things and nothing routine:
 
-<!-- DO NOT DELETE - Active planning item -->
+1. **OpenBao secret-zero** — the seal key + id and the flow-lock AppRole
+   `secret_id` listed above. These must live outside OpenBao so a cold cluster
+   can always unseal and a locked-out actor can always reach the lease
+   authority.
+2. **Rare keys-to-kingdom** — a small set of high-blast-radius credentials that
+   an AI agent may touch **only** for a specific, explicitly user-approved
+   operation. Normal AI/machine runtime never reads T3.
 
-Self-hosted secrets manager running on Proxmox infrastructure.
+Routine machine and AI runtime secrets migrate **out** of Doppler into OpenBao
+(T2). As that completes, the runtime keys that remain are renamed `BREAKGLASS_*`
+to make their strict, exceptional status explicit in tooling and audit logs.
 
-**Motivation:**
+### T4 — Bitwarden (human-only vault)
 
-- Reduce dependency on Doppler SaaS
-- Full control over secrets infrastructure
-- Native Terraform and Ansible integrations
-- Web UI for team management
+Bitwarden is the **human tier of record** — the personal/interactive vault for
+credentials a human uses directly. **No AI agent, service account, or automation
+identity ever reads T4.** It is deliberately outside every machine code path;
+there is no CLI hook, lookup plugin, or bootstrap script that resolves a
+Bitwarden item. This tier replaces Proton Pass in the human role (Proton Pass is
+out of the machine architecture entirely — see below).
 
-See [INFISICAL_PLANNING.md](./INFISICAL_PLANNING.md) for detailed planning.
+## Hybrid SSH certificate authority
 
-## Under Consideration
+SSH access moves to a **hybrid CA** model backed by OpenBao's SSH secrets
+engine:
 
-### CONSIDERATION: Google Secrets Manager
+- **Automation identities** (`ai-agent`, `ansible`, `ci`) get **short-TTL SSH
+  certificates** signed on demand by the OpenBao SSH engine. No long-lived
+  automation private keys sit on disk; a leaked cert expires on its own.
+- **Humans keep static SSH keys.** The CA is additive for automation, not a
+  forced migration for interactive human access.
 
-Evaluating as potential alternative or complement to Doppler for
-cloud-native workloads.
+This is a T2 capability (the signing authority is OpenBao) and lands after the
+core engine is up — see [Migration sequence](#migration-sequence).
 
-**Pros:**
+## Superseded designs
 
-- Native GCP integration
-- Pay-per-use pricing
-- Strong IAM integration
+Two earlier directions are **superseded** and must not be reintroduced:
 
-**Cons:**
+- **OpenBao / Infisical domain-split — DEAD.** The plan to run OpenBao (machine
+  engine) and Infisical (human UI + developer hub) as two domain-split systems
+  with no sync between them **does not ship**. OpenBao is the single engine.
+  Infisical's contents migrate into OpenBao and Infisical is decommissioned.
+  See [INFISICAL_PLANNING.md](./INFISICAL_PLANNING.md) (superseded banner).
+- **Proton Pass as tier-0 root-of-trust / AI keychain — SUPERSEDED.** Proton
+  Pass is **out of the machine architecture**. It is a personal, human-only tool
+  and holds no machine or AI secret-zero. The human tier of record is Bitwarden
+  (T4); machine secret-zero lives in Doppler (T3). See
+  [PROTON_PASS_STRATEGY.md](./PROTON_PASS_STRATEGY.md) (superseded banner).
 
-- Adds GCP dependency to primarily AWS/on-prem stack
-- No clear advantage over Doppler for current use cases
-- Would require additional credential management
+## What stays in Doppler permanently
 
-**Decision:** On hold. Revisit if GCP workloads are added to the ecosystem.
+Even after the runtime migration completes, Doppler (T3) permanently retains the
+secret-zero that OpenBao cannot hold for itself:
 
-### EXPLORATORY: Proton Pass (Potential Future Tier-0 Root-of-Trust + AI Keychain)
+- `OPENBAO_STATIC_SEAL_KEY` + `OPENBAO_STATIC_SEAL_KEY_ID` — the auto-unseal key.
+- The **flow-lock AppRole `secret_id`** — the credential to acquire the global
+  lease authority.
+- A small strict set of user-approved keys-to-kingdom (`BREAKGLASS_*`).
 
-<!-- Exploratory only — NOT implemented. Does not change the current design. -->
+Everything else that is machine/AI runtime leaves Doppler for OpenBao.
 
-Proton Pass is being **explored** as a possible future, cross-platform,
-end-to-end-encrypted home for long-lived *secret-zero*, and as an auditable
-keychain for AI agents. It is **not implemented** and does **not** supersede the
-current design. Doppler remains the tier-0 kernel (including the
-`OPENBAO_STATIC_SEAL_KEY`), and the `ai-secrets` macOS Keychain remains the
-current AI-agent key store. Full exploratory design in
-[PROTON_PASS_STRATEGY.md](./PROTON_PASS_STRATEGY.md).
+## Migration sequence
 
-**What it could offer (if adopted):**
+```text
+1. OpenBao bring-up      Stand up OpenBao on the Proxmox LXC (Raft + snapshots).
+                         Seal key sourced from Doppler T3 (static-key auto-unseal).
 
-- **Cross-platform secret-zero home** — reachable identically on a laptop or a
-  Linux cloud agent, where the macOS Keychain and aws-vault Keychain backends do
-  not exist. A candidate portable home for the SOPS age private key, materialized
-  by `./scripts/secrets-bootstrap.sh`; references tracked in
-  `.proton-pass.refs.json`.
-- **Per-agent AI Access Tokens** — one read-only, expiring (≤90d), reason-tagged,
-  individually-revocable, logged token per agent, replacing the single shared
-  keychain entry. Unlimited/free minting on a Proton Family/Unlimited account.
+2. Seed infra creds      Write the IaC kernel (secret/infra/*) into OpenBao;
+                         consumers begin reading via the terraform AppRole.
 
-**Explicitly out of scope:** Proton Pass is not a rotation engine or runtime
-injector (no native rotation, no service-account REST API). It would **not** hold
-the OpenBao seal key — that stays in Doppler tier-0 so a cold cluster can always
-unseal itself. Rotation stays with OpenBao; runtime injection stays with
-Doppler/SOPS.
+3. Flow-lock adoption    OpenBao becomes the global flow-lock lease authority;
+                         infra-mutating flows acquire the lease before mutating
+                         shared state. Lease AppRole secret_id is secret-zero (T3).
 
-**Decision:** Exploratory only. No adoption committed. Revisit if the
-cross-platform secret-zero and per-agent-token gaps become blocking.
+4. Doppler slim-down     Migrate routine machine/AI runtime secrets Doppler → OpenBao.
+                         Remaining strict runtime keys renamed BREAKGLASS_*.
+                         Retire secrets-sync once CI reads OpenBao via JWT/OIDC.
+
+5. Infisical migration    Migrate any Infisical contents into OpenBao, then
+   + decommission         DECOMMISSION Infisical. The domain-split never ships.
+
+6. SSH-CA                Enable the OpenBao SSH engine; automation identities
+                         (ai-agent/ansible/ci) get short-TTL signed certs.
+                         Humans keep static keys.
+```
 
 ## Secrets Flow Summary
 
 ```text
-Doppler (SaaS) — credentials
-├── PROXMOX_VE_* ──────→ BPG provider (API auth)
-├── PROXMOX_SSH_* ─────→ Terragrunt → provider SSH block
-├── SPLUNK_* ──────────→ Terragrunt → Terraform variables
-├── secrets-sync ──────→ GitHub Actions
-└── Runtime injection ──→ Ansible
-
-aws-vault (local) — AWS auth
-└── STS sessions ──────→ Terraform S3 backend
-
-macOS Keychain (local) — AI keys
-└── ai-secrets ────────→ Claude Code / AI agents
-
-SOPS + Age (ACTIVE) — deployment config (not credentials)
-└── terraform.sops.json (encrypted, committed to git)
+T1  SOPS + Age — git-committed deployment config (not credentials)
+└── terraform.sops.json (encrypted, committed)
     └── sops_decrypt_file() ──→ Terragrunt inputs
         (proxmox_node, IPs, networks, container/VM definitions)
 
-OpenBao (planned-for-deploy) — machine/IaC secrets engine
-└── 3-node Raft HA, on-prem static-key auto-unseal (no cloud)
-    └── AppRole (VAULT_ROLE_ID/SECRET_ID) ──→ Terraform/Ansible reads
-        (tier-0 kernel stays in Doppler; see SECRETS_HIERARCHY.md)
+T2  OpenBao — PRIMARY machine + AI runtime engine + flow-lock authority
+├── AppRole (VAULT_ROLE_ID/SECRET_ID) ──→ Terraform / Ansible reads
+├── least-privilege AI AppRoles ────────→ Claude Code / cloud agents (read-only)
+├── SSH engine ───────────────────────→ short-TTL automation certs (ai/ansible/ci)
+└── flow-lock lease ──────────────────→ serializes infra-mutating flows
+    (secret-zero stays in Doppler T3 — see below)
 
-Infisical (planned) — human UI + developer integration hub
-└── Self-hosted ───────→ domain-split from OpenBao (no sync)
+T3  Doppler — strict cloud tier (secret-zero + keys-to-kingdom)
+├── OPENBAO_STATIC_SEAL_KEY (+ _ID) ───→ OpenBao auto-unseal
+├── flow-lock AppRole secret_id ───────→ acquire the global lease
+└── BREAKGLASS_* ──────────────────────→ rare, user-approved keys-to-kingdom only
 
-Proton Pass (EXPLORATORY — not implemented; see PROTON_PASS_STRATEGY.md)
-╌╌ Tier 0 ╌╌╌╌╌╌╌╌╌╌╌╌╌⤍ potential future cross-platform secret-zero home
-╌╌ └╌ age private key ╌⤍ candidate portable home for the SOPS age key
-╌╌ Tier 1 ╌╌╌╌╌╌╌╌╌╌╌╌╌⤍ potential per-agent AI Access Tokens (replace ai-secrets)
-   (would NOT hold the OpenBao seal key — that stays in Doppler tier-0)
+T4  Bitwarden — human-only vault
+└── NEVER read by any AI or automation identity
+
+Operational (orthogonal to the tier hierarchy):
+  aws-vault (local) ──→ STS sessions ──→ Terraform S3 backend
+  macOS ai-secrets keychain ──→ AI-agent OpenBao AppRole bootstrap ──→ T2
 ```
 
 ## Migration Path
 
 ```text
-Current:  Doppler → credentials (API tokens, passwords, SSH keys)
-          SOPS    → deployment config (IPs, node, container defs) — replaces .env/terraform.tfvars
-          Both always used together: aws-vault exec tf-proxmox -- doppler run -- terragrunt plan
+Current:  Doppler → runtime credentials (API tokens, passwords, SSH keys)
+          SOPS    → deployment config (IPs, node, container defs)
+          Both used together: aws-vault exec tf-proxmox -- doppler run -- terragrunt plan
+          OpenBao IaC/Ansible roles exist; Infisical Phase 1 LXC in flight (being superseded)
 
-Near-term: + Extend SOPS pattern to ansible-proxmox-apps and ansible-splunk
-           + Pre-commit guards against committing unencrypted secrets
-           + Stand up OpenBao 3-node Raft HA (Phase 1); new generated secrets
-             land greenfield-first in OpenBao, consumers read via AppRole
+End-state (four tiers):
+  T1 SOPS+age  → git-committed encrypted deploy config (unchanged)
+  T2 OpenBao   → PRIMARY machine+AI runtime engine, rotation, DR, flow-lock authority, SSH-CA
+  T3 Doppler   → strict: OpenBao secret-zero + flow-lock secret_id + rare BREAKGLASS_*
+  T4 Bitwarden → human-only; never AI
 
-Future:    OpenBao (self-hosted) as the machine/IaC/dynamic-secrets engine
-           Infisical (self-hosted) as the human UI + developer integration hub
-           Doppler retains the tier-0 kernel (incl. OpenBao seal key) + fallback
-           SOPS/Age continues for git-committed deployment config
-
-Exploratory (not implemented): Proton Pass as a potential future cross-platform
-           secret-zero home (SOPS age key + per-agent AI Access Tokens). Would
-           not change the Doppler tier-0 kernel or the OpenBao seal-key location.
-           See PROTON_PASS_STRATEGY.md.
+Superseded: OpenBao/Infisical domain-split (dead — one engine, Infisical decommissioned)
+            Proton Pass tier-0 root-of-trust / AI keychain (out of machine architecture)
 ```

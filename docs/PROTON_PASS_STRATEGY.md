@@ -1,11 +1,16 @@
 # Proton Pass — Secrets Root-of-Trust & AI-Agent Keychain (Exploratory)
 
-> **Status: Exploratory — NOT implemented.** This is a proposed future direction,
-> not the current design. Today the tier-0 kernel (including the OpenBao
-> `OPENBAO_STATIC_SEAL_KEY`) lives in **Doppler**, and AI-agent keys live in the
-> `ai-secrets` **macOS Keychain**. Nothing below is in production; adopt only if
-> the cross-platform secret-zero and per-agent-token gaps become blocking. The
-> current, authoritative design is in [SECRETS_ROADMAP.md](./SECRETS_ROADMAP.md).
+> **⛔ SUPERSEDED (2026-07-01).** The four-tier secrets ADR removes Proton Pass
+> from the machine architecture entirely. Proton Pass stays a **personal,
+> human-only** tool and holds **no machine or AI secret-zero**. The human tier of
+> record is **Bitwarden (T4)**; OpenBao secret-zero (seal key + flow-lock AppRole
+> `secret_id`) lives in **Doppler (T3)**; the primary machine/AI runtime engine is
+> **OpenBao (T2)**. The exploratory Tier-0 root-of-trust / Tier-1 AI-keychain roles
+> below are **not adopted** and will not be. The body is retained for history only;
+> the authoritative design is [SECRETS_ROADMAP.md](./SECRETS_ROADMAP.md).
+>
+> *(Historical status, when this was a live proposal: Exploratory — NOT
+> implemented. Nothing below ever reached production.)*
 
 Cross-repo *proposal* for using the **Proton Pass CLI** as a portable,
 end-to-end-encrypted **root-of-trust** for the Proxmox homelab ecosystem, and as
