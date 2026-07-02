@@ -245,4 +245,3 @@ Operational (orthogonal to the tier hierarchy):
   aws-vault (local) ──→ STS sessions ──→ Terraform S3 backend
   macOS ai-secrets keychain ──→ AI-agent OpenBao AppRole bootstrap ──→ T2
 ```
-
