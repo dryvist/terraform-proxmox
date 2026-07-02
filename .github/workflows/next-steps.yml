@@ -15,5 +15,5 @@ permissions:
 
 jobs:
   analyze:
-    uses: dryvist/ai-workflows/.github/workflows/next-steps.yml@main
+    uses: dryvist/ai-workflows/.github/workflows/cc-next-steps.yml@main
     secrets: inherit
