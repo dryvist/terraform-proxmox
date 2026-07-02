@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.47.1](https://github.com/dryvist/terraform-proxmox/compare/v1.47.0...v1.47.1) (2026-07-02)
+
+
+### Bug Fixes
+
+* **firewall:** honeypot notify security-group name under 18-char cap ([e7d5aae](https://github.com/dryvist/terraform-proxmox/commit/e7d5aaef11a8be8ac5d9acc16b9e808a209df8c9))
+
 ## [1.47.0](https://github.com/dryvist/terraform-proxmox/compare/v1.46.3...v1.47.0) (2026-07-01)
 
 
