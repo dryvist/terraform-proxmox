@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.47.2](https://github.com/dryvist/terraform-proxmox/compare/v1.47.1...v1.47.2) (2026-07-02)
+
+
+### Bug Fixes
+
+* point callers at renamed cc- reusable workflows ([245a592](https://github.com/dryvist/terraform-proxmox/commit/245a59237b0f45f61783317eea0f7db17556b03f))
+
 ## [1.47.1](https://github.com/dryvist/terraform-proxmox/compare/v1.47.0...v1.47.1) (2026-07-02)
 
 
