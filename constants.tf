@@ -59,7 +59,13 @@ locals {
       # Proxmox cluster web UI (:8006) — fronted by Traefik at the ingress
       # subdomain apex, load-balanced across every commissioned node's UI.
       proxmox_web = 8006
-      # Local LLM: Ollama API (CT 167 hermes-infer) + Open WebUI (CT 168 hermes-chat)
+      # Local LLM fabric. llm_fast_api = llama-swap OpenAI-compatible endpoint on
+      # the GPU llm-fast guest; llm_router_api = LiteLLM proxy that routes across
+      # llm-fast + the larger off-box model endpoints; open_webui_web = the chat
+      # UI. ollama_api is retained through the retirement phase (superseded by
+      # llama-swap on llm_fast_api).
+      llm_fast_api   = 10434
+      llm_router_api = 4000
       ollama_api     = 11434
       open_webui_web = 8080
       # AI orchestration stack web UIs (Traefik-fronted) — Dify, LangFlow, and

@@ -42,13 +42,13 @@ variable "vlan_ids" {
     mgmt      = 5
     bmc       = 8
     compute   = 10
-    siem      = 20
+    siem      = 40
     pipeline  = 25
     data      = 30
-    ai        = 40
-    apps      = 50
+    ai        = 50
+    apps      = 60
     media_svc = 55
-    homeauto  = 60
+    homeauto  = 80
     nonprod   = 90
   }
 }

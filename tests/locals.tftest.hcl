@@ -128,8 +128,8 @@ run "vm_ipv4_uses_vlan_cidr" {
   }
 
   assert {
-    condition     = local.vm_ipv4["idrac-kvm"] == "192.168.50.251/24"
-    error_message = "apps-VLAN VM 251 should be 192.168.50.251/24, got ${local.vm_ipv4["idrac-kvm"]}"
+    condition     = local.vm_ipv4["idrac-kvm"] == "192.168.60.251/24"
+    error_message = "apps-VLAN VM 251 should be 192.168.60.251/24, got ${local.vm_ipv4["idrac-kvm"]}"
   }
 }
 
@@ -139,13 +139,13 @@ run "splunk_derived_ip_uses_siem_vlan" {
   command = plan
 
   assert {
-    condition     = local.splunk_derived_ip == "192.168.20.99/24"
-    error_message = "splunk_derived_ip should be siem-VLAN 192.168.20.99/24 (placeholder default splunk_vm_id), got ${local.splunk_derived_ip}"
+    condition     = local.splunk_derived_ip == "192.168.40.99/24"
+    error_message = "splunk_derived_ip should be siem-VLAN 192.168.40.99/24 (placeholder default splunk_vm_id), got ${local.splunk_derived_ip}"
   }
 
   assert {
-    condition     = local.splunk_network_gateway == "192.168.20.1"
-    error_message = "splunk_network_gateway should be siem-VLAN .1 (192.168.20.1), got ${local.splunk_network_gateway}"
+    condition     = local.splunk_network_gateway == "192.168.40.1"
+    error_message = "splunk_network_gateway should be siem-VLAN .1 (192.168.40.1), got ${local.splunk_network_gateway}"
   }
 }
 
@@ -157,7 +157,7 @@ run "splunk_derived_ip_different_id" {
   }
 
   assert {
-    condition     = local.splunk_derived_ip == "192.168.20.205/24"
+    condition     = local.splunk_derived_ip == "192.168.40.205/24"
     error_message = "splunk_derived_ip should track splunk_vm_id (205), got ${local.splunk_derived_ip}"
   }
 }
@@ -188,8 +188,8 @@ run "splunk_network_ips_default_no_containers" {
   }
 
   assert {
-    condition     = contains(local.splunk_network_ips, "192.168.20.99")
-    error_message = "splunk_network_ips should contain splunk VM IP 192.168.20.99 (placeholder default)"
+    condition     = contains(local.splunk_network_ips, "192.168.40.99")
+    error_message = "splunk_network_ips should contain splunk VM IP 192.168.40.99 (placeholder default)"
   }
 }
 
@@ -208,12 +208,12 @@ run "splunk_network_ips_includes_splunk_tagged_container" {
   }
 
   assert {
-    condition     = contains(local.splunk_network_ips, "192.168.20.99")
+    condition     = contains(local.splunk_network_ips, "192.168.40.99")
     error_message = "splunk_network_ips must include splunk VM IP"
   }
 
   assert {
-    condition     = contains(local.splunk_network_ips, "192.168.20.199")
+    condition     = contains(local.splunk_network_ips, "192.168.40.199")
     error_message = "splunk_network_ips must include splunk-tagged container IP on siem VLAN"
   }
 

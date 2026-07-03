@@ -105,6 +105,18 @@ variable "langfuse_container_ids" {
   default     = {}
 }
 
+variable "llm_router_container_ids" {
+  description = "Map of LLM router LXC names to IDs (tag-driven: llm-router). LiteLLM proxy fronting the fabric — inbound llm_router_api from internal + outbound internal/HTTPS (llm-fast + off-box model endpoints)."
+  type        = map(number)
+  default     = {}
+}
+
+variable "llm_fast_container_ids" {
+  description = "Map of LLM fast-server LXC names to IDs (tag-driven: llm-fast). GPU llama-swap server — inbound llm_fast_api from internal + outbound internal/HTTPS (model/weight fetch)."
+  type        = map(number)
+  default     = {}
+}
+
 variable "honeypot_container_ids" {
   description = "Map of honeypot LXC names to IDs (honeypot tag): per-VLAN OpenCanary tripwires + the apprise-api notify gateway. Tag-driven, set by root locals."
   type        = map(number)

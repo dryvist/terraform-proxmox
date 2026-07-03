@@ -388,6 +388,8 @@ resource "proxmox_virtual_environment_cluster_firewall_security_group" "langfuse
   }
 }
 
+# llm_router_services + llm_fast_services groups are in llm_fabric_rules.tf (size gate).
+
 resource "proxmox_virtual_environment_cluster_firewall_security_group" "otel_ingest" {
   name    = "otel-ingest"
   comment = "Cribl Edge native OTLP sources (traces/metrics/logs, gRPC+HTTP) from the AI VLAN only"
