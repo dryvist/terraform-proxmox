@@ -6,13 +6,13 @@ locals {
   # OpenAI-compatible on llm_fast_api). Inbound llm_fast_api from internal.
   llm_fast_container_ids = {
     for k, v in var.containers : k => v.vm_id
-    if contains(coalesce(try(v.tags, null), []), "llm-fast")
+    if contains(try(v.tags, []), "llm-fast")
   }
 
   # llm-router LXCs (llm-router tag): the LiteLLM proxy fronting the fabric
   # (llm_router_api). Inbound llm_router_api from internal.
   llm_router_container_ids = {
     for k, v in var.containers : k => v.vm_id
-    if contains(coalesce(try(v.tags, null), []), "llm-router")
+    if contains(try(v.tags, []), "llm-router")
   }
 }
