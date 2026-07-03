@@ -178,7 +178,7 @@ Summary by pool:
   `prometheus`, `traefik` (HTTPS/TLS ingress)
 - **`logging`** — `haproxy`, `cribl-edge-01/02`, `cribl-stream-01/02`,
   `splunk-mgmt` (SH + DS + LM + MC + CM)
-- **`ai`** — `claude-code-01/02`, `gemini-01/02`, `qdrant`, `llamaindex`,
+- **`ai`** — `qdrant`, `llamaindex`,
   `hermes-infer` (Ollama LLM inference on the RX 6800 GPU), `hermes-chat`
   (Open WebUI chat frontend), `dify`, `langflow` (LLM orchestration / flow
   builders), `agent-exec` (CrewAI + LangChain runtime with OpenLLMetry tracing)

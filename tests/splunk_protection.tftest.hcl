@@ -44,7 +44,7 @@ override_module {
   outputs = {
     vm_id       = 200
     name        = "splunk-aio"
-    ip_address  = "192.168.20.200"
+    ip_address  = "192.168.40.200"
     mac_address = "BC:24:11:00:00:C8"
   }
 }
@@ -109,7 +109,7 @@ run "splunk_ip_derived_from_vm_id" {
   }
 
   assert {
-    condition     = local.splunk_derived_ip == "192.168.20.205/24"
+    condition     = local.splunk_derived_ip == "192.168.40.205/24"
     error_message = "splunk_derived_ip must track splunk_vm_id (205) on the siem VLAN, got ${local.splunk_derived_ip}"
   }
 }

@@ -250,9 +250,59 @@
       "unprivileged": true,
       "features": { "nesting": true }
     },
-    "_ai_orchestration_comment": "AI orchestration tier (AI/ML target tier 5). Dify/LangFlow are Docker-in-LXC visual builders; agent-exec is a plain Python LXC running CrewAI + LangChain code with OpenLLMetry. VMIDs follow the 6-digit positional convention (docs vmid-network-tiers); the values here are illustrative. They sit on the CURRENT 'ai'/'siem' VLANs (the 40->50 / 20->40 renumber is deferred), addressed DNS-first (dhcp + reserved_host). Each tool's model provider + vector store is configured per its own install standard; Dify keeps its bundled vector store rather than the shared qdrant. Docker guests carry only nesting (the API token cannot set keyctl/fuse on unprivileged LXC; ansible-proxmox adds those via root@pam, same as the media guests). Firewall: ai-orchestration-svc (UI ports) + native OTLP egress to Cribl Edge; Langfuse adds langfuse-svc (3000). Node placement is set in the live (private) deployment input; the example omits node_name and uses the default.",
+    "_llm_fabric_comment": "Local LLM fabric (AI tier 5, ai VLAN). llm-fast is a PRIVILEGED LXC with GPU passthrough (/dev/kfd + a /dev/dri render node) running the fast/small-model server (llama-swap, OpenAI-compatible on llm_fast_api). llm-router-* front the fabric with a LiteLLM proxy (llm_router_api) that routes to llm-fast plus the larger off-box model endpoints. open-webui is the chat UI (open_webui_web). VMIDs follow the 6-digit positional convention (docs vmid-network-tiers); values here are illustrative. GPU passthrough requires a privileged container (unprivileged:false), so the API token cannot create it — root@pam does (ansible-proxmox / hands-on), the same constraint as the media guests' keyctl/fuse. Tag llm-fast opens llm_fast_api from internal; tag llm-router opens llm_router_api. Node placement is set in the live (private) deployment input; the example omits node_name and uses the default.",
+    "llm-fast": {
+      "vm_id": 503000,
+      "dhcp": true,
+      "reserved_host": 44,
+      "vlan": "ai",
+      "hostname": "llm-fast",
+      "description": "GPU fast/small-model server (llama-swap, OpenAI-compatible on llm_fast_api). Privileged LXC with AMD ROCm passthrough.",
+      "cpu_cores": 4,
+      "memory_dedicated": 16384,
+      "tags": ["terraform", "container", "ai", "llm-fast"],
+      "pool_id": "ai",
+      "unprivileged": false,
+      "root_disk": { "size": 24 },
+      "mount_points": [{ "volume": "local-zfs", "size": "120G", "path": "/var/lib/llm" }],
+      "device_passthrough": [
+        { "path": "/dev/kfd" },
+        { "path": "/dev/dri/renderD128" }
+      ]
+    },
+    "open-webui": {
+      "vm_id": 505000,
+      "dhcp": true,
+      "reserved_host": 45,
+      "vlan": "ai",
+      "hostname": "open-webui",
+      "description": "Open WebUI chat frontend for the LLM fabric (open_webui_web; Docker-in-LXC)",
+      "cpu_cores": 2,
+      "memory_dedicated": 4096,
+      "tags": ["terraform", "container", "ai", "open-webui", "docker"],
+      "pool_id": "ai",
+      "unprivileged": true,
+      "root_disk": { "size": 16 },
+      "features": { "nesting": true }
+    },
+    "llm-router-1": {
+      "vm_id": 512000,
+      "dhcp": true,
+      "reserved_host": 46,
+      "vlan": "ai",
+      "hostname": "llm-router-1",
+      "description": "LiteLLM proxy fronting the fabric (llm_router_api) — routes to llm-fast + off-box model endpoints (Docker-in-LXC)",
+      "cpu_cores": 2,
+      "memory_dedicated": 4096,
+      "tags": ["terraform", "container", "ai", "llm-router", "docker"],
+      "pool_id": "ai",
+      "unprivileged": true,
+      "root_disk": { "size": 16 },
+      "features": { "nesting": true }
+    },
+    "_ai_orchestration_comment": "AI orchestration tier (AI/ML tier 5). Dify/LangFlow are Docker-in-LXC visual builders; agent-exec is a plain Python LXC running CrewAI + LangChain code with OpenLLMetry. VMIDs follow the 6-digit positional convention (docs vmid-network-tiers); the values here are illustrative. They sit on the 'ai' VLAN (tier 5) and 'siem' VLAN (tier 4) — the committed end-state of the vlan_ids map — addressed DNS-first (dhcp + reserved_host). Each tool's model provider + vector store is configured per its own install standard; Dify keeps its bundled vector store rather than the shared qdrant. Docker guests carry only nesting (the API token cannot set keyctl/fuse on unprivileged LXC; ansible-proxmox adds those via root@pam, same as the media guests). Firewall: ai-orch-svc (UI ports) + native OTLP egress to Cribl Edge; Langfuse adds langfuse-svc (3000). Node placement is set in the live (private) deployment input; the example omits node_name and uses the default.",
     "dify": {
-      "vm_id": 510000,
+      "vm_id": 505010,
       "dhcp": true,
       "reserved_host": 41,
       "vlan": "ai",
@@ -268,7 +318,7 @@
       "features": { "nesting": true }
     },
     "langflow": {
-      "vm_id": 510010,
+      "vm_id": 505020,
       "dhcp": true,
       "reserved_host": 42,
       "vlan": "ai",
@@ -284,7 +334,7 @@
       "features": { "nesting": true }
     },
     "agent-exec": {
-      "vm_id": 510020,
+      "vm_id": 515000,
       "dhcp": true,
       "reserved_host": 43,
       "vlan": "ai",
@@ -298,7 +348,7 @@
       "root_disk": { "size": 24 }
     },
     "langfuse": {
-      "vm_id": 410040,
+      "vm_id": 405000,
       "dhcp": true,
       "reserved_host": 40,
       "vlan": "siem",

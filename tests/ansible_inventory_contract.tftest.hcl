@@ -45,7 +45,7 @@ override_module {
   outputs = {
     vm_id       = 200
     name        = "splunk-aio"
-    ip_address  = "192.168.20.200"
+    ip_address  = "192.168.40.200"
     mac_address = "BC:24:11:00:00:C8"
   }
 }
