@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.49.0](https://github.com/dryvist/terraform-proxmox/compare/v1.48.0...v1.49.0) (2026-07-03)
+
+
+### Features
+
+* add LLM fabric foundation (VLAN end-state, llm-fast/router ports, firewall) ([#524](https://github.com/dryvist/terraform-proxmox/issues/524)) ([b94c5a3](https://github.com/dryvist/terraform-proxmox/commit/b94c5a31d0d4c014ef0d87481a9049cf208654c6))
+
 ## [1.48.0](https://github.com/dryvist/terraform-proxmox/compare/v1.47.2...v1.48.0) (2026-07-03)
 
 
