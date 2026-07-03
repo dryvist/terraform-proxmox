@@ -388,39 +388,7 @@ resource "proxmox_virtual_environment_cluster_firewall_security_group" "langfuse
   }
 }
 
-resource "proxmox_virtual_environment_cluster_firewall_security_group" "llm_router_services" {
-  name    = "llm-router-svc"
-  comment = "LLM router / LiteLLM proxy API (${local.svc_ports.llm_router_api}) from internal networks"
-
-  dynamic "rule" {
-    for_each = local.llm_router_services_rules
-    content {
-      type    = "in"
-      action  = "ACCEPT"
-      proto   = rule.value.proto
-      dport   = rule.value.dport
-      source  = rule.value.source
-      comment = rule.value.comment
-    }
-  }
-}
-
-resource "proxmox_virtual_environment_cluster_firewall_security_group" "llm_fast_services" {
-  name    = "llm-fast-svc"
-  comment = "LLM fast / llama-swap server API (${local.svc_ports.llm_fast_api}) from internal networks"
-
-  dynamic "rule" {
-    for_each = local.llm_fast_services_rules
-    content {
-      type    = "in"
-      action  = "ACCEPT"
-      proto   = rule.value.proto
-      dport   = rule.value.dport
-      source  = rule.value.source
-      comment = rule.value.comment
-    }
-  }
-}
+# llm_router_services + llm_fast_services groups are in llm_fabric_rules.tf (size gate).
 
 resource "proxmox_virtual_environment_cluster_firewall_security_group" "otel_ingest" {
   name    = "otel-ingest"
