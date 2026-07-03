@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.48.0](https://github.com/dryvist/terraform-proxmox/compare/v1.47.2...v1.48.0) (2026-07-03)
+
+
+### Features
+
+* add AI PR care caller (dep review + release highlights) ([#519](https://github.com/dryvist/terraform-proxmox/issues/519)) ([003eedf](https://github.com/dryvist/terraform-proxmox/commit/003eedf5b235a33d243c2b7eb242feafee7c7466))
+
 ## [1.47.2](https://github.com/dryvist/terraform-proxmox/compare/v1.47.1...v1.47.2) (2026-07-02)
 
 
