@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.50.1](https://github.com/dryvist/terraform-proxmox/compare/v1.50.0...v1.50.1) (2026-07-04)
+
+
+### Bug Fixes
+
+* **ingress:** match OpenBao backend pool keys to deployment container keys ([#531](https://github.com/dryvist/terraform-proxmox/issues/531)) ([5360f57](https://github.com/dryvist/terraform-proxmox/commit/5360f57a70507a3a450894b3fafa4125ca62f935))
+
 ## [1.50.0](https://github.com/dryvist/terraform-proxmox/compare/v1.49.0...v1.50.0) (2026-07-04)
 
 
