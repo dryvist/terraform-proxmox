@@ -256,6 +256,9 @@ resource "proxmox_virtual_environment_firewall_options" "vectordb_container" {
   log_level_in  = local.firewall_defaults.log_level_in
   log_level_out = local.firewall_defaults.log_level_out
 
+  # DHCP-first guest behind DROP policies (same reason as llm_fabric_rules.tf).
+  dhcp = true
+
   depends_on = [proxmox_virtual_environment_cluster_firewall.main]
 }
 
@@ -295,6 +298,9 @@ resource "proxmox_virtual_environment_firewall_options" "rag_container" {
   output_policy = local.firewall_defaults.output_policy
   log_level_in  = local.firewall_defaults.log_level_in
   log_level_out = local.firewall_defaults.log_level_out
+
+  # DHCP-first guest behind DROP policies (same reason as llm_fabric_rules.tf).
+  dhcp = true
 
   depends_on = [proxmox_virtual_environment_cluster_firewall.main]
 }
