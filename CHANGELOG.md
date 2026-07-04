@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.50.2](https://github.com/dryvist/terraform-proxmox/compare/v1.50.1...v1.50.2) (2026-07-04)
+
+
+### Bug Fixes
+
+* **firewall:** allow DHCP on vectordb + rag container options ([#533](https://github.com/dryvist/terraform-proxmox/issues/533)) ([4501af6](https://github.com/dryvist/terraform-proxmox/commit/4501af608fa39bfcd2c24c1d64e01253255d62e3))
+
 ## [1.50.1](https://github.com/dryvist/terraform-proxmox/compare/v1.50.0...v1.50.1) (2026-07-04)
 
 
