@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.50.3](https://github.com/dryvist/terraform-proxmox/compare/v1.50.2...v1.50.3) (2026-07-04)
+
+
+### Bug Fixes
+
+* **inventory:** allow non-apex pooled ingress in publish precondition ([#535](https://github.com/dryvist/terraform-proxmox/issues/535)) ([cdabb58](https://github.com/dryvist/terraform-proxmox/commit/cdabb58cf5d9f53b6f9c169cba3c2c346ec0c74a))
+
 ## [1.50.2](https://github.com/dryvist/terraform-proxmox/compare/v1.50.1...v1.50.2) (2026-07-04)
 
 
