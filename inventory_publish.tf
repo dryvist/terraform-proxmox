@@ -138,7 +138,7 @@ resource "aws_s3_object" "ansible_inventory" {
         for e in local.ansible_inventory.ingress :
         try(e.name, "") != "" && try(e.port, 0) > 0 && (
           try(e.ip, "") != "" ||
-          length(try(e.backends, [])) > 0
+          try(length(e.backends) > 0, false)
         )
       ])
       error_message = "One or more ingress entries are malformed — each needs a name, a port > 0, and either a non-empty ip (single-backend route) or a non-empty backends pool (load-balanced route, apex or not — e.g. the openbao HA pool). Inspect ingress.tf."
