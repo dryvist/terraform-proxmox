@@ -122,6 +122,18 @@ locals {
       qdrant_http = 6333
       qdrant_grpc = 6334
     }
+    # IaC automation platform (Terrakube + Semaphore UI) on the iac-platform VM
+    # (docker compose, mgmt VLAN, pve3). Host ports published by the compose
+    # stack; ingress.tf fronts each behind its own <name>.<domain> route. The
+    # Terrakube executor is deliberately NOT listed: it must never be fronted —
+    # only the API reaches it, on the compose-internal network.
+    iac_platform_ports = {
+      terrakube_ui       = 28080
+      terrakube_api      = 28081
+      terrakube_registry = 28082
+      terrakube_dex      = 28083
+      semaphore_web      = 28084
+    }
     # Honeypot / deception sensors. apprise_api = the honeypot-notify gateway's
     # REST port (caronc/apprise-api): honeypots POST one webhook and Apprise fans
     # it out to Slack + phone push (Path A). The remaining entries are the

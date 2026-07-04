@@ -19,7 +19,12 @@ locals {
     technitium       = { backend = "technitium-dns", port = local.pipeline_constants.service_ports.technitium_web }
     phpipam          = { backend = "phpipam", port = local.pipeline_constants.service_ports.phpipam_web }
     "object-storage" = { backend = "object-storage", port = local.pipeline_constants.service_ports.object_storage_console }
-    infisical        = { backend = "infisical", port = local.pipeline_constants.service_ports.infisical_api }
+    # RustFS S3 API behind its own FQDN so consumers (Terrakube state storage,
+    # anything S3) never dial an IP:port — per the no-IP-references rule every
+    # system is reached via a valid-TLS hostname. Path-style S3 required by
+    # clients (one hostname, no per-bucket vhosts under the wildcard cert).
+    s3        = { backend = "object-storage", port = local.pipeline_constants.service_ports.object_storage_s3 }
+    infisical = { backend = "infisical", port = local.pipeline_constants.service_ports.infisical_api }
     # openbao is intentionally NOT here: it is a 3-node Raft HA cluster, fronted
     # as a load-balanced multi-backend pool (openbao_backends below) so the
     # ingress survives a single node loss — not a single-backend route.
@@ -138,6 +143,27 @@ locals {
         sticky            = true
         health_check      = true
         health_check_path = "/v1/sys/health?standbyok=true"
+      }
+    ] : [],
+    # IaC automation platform (Terrakube + Semaphore UI) on the iac-platform VM
+    # (DHCP/DNS-first, mgmt VLAN, pve3). Appended like the Splunk VM (VMs are not
+    # in var.containers, so no ingress_services row), but conditionally — a
+    # deployment.json without the VM never emits dangling routes. The backend is
+    # local.vm_address: the VM's FQDN, never an IP (DNS-first doctrine). Four
+    # Terrakube hostnames are required upstream (UI/API/registry/dex each get
+    # their own vhost); the executor is deliberately not fronted. pve3 powers
+    # off nightly — consumers must treat these routes as daytime-available.
+    contains(keys(var.vms), "iac-platform") ? [
+      for svc in [
+        { name = "terrakube", port = local.pipeline_constants.iac_platform_ports.terrakube_ui },
+        { name = "terrakube-api", port = local.pipeline_constants.iac_platform_ports.terrakube_api },
+        { name = "terrakube-registry", port = local.pipeline_constants.iac_platform_ports.terrakube_registry },
+        { name = "terrakube-dex", port = local.pipeline_constants.iac_platform_ports.terrakube_dex },
+        { name = "semaphore", port = local.pipeline_constants.iac_platform_ports.semaphore_web },
+        ] : {
+        name = svc.name
+        ip   = local.vm_address["iac-platform"]
+        port = svc.port
       }
     ] : []
   )
