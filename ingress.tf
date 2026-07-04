@@ -34,9 +34,11 @@ locals {
     homeassistant     = { backend = "homeassistant", port = local.pipeline_constants.service_ports.homeassistant_web }
     openproject       = { backend = "openproject", port = local.pipeline_constants.service_ports.openproject_web }
     prometheus        = { backend = "prometheus", port = local.pipeline_constants.service_ports.prometheus_web }
-    llm               = { backend = "hermes-chat", port = local.pipeline_constants.service_ports.open_webui_web }
-    ollama            = { backend = "hermes-infer", port = local.pipeline_constants.service_ports.ollama_api }
-    qdrant            = { backend = "qdrant", port = local.pipeline_constants.vector_db_ports.qdrant_http }
+    # llm is intentionally NOT here: it is the LiteLLM router pool
+    # (llm_router_backends below), load-balanced across the stateless router
+    # guests — not a single-backend route. The chat UI gets its own name.
+    chat   = { backend = "open-webui", port = local.pipeline_constants.service_ports.open_webui_web }
+    qdrant = { backend = "qdrant", port = local.pipeline_constants.vector_db_ports.qdrant_http }
     # AI orchestration stack UIs (ai VLAN) + Langfuse LLM observability (siem VLAN).
     dify            = { backend = "dify", port = local.pipeline_constants.service_ports.dify_web }
     langflow        = { backend = "langflow", port = local.pipeline_constants.service_ports.langflow_web }
@@ -67,6 +69,14 @@ locals {
   # key silently empties the pool and no route is ever emitted.
   openbao_backends = [
     for k in ["openbao-01", "openbao-02", "openbao-03"] : local.container_address[k]
+    if contains(keys(var.containers), k)
+  ]
+
+  # LiteLLM router pool: THE fabric endpoint (https://llm.<domain>/v1) for every
+  # consumer, load-balanced across the stateless router guests. Same
+  # skip-missing-peers shape as openbao_backends.
+  llm_router_backends = [
+    for k in ["llm-router-1", "llm-router-2", "llm-router-3"] : local.container_address[k]
     if contains(keys(var.containers), k)
   ]
 
@@ -145,6 +155,17 @@ locals {
         sticky            = true
         health_check      = true
         health_check_path = "/v1/sys/health?standbyok=true"
+      }
+    ] : [],
+    # LiteLLM router pool: llm.<domain> load-balancing the stateless routers.
+    # No sticky — every router serves every model from the same config.
+    length(local.llm_router_backends) > 0 ? [
+      {
+        name              = "llm"
+        backends          = local.llm_router_backends
+        port              = local.pipeline_constants.service_ports.llm_router_api
+        health_check      = true
+        health_check_path = "/health/liveliness"
       }
     ] : [],
     # IaC automation platform (Terrakube + Semaphore UI) on the iac-platform VM
