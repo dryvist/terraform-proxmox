@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.50.4](https://github.com/dryvist/terraform-proxmox/compare/v1.50.3...v1.50.4) (2026-07-04)
+
+
+### Bug Fixes
+
+* **firewall:** outbound HTTPS for vectordb + rag containers ([#538](https://github.com/dryvist/terraform-proxmox/issues/538)) ([f127c4f](https://github.com/dryvist/terraform-proxmox/commit/f127c4f2a946e31b57caf3924abc460330df6a58))
+
 ## [1.50.3](https://github.com/dryvist/terraform-proxmox/compare/v1.50.2...v1.50.3) (2026-07-04)
 
 
