@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.50.0](https://github.com/dryvist/terraform-proxmox/compare/v1.49.0...v1.50.0) (2026-07-04)
+
+
+### Features
+
+* **ingress:** front IaC automation platform + RustFS S3 API by FQDN ([#523](https://github.com/dryvist/terraform-proxmox/issues/523)) ([2c5cb00](https://github.com/dryvist/terraform-proxmox/commit/2c5cb000a3fcc9c8bd7487b77fbf2ebaa3a90416))
+
 ## [1.49.0](https://github.com/dryvist/terraform-proxmox/compare/v1.48.0...v1.49.0) (2026-07-03)
 
 
