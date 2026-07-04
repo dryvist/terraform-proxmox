@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.51.0](https://github.com/dryvist/terraform-proxmox/compare/v1.50.4...v1.51.0) (2026-07-04)
+
+
+### Features
+
+* **ingress:** LiteLLM router pool at llm.&lt;domain&gt;; chat route; drop dead entries ([#540](https://github.com/dryvist/terraform-proxmox/issues/540)) ([40ccd8c](https://github.com/dryvist/terraform-proxmox/commit/40ccd8c8754f6eda156223d5056f2c1dc5401e57))
+
 ## [1.50.4](https://github.com/dryvist/terraform-proxmox/compare/v1.50.3...v1.50.4) (2026-07-04)
 
 
