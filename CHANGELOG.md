@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.52.0](https://github.com/dryvist/terraform-proxmox/compare/v1.51.0...v1.52.0) (2026-07-04)
+
+
+### Features
+
+* enable issues:labeled trigger to close the auto-resolve loop ([#543](https://github.com/dryvist/terraform-proxmox/issues/543)) ([91aa2db](https://github.com/dryvist/terraform-proxmox/commit/91aa2db28b653bf6f9eeaa1581948a295f12efe6))
+
 ## [1.51.0](https://github.com/dryvist/terraform-proxmox/compare/v1.50.4...v1.51.0) (2026-07-04)
 
 
