@@ -52,14 +52,16 @@ locals {
     if n.commissioned
   ]
 
-  # OpenBao 3-node Raft HA backend pool. The three peers (openbao1/2/3) are
-  # load-balanced behind a single openbao.<domain> route with health checks, so
-  # a node loss drops only that node from the pool and the ingress stays up.
-  # Standby peers transparently forward API requests to the active node, so the
-  # client sees one logical endpoint. Skips any peer not yet in var.containers
-  # (partial deployment never emits a dangling backend).
+  # OpenBao 3-node Raft HA backend pool. The three peers (openbao-01/-02/-03)
+  # are load-balanced behind a single openbao.<domain> route with health
+  # checks, so a node loss drops only that node from the pool and the ingress
+  # stays up. Standby peers transparently forward API requests to the active
+  # node, so the client sees one logical endpoint. Skips any peer not yet in
+  # var.containers (partial deployment never emits a dangling backend).
+  # Keys MUST match the deployment.json container keys exactly — a mismatched
+  # key silently empties the pool and no route is ever emitted.
   openbao_backends = [
-    for k in ["openbao1", "openbao2", "openbao3"] : local.container_address[k]
+    for k in ["openbao-01", "openbao-02", "openbao-03"] : local.container_address[k]
     if contains(keys(var.containers), k)
   ]
 
