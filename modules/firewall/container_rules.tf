@@ -283,6 +283,11 @@ resource "proxmox_virtual_environment_firewall_rules" "vectordb_container" {
     comment        = "Outbound to internal only"
   }
 
+  rule {
+    security_group = proxmox_virtual_environment_cluster_firewall_security_group.outbound_https.name
+    comment        = "Outbound HTTPS (Docker install/images)"
+  }
+
   depends_on = [proxmox_virtual_environment_firewall_options.vectordb_container]
 }
 
@@ -319,6 +324,11 @@ resource "proxmox_virtual_environment_firewall_rules" "rag_container" {
   rule {
     security_group = proxmox_virtual_environment_cluster_firewall_security_group.outbound_internal.name
     comment        = "Outbound to internal only"
+  }
+
+  rule {
+    security_group = proxmox_virtual_environment_cluster_firewall_security_group.outbound_https.name
+    comment        = "Outbound HTTPS (pip/PyPI installs)"
   }
 
   depends_on = [proxmox_virtual_environment_firewall_options.rag_container]
