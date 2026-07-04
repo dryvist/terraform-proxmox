@@ -13,15 +13,12 @@ machine/AI runtime, cloud secret-zero, or a human-only vault:
 | **T3** | Doppler (SaaS) | Strict cloud tier: OpenBao secret-zero + rare user-approved keys-to-kingdom | Only for rare, explicitly user-approved operations |
 | **T4** | Bitwarden | Human-only vault | **Never** — no AI or automation identity ever reads T4 |
 
-This supersedes the earlier design in two specific ways, called out in full
-under [Superseded designs](#superseded-designs):
-
-- The **OpenBao / Infisical domain-split is dead.** OpenBao is the single
-  machine/IaC/runtime engine. Infisical's contents migrate into OpenBao and
-  Infisical is decommissioned.
-- **Proton Pass is out of the machine architecture.** It stays a personal,
-  human tool only; it holds no machine or AI secret-zero. Bitwarden (T4) is the
-  human-only tier of record.
+This supersedes the earlier design in two ways, detailed under
+[Superseded designs](#superseded-designs): the **OpenBao / Infisical
+domain-split is dead** (OpenBao is the single machine/IaC/runtime engine;
+Infisical migrates in and is decommissioned), and **Proton Pass is out of the
+machine architecture** (a personal human-only tool holding no machine secret-zero;
+Bitwarden (T4) is the human tier of record).
 
 ## Current State
 
@@ -33,12 +30,10 @@ secret-zero plus a small set of rare, user-approved keys-to-kingdom values.
 Routine machine and AI runtime secrets migrate out of Doppler into OpenBao
 (T2) over time — see [Migration sequence](#migration-sequence).
 
-**How it works today:**
-
-- Secrets stored in Doppler projects, organized by config (dev/stg/prd)
-- Injected at runtime via `doppler run --` command wrapper
-- BPG Proxmox provider reads `PROXMOX_VE_*` env vars directly
-- Configured once at bare repo root; all worktrees inherit automatically
+**How it works today:** secrets live in Doppler projects (dev/stg/prd configs),
+injected at runtime via `doppler run --`; the BPG Proxmox provider reads
+`PROXMOX_VE_*` directly. Configured once at the bare repo root — all worktrees
+inherit.
 
 ### ACTIVE: aws-vault (AWS Credential Management)
 
@@ -47,11 +42,8 @@ four-tier storage hierarchy — it is a local credential broker, not a secrets
 store. Its bootstrap creds are secret-zero (T3) and are a candidate for OpenBao
 dynamic AWS credentials (T2) later.
 
-**How it works:**
-
-- Credentials stored in macOS Keychain
-- Temporary STS sessions via `aws-vault exec <profile> --`
-- Never written to `~/.aws/credentials`
+**How it works:** credentials live in the macOS Keychain; `aws-vault exec
+<profile> --` mints temporary STS sessions, never written to `~/.aws/credentials`.
 
 ## The four tiers (end-state)
 
@@ -101,15 +93,14 @@ the **global flow-lock lease authority** (below).
 
 **Architecture:**
 
-- **Self-hosted on a Proxmox LXC** on the apps VLAN, backed by Raft storage with
-  automated snapshots. (HA quorum can be added later; the LXC is the initial
-  target.)
+- **Self-hosted on Proxmox LXCs** on the management VLAN, Raft storage with
+  automated snapshots. A **2-node Raft cluster** is live; a 3rd voter is planned.
 - **On-prem static-key auto-unseal (no cloud)** — nodes self-unseal on reboot
   from a 32-byte AES-256 seal key in a `0600` EnvironmentFile, sourced from the
   Doppler strict tier (T3). This is the chosen seal model; there is no AWS-KMS
   dependency.
-- **Automated encrypted Raft snapshots** → on-prem `s3` bucket
-  `openbao-snapshots` + NAS + offsite-encrypted.
+- **Automated raft snapshots** — an on-box leader-gated timer, integrity-checked,
+  on the ZFS/PBS-backed volume that replicates off-box; an `s3` copy is a follow-up.
 - **Paper break-glass** — recovery shares + initial root token transcribed to
   paper and split across custodians.
 
@@ -135,8 +126,11 @@ acquire the lease:
 | `OPENBAO_STATIC_SEAL_KEY` | 32-byte AES-256 auto-unseal key (base64) |
 | `OPENBAO_STATIC_SEAL_KEY_ID` | Seal-key rotation id (e.g. `YYYYMMDD-1`) |
 | flow-lock AppRole `secret_id` | Credential to acquire the global flow-lock lease |
-| `VAULT_ADDR` | OpenBao API address |
-| `VAULT_ROLE_ID` / `VAULT_SECRET_ID` | Terraform AppRole credentials |
+| `BAO_ADDR` (`VAULT_ADDR`) | OpenBao API address |
+| `terraform-apply` AppRole `role_id`/`secret_id` | The IaC-apply identity's credential |
+
+Other domains' creds are delivered via the auto-locking keychain (lock =
+boundary), per [SECRETS_HIERARCHY.md](./SECRETS_HIERARCHY.md).
 
 ### T3 — Doppler (strict cloud tier: secret-zero + keys-to-kingdom)
 
@@ -182,15 +176,13 @@ core engine is up — see [Migration sequence](#migration-sequence).
 
 Two earlier directions are **superseded** and must not be reintroduced:
 
-- **OpenBao / Infisical domain-split — DEAD.** The plan to run OpenBao (machine
-  engine) and Infisical (human UI + developer hub) as two domain-split systems
-  with no sync between them **does not ship**. OpenBao is the single engine.
-  Infisical's contents migrate into OpenBao and Infisical is decommissioned.
-  See [INFISICAL_PLANNING.md](./INFISICAL_PLANNING.md) (superseded banner).
-- **Proton Pass as tier-0 root-of-trust / AI keychain — SUPERSEDED.** Proton
-  Pass is **out of the machine architecture**. It is a personal, human-only tool
-  and holds no machine or AI secret-zero. The human tier of record is Bitwarden
-  (T4); machine secret-zero lives in Doppler (T3). See
+- **OpenBao / Infisical domain-split — DEAD.** Running OpenBao and Infisical as
+  two un-synced domain-split systems does not ship; OpenBao is the single engine
+  and Infisical's contents migrate in before it is decommissioned. See
+  [INFISICAL_PLANNING.md](./INFISICAL_PLANNING.md) (superseded banner).
+- **Proton Pass as tier-0 root-of-trust / AI keychain — SUPERSEDED.** Out of the
+  machine architecture: a personal human-only tool holding no machine secret-zero.
+  Human tier of record is Bitwarden (T4); machine secret-zero is Doppler (T3). See
   [PROTON_PASS_STRATEGY.md](./PROTON_PASS_STRATEGY.md) (superseded banner).
 
 ## Migration sequence
@@ -227,8 +219,8 @@ T1  SOPS + Age — git-committed deployment config (not credentials)
         (proxmox_node, IPs, networks, container/VM definitions)
 
 T2  OpenBao — PRIMARY machine + AI runtime engine + flow-lock authority
-├── AppRole (VAULT_ROLE_ID/SECRET_ID) ──→ Terraform / Ansible reads
-├── least-privilege AI AppRoles ────────→ Claude Code / cloud agents (read-only)
+├── per-domain AppRoles ──────────────→ terraform-apply / ansible-converge / etc.
+├── AI-agent AppRoles (read-only) ─────→ Claude Code / cloud agents (no infra kernel)
 ├── SSH engine ───────────────────────→ short-TTL automation certs (ai/ansible/ci)
 └── flow-lock lease ──────────────────→ serializes infra-mutating flows
     (secret-zero stays in Doppler T3 — see below)
@@ -243,5 +235,5 @@ T4  Bitwarden — human-only vault
 
 Operational (orthogonal to the tier hierarchy):
   aws-vault (local) ──→ STS sessions ──→ Terraform S3 backend
-  macOS ai-secrets keychain ──→ AI-agent OpenBao AppRole bootstrap ──→ T2
+  auto-locking keychain (72h, lock = boundary) ──→ per-domain AppRole creds ──→ T2
 ```

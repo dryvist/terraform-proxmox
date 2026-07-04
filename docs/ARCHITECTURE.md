@@ -109,7 +109,7 @@ flowchart TD
     subgraph Runtime["Runtime Secrets (Active)"]
         DOP[Doppler]
         AV[aws-vault<br/>Profile: terraform]
-        KC[macOS Keychain<br/>ai-secrets keychain]
+        KC[dedicated auto-locking keychain<br/>per-domain OpenBao AppRole creds]
     end
 
     subgraph Sync["Secrets Sync (Active)"]
@@ -132,7 +132,7 @@ flowchart TD
     DOP -->|secrets-sync| DS
     DS -->|repository secrets| GHA
     AV -->|AWS_* creds| TF
-    KC -->|API keys| AI
+    KC -->|AppRole creds| AI
     SOPS -->|terraform.sops.json| TF
 ```
 
