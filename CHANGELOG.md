@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.52.1](https://github.com/dryvist/terraform-proxmox/compare/v1.52.0...v1.52.1) (2026-07-05)
+
+
+### Bug Fixes
+
+* **vm:** ignore clone block changes to avoid ForceNew on re-import ([#548](https://github.com/dryvist/terraform-proxmox/issues/548)) ([394f96e](https://github.com/dryvist/terraform-proxmox/commit/394f96e9db3f9a9aa919a00230d1cd8c0de56c0c))
+
 ## [1.52.0](https://github.com/dryvist/terraform-proxmox/compare/v1.51.0...v1.52.0) (2026-07-04)
 
 
