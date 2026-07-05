@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.53.0](https://github.com/dryvist/terraform-proxmox/compare/v1.52.1...v1.53.0) (2026-07-05)
+
+
+### Features
+
+* **ingress:** front Splunk HEC at splunk-hec.&lt;domain&gt; on the TLS entrypoint ([#550](https://github.com/dryvist/terraform-proxmox/issues/550)) ([7350f28](https://github.com/dryvist/terraform-proxmox/commit/7350f285d20e6d891c1b456dcc7dbd43a60f2ab6))
+
 ## [1.52.1](https://github.com/dryvist/terraform-proxmox/compare/v1.52.0...v1.52.1) (2026-07-05)
 
 
