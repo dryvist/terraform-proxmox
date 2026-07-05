@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.55.1](https://github.com/dryvist/terraform-proxmox/compare/v1.55.0...v1.55.1) (2026-07-05)
+
+
+### Bug Fixes
+
+* **ci:** mask *arr secrets and use heredoc GITHUB_ENV writes in drift workflow ([#557](https://github.com/dryvist/terraform-proxmox/issues/557)) ([7528d95](https://github.com/dryvist/terraform-proxmox/commit/7528d954507dac3a593dc8b9b7b6ac07d5020215))
+
 ## [1.55.0](https://github.com/dryvist/terraform-proxmox/compare/v1.54.0...v1.55.0) (2026-07-05)
 
 
