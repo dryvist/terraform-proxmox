@@ -142,6 +142,12 @@ Credentialed operations (`terragrunt plan` against the live state
 backend, `terragrunt apply`) only run in CI under OIDC, or interactively
 when explicitly preparing to apply. Do not gate commits on them.
 
+> **Never run `terragrunt apply -target=...`.** A partial apply still runs
+> the `after_hook` inventory publish (see above) with an incomplete
+> `ansible_inventory`, overwriting the full published artifact and the
+> downstream mirror PR that all three consumer repos read. Always apply the
+> whole plan.
+
 Test in isolated resource pools, never production-first. Use feature
 branches. Conventional-commit subjects only.
 
