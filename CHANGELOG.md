@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.54.0](https://github.com/dryvist/terraform-proxmox/compare/v1.53.0...v1.54.0) (2026-07-05)
+
+
+### Features
+
+* **media:** add Sortarr insights dashboard to ingress + port constants ([#553](https://github.com/dryvist/terraform-proxmox/issues/553)) ([f2b07cc](https://github.com/dryvist/terraform-proxmox/commit/f2b07cc53a1d7768f147e33bdca9bee9a1cadaac))
+
 ## [1.53.0](https://github.com/dryvist/terraform-proxmox/compare/v1.52.1...v1.53.0) (2026-07-05)
 
 
