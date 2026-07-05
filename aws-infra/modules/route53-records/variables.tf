@@ -61,6 +61,14 @@ variable "route53_a_records" {
   description = "Map of host A records: record label (relative to the zone) -> IPv4 address"
   type        = map(string)
   default     = {}
+
+  validation {
+    condition = alltrue([
+      for label, ip in var.route53_a_records :
+      can(regex("^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$", lower(label))) && can(cidrnetmask("${ip}/32"))
+    ])
+    error_message = "Every A-record entry must be a single record label mapped to a valid IPv4 address."
+  }
 }
 
 variable "environment" {

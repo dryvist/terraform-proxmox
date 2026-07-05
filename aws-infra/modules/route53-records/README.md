@@ -30,16 +30,16 @@ module "route53_records" {
 
 ## Inputs
 
-| Name                 | Description                          | Type         | Default   | Required |
-| -------------------- | ------------------------------------ | ------------ | --------- | -------- |
-| route53_zone_id      | Route53 hosted zone ID               | string       | n/a       | yes      |
-| proxmox_domain       | FQDN for Proxmox UI/API              | string       | n/a       | yes      |
-| proxmox_ip_addresses | Proxmox API endpoint IPs             | list(string) | []        | no       |
-| proxmox_ip_address   | Legacy fallback single Proxmox IP    | string       | ""        | no       |
-| route53_cnames       | Service-alias CNAMEs: label -> target FQDN | map(string) | {} | no |
-| route53_a_records    | Host A records: label -> IPv4 address | map(string) | {} | no |
-| dns_ttl              | DNS TTL in seconds                   | number       | 300       | no       |
-| environment          | Environment name                     | string       | "homelab" | no       |
+| Name                 | Description                                | Type         | Default   | Required |
+| -------------------- | ------------------------------------------ | ------------ | --------- | -------- |
+| route53_zone_id      | Route53 hosted zone ID                     | string       | n/a       | yes      |
+| proxmox_domain       | FQDN for Proxmox UI/API                    | string       | n/a       | yes      |
+| proxmox_ip_addresses | Proxmox API endpoint IPs                   | list(string) | []        | no       |
+| proxmox_ip_address   | Legacy fallback single Proxmox IP          | string       | ""        | no       |
+| route53_cnames       | Service-alias CNAMEs: label -> target FQDN | map(string)  | {}        | no       |
+| route53_a_records    | Host A records: label -> IPv4 address      | map(string)  | {}        | no       |
+| dns_ttl              | DNS TTL in seconds                         | number       | 300       | no       |
+| environment          | Environment name                           | string       | "homelab" | no       |
 
 ## Service-alias CNAMEs and host A records
 
