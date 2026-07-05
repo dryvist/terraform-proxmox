@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.56.1](https://github.com/dryvist/terraform-proxmox/compare/v1.56.0...v1.56.1) (2026-07-05)
+
+
+### Bug Fixes
+
+* **aws-infra:** add missing Route53 A record for jevans-ms ([#559](https://github.com/dryvist/terraform-proxmox/issues/559)) ([7c8815a](https://github.com/dryvist/terraform-proxmox/commit/7c8815a82e6f34a46112e2e3a2454fbb08a1625c))
+
 ## [1.56.0](https://github.com/dryvist/terraform-proxmox/compare/v1.55.1...v1.56.0) (2026-07-05)
 
 
