@@ -73,14 +73,22 @@ jobs:
 
       - name: Fetch *arr secrets
         # See scripts/fetch-openbao-secrets.sh for how this resolves the vars.
+        # Each value is masked before it ever reaches $GITHUB_ENV, and each
+        # write uses the heredoc-delimiter form with a random delimiter so a
+        # secret containing a literal EOF marker can't inject extra env vars.
         env:
           BAO_ADDR: ${{ secrets.BAO_ADDR }}
           MEDIA_VAULT_ROLE_ID: ${{ secrets.MEDIA_VAULT_ROLE_ID }}
           MEDIA_VAULT_SECRET_ID: ${{ secrets.MEDIA_VAULT_SECRET_ID }}
         run: |
-          ../scripts/fetch-openbao-secrets.sh media -- env \
-            | grep -E '^(SONARR_API_KEY|RADARR_API_KEY|QBITTORRENT_ADMIN_PASSWORD)=' \
-            >> "$GITHUB_ENV"
+          while IFS='=' read -r name value; do
+            echo "::add-mask::${value}"
+            delimiter="EOF_$(uuidgen)"
+            echo "${name}<<${delimiter}" >> "$GITHUB_ENV"
+            echo "${value}" >> "$GITHUB_ENV"
+            echo "${delimiter}" >> "$GITHUB_ENV"
+          done < <(../scripts/fetch-openbao-secrets.sh media -- env \
+            | grep -E '^(SONARR_API_KEY|RADARR_API_KEY|QBITTORRENT_ADMIN_PASSWORD)=')
 
       - name: OpenTofu init (S3 backend)
         env:
