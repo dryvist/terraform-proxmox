@@ -17,7 +17,7 @@ the main terragrunt workspace, so it never touches the cluster/container state.
 | `devopsarr/sonarr` provider | `~> 3.4` |
 | `devopsarr/radarr` provider | `~> 2.3` |
 | Network | the runner must reach the Sonarr/Radarr APIs (LAN/CI; not the VPN-locked Prowlarr) |
-| Secrets | Sonarr/Radarr API keys + qBittorrent password from the secret store |
+| Secrets | Sonarr/Radarr API keys + qBittorrent password, as environment variables (e.g. a local `.env`) |
 
 ## Scope (phase 1)
 
@@ -42,10 +42,10 @@ Out of scope for this module (owned elsewhere):
 ## Usage
 
 ```bash
-cp terraform.tfvars.example local.auto.tfvars   # gitignored; fill from secret store
+cp terraform.tfvars.example local.auto.tfvars   # gitignored; non-secret values only
 # bucket embeds the AWS account id, so it is passed at init (never committed):
 tofu init -backend-config="bucket=terraform-proxmox-state-useast2-$(aws sts get-caller-identity --query Account --output text)"
-tofu plan                                        # drift detection — exit 2 = drift
+tofu plan   # drift detection — exit 2 = drift
 ```
 
 State lives in S3 (`terraform-proxmox/servarr-config/terraform.tfstate`). The live
@@ -57,9 +57,14 @@ scheduled CI workflow was considered and rejected as disproportionate for a
 module this small (automating it against the LAN-only *arr APIs would need a
 self-hosted runner + a read-only state credential + an enable gate).
 
-Real values (URLs, API keys, qBittorrent password) come from the secret store
-(SOPS / Doppler / env), never committed. The example file uses RFC1918
-placeholders only.
+`sonarr_url`/`radarr_url`/`qbittorrent_host` are non-secret config (in
+`local.auto.tfvars`, gitignored). `sonarr_api_key`/`radarr_api_key`/
+`qbittorrent_password` are secrets, supplied as plain environment variables
+(`TF_VAR_sonarr_api_key`, etc.) — however you manage that (a `.env` you source
+locally, your CI's secret store, ...). `scripts/fetch-openbao-secrets.sh` is
+this homelab's own way of landing those env vars before `tofu` runs; swap it
+for anything that sets the same variables. The example file uses RFC1918
+placeholders only, never committed.
 
 ## Adopting an already-configured instance (import, don't clobber)
 
@@ -90,18 +95,19 @@ history) while the annotation still flags that drift coverage is off.
 
 It runs on the **self-hosted `terraform` runner** because the *arr APIs are on
 the homelab LAN. It is **off by default**; activation is gated on the repo
-variable `SERVARR_DRIFT_ENABLED` and these secrets, supplied via the same
-`dopplerhq/secrets-fetch-action` pattern the rest of CI uses:
+variable `SERVARR_DRIFT_ENABLED`. Required repo secrets/variables:
 
 | Where | Key | Note |
 | --- | --- | --- |
 | Repo variable | `SERVARR_DRIFT_ENABLED` | set to `true` to enable |
-| Repo secret | `DOPPLER_TOKEN` | Doppler service token (project + config scoped) |
-| Doppler | `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` | the **read-only** AWS account — the read counterpart of the `tf-proxmox` write role (one read role per write role). Plan runs `-lock=false`, so it needs S3 read only, no DynamoDB |
-| Doppler | `SONARR_URL`, `SONARR_API_KEY`, `RADARR_URL`, `RADARR_API_KEY` | *arr endpoints + keys |
-| Doppler | `QBITTORRENT_HOST`, `QBITTORRENT_ADMIN_PASSWORD` | download-client check |
-| Doppler | `AWS_ACCOUNT_ID` | already present; builds the bucket name (no aws CLI on the runner) |
-| Doppler | `NTFY_BASE_URL` | optional; without it, the job failure is the only signal |
+| Repo secret | `DOPPLER_TOKEN` | fetches the non-secret endpoints + AWS state credential |
+| Repo secret | `BAO_ADDR`, `MEDIA_VAULT_ROLE_ID`, `MEDIA_VAULT_SECRET_ID` | fetches `SONARR_API_KEY`/`RADARR_API_KEY`/`QBITTORRENT_ADMIN_PASSWORD` (see `scripts/fetch-openbao-secrets.sh`) |
+
+`AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY` are the **read-only** AWS account —
+the read counterpart of the `tf-proxmox` write role (one read role per write
+role). Plan runs `-lock=false`, so it needs S3 read only, no DynamoDB.
+`SONARR_URL`/`RADARR_URL`/`QBITTORRENT_HOST` and `NTFY_BASE_URL` (optional
+alerting) are plain config, not secrets.
 
 The read-only AWS account is the one genuinely new principal. It can read state
 (which contains the *arr keys), so keep it read-only — one shared read role
