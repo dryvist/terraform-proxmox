@@ -46,6 +46,14 @@ inputs = {
     trimspace(split("=", pair)[0]) => trimspace(split("=", pair)[1])
     if strcontains(pair, "=")
   }
+  # Host A records: comma-separated "label=ipv4" pairs, e.g.
+  # ROUTE53_A_RECORDS="jevans-ms=10.0.50.10". Same parsing rules as
+  # ROUTE53_CNAMES above (stray/blank fragments ignored, not a crash).
+  route53_a_records = {
+    for pair in compact([for p in split(",", get_env("ROUTE53_A_RECORDS", "")) : trimspace(p)]) :
+    trimspace(split("=", pair)[0]) => trimspace(split("=", pair)[1])
+    if strcontains(pair, "=")
+  }
 }
 
 # Terragrunt will generate provider.tf with AWS provider settings

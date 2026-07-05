@@ -30,14 +30,35 @@ module "route53_records" {
 
 ## Inputs
 
-| Name                 | Description                          | Type         | Default   | Required |
-| -------------------- | ------------------------------------ | ------------ | --------- | -------- |
-| route53_zone_id      | Route53 hosted zone ID               | string       | n/a       | yes      |
-| proxmox_domain       | FQDN for Proxmox UI/API              | string       | n/a       | yes      |
-| proxmox_ip_addresses | Proxmox API endpoint IPs             | list(string) | []        | no       |
-| proxmox_ip_address   | Legacy fallback single Proxmox IP    | string       | ""        | no       |
-| dns_ttl              | DNS TTL in seconds                   | number       | 300       | no       |
-| environment          | Environment name                     | string       | "homelab" | no       |
+| Name                 | Description                                | Type         | Default   | Required |
+| -------------------- | ------------------------------------------ | ------------ | --------- | -------- |
+| route53_zone_id      | Route53 hosted zone ID                     | string       | n/a       | yes      |
+| proxmox_domain       | FQDN for Proxmox UI/API                    | string       | n/a       | yes      |
+| proxmox_ip_addresses | Proxmox API endpoint IPs                   | list(string) | []        | no       |
+| proxmox_ip_address   | Legacy fallback single Proxmox IP          | string       | ""        | no       |
+| route53_cnames       | Service-alias CNAMEs: label -> target FQDN | map(string)  | {}        | no       |
+| route53_a_records    | Host A records: label -> IPv4 address      | map(string)  | {}        | no       |
+| dns_ttl              | DNS TTL in seconds                         | number       | 300       | no       |
+| environment          | Environment name                           | string       | "homelab" | no       |
+
+## Service-alias CNAMEs and host A records
+
+Two additional record sets exist beyond the Proxmox A record above:
+
+- `route53_cnames` creates CNAMEs at the zone apex (label -> target FQDN),
+  e.g. a capability alias pointing at the host that serves it. ACME DNS-01
+  clients that locate the hosted zone by stripping one label need these
+  aliases placed directly under the public zone.
+- `route53_a_records` creates the terminal A record a CNAME chain resolves
+  to (label -> IPv4 address). A CNAME target that isn't also an A record
+  here is a dangling alias — it will NXDOMAIN for every resolver, internal
+  and external alike, since Technitium (the internal resolver) is
+  authoritative for the guest subdomain only and forwards apex names to
+  public resolvers.
+
+Both maps are populated by the parent `aws-infra/terragrunt.hcl` from
+`ROUTE53_CNAMES` / `ROUTE53_A_RECORDS` env vars (Doppler-sourced) — no
+hostname or IP literal is ever committed.
 
 ## Outputs
 

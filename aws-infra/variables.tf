@@ -104,6 +104,25 @@ variable "route53_cnames" {
   }
 }
 
+# Host A records at the public zone apex (name label -> IPv4 address). Values
+# come from the ROUTE53_A_RECORDS environment variable via terragrunt — no
+# hostname or IP literal is ever committed here. This is the terminal record a
+# service_cnames entry (e.g. llm-large) resolves to, and the only DNS source
+# both internal (Technitium-forwarded) and external resolvers agree on.
+variable "route53_a_records" {
+  description = "Map of host A records: record label (relative to the zone) -> IPv4 address"
+  type        = map(string)
+  default     = {}
+
+  validation {
+    condition = alltrue([
+      for label, ip in var.route53_a_records :
+      can(regex("^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$", lower(label))) && can(cidrnetmask("${ip}/32"))
+    ])
+    error_message = "Every A-record entry must be a single record label mapped to a valid IPv4 address."
+  }
+}
+
 # General
 
 variable "environment" {

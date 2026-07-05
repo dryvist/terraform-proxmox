@@ -29,6 +29,7 @@ module "route53_records" {
   proxmox_ip_address   = var.proxmox_ip_address
   proxmox_ip_addresses = var.proxmox_ip_addresses
   route53_cnames       = var.route53_cnames
+  route53_a_records    = var.route53_a_records
   dns_ttl              = var.dns_ttl
   environment          = var.environment
 }
