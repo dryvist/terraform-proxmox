@@ -118,6 +118,18 @@ locals {
         port         = local.pipeline_constants.service_ports.splunk_mgmt
         scheme       = "https"
         insecure_tls = true
+      },
+      {
+        # Splunk HEC (8088) fronted at splunk-hec.<domain> on the standard
+        # TLS entrypoint. HEC senders (the Cribl edges) must use this name:
+        # splunk.<domain> resolves to Traefik, which serves nothing on a raw
+        # 8088, so a sender dialing <name>:8088 black-holes. Same HTTPS
+        # self-signed backend treatment as the two routes above.
+        name         = "splunk-hec"
+        ip           = split("/", local.splunk_derived_ip)[0]
+        port         = local.pipeline_constants.service_ports.splunk_hec
+        scheme       = "https"
+        insecure_tls = true
       }
     ],
     # Proxmox cluster UI apex (the ingress subdomain apex), load-balanced.
