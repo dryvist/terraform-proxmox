@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.56.0](https://github.com/dryvist/terraform-proxmox/compare/v1.55.1...v1.56.0) (2026-07-05)
+
+
+### Features
+
+* **containers:** add agentgateway MCP/LLM/A2A data-plane proxy ([#562](https://github.com/dryvist/terraform-proxmox/issues/562)) ([2f3f617](https://github.com/dryvist/terraform-proxmox/commit/2f3f617f36bbcd5f396ff04e4992022a786f3ce2))
+
 ## [1.55.1](https://github.com/dryvist/terraform-proxmox/compare/v1.55.0...v1.55.1) (2026-07-05)
 
 
