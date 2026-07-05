@@ -51,6 +51,12 @@ variable "dns_ttl" {
   }
 }
 
+variable "route53_cnames" {
+  description = "Map of service-alias CNAME records: record label (relative to the zone) -> target FQDN"
+  type        = map(string)
+  default     = {}
+}
+
 variable "environment" {
   description = "Environment name for tagging and organization"
   type        = string

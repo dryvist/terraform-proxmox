@@ -25,3 +25,18 @@ resource "aws_route53_record" "proxmox" {
     prevent_destroy = false # Set to true in production
   }
 }
+
+# Service-alias CNAMEs at the zone apex (e.g. a capability name pointing at
+# the host that serves it). Labels are relative to the hosted zone; values
+# arrive via ROUTE53_CNAMES (terragrunt env input), never as committed
+# literals. ACME DNS-01 clients that locate the hosted zone by stripping one
+# label need these aliases placed directly under the public zone.
+resource "aws_route53_record" "service_cnames" {
+  for_each = var.route53_cnames
+
+  zone_id = var.route53_zone_id
+  name    = each.key
+  type    = "CNAME"
+  ttl     = var.dns_ttl
+  records = [each.value]
+}

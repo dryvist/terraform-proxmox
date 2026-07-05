@@ -36,6 +36,13 @@ inputs = {
   proxmox_ip_addresses = compact(split(",", get_env("PROXMOX_IP_ADDRESSES", get_env("PROXMOX_IP_ADDRESS", ""))))
   aws_region           = get_env("AWS_REGION", "us-east-1")
   environment          = get_env("ENVIRONMENT", "homelab")
+  # Service-alias CNAMEs: comma-separated "label=target.fqdn" pairs, e.g.
+  # ROUTE53_CNAMES="llm-large=host.example.com". Values live in Doppler so no
+  # hostname literal is committed.
+  route53_cnames = {
+    for pair in compact(split(",", get_env("ROUTE53_CNAMES", ""))) :
+    trimspace(split("=", pair)[0]) => trimspace(split("=", pair)[1])
+  }
 }
 
 # Terragrunt will generate provider.tf with AWS provider settings

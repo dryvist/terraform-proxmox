@@ -86,6 +86,23 @@ variable "dns_ttl" {
   }
 }
 
+# Service-alias CNAMEs at the public zone apex (name label -> target FQDN).
+# Values come from the ROUTE53_CNAMES environment variable via terragrunt —
+# no hostname literal is ever committed here.
+variable "route53_cnames" {
+  description = "Map of service-alias CNAME records: record label (relative to the zone) -> target FQDN"
+  type        = map(string)
+  default     = {}
+
+  validation {
+    condition = alltrue([
+      for target in values(var.route53_cnames) :
+      can(regex("^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)*$", target))
+    ])
+    error_message = "Every CNAME target must be a valid fully qualified domain name."
+  }
+}
+
 # General
 
 variable "environment" {
