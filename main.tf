@@ -248,6 +248,9 @@ module "firewall" {
   llm_router_container_ids = local.llm_router_container_ids
   llm_fast_container_ids   = local.llm_fast_container_ids
 
+  # agentgateway MCP/LLM/A2A data-plane proxy (agentgateway tag).
+  agentgateway_container_ids = local.agentgateway_container_ids
+
   # Honeypots (honeypot/notify/tpot tags); filters in locals-honeypot.tf.
   honeypot_container_ids        = local.honeypot_container_ids
   honeypot_notify_container_ids = local.honeypot_notify_container_ids

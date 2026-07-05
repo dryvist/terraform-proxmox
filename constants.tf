@@ -68,6 +68,13 @@ locals {
       llm_router_api = 4000
       ollama_api     = 11434
       open_webui_web = 8080
+      # agentgateway — Rust-written AI-first data plane that unifies MCP
+      # (Model Context Protocol), LLM, and A2A (agent-to-agent) traffic into a
+      # single proxy. agentgateway_proxy = the MCP/LLM/A2A traffic port callers
+      # dial (OpenAI-compatible + native MCP); agentgateway_admin = the
+      # management/xDS/metrics port (fronted by Traefik, internal-only).
+      agentgateway_proxy = 8080
+      agentgateway_admin = 15000
       # AI orchestration stack web UIs (Traefik-fronted) — Dify, LangFlow, and
       # Langfuse (LLM trace/cost/eval). ingress.tf references these constants.
       dify_web     = 80

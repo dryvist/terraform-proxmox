@@ -44,6 +44,7 @@ locals {
     dify            = { backend = "dify", port = local.pipeline_constants.service_ports.dify_web }
     langflow        = { backend = "langflow", port = local.pipeline_constants.service_ports.langflow_web }
     langfuse        = { backend = "langfuse", port = local.pipeline_constants.service_ports.langfuse_web }
+    agentgateway    = { backend = "agentgateway", port = local.pipeline_constants.service_ports.agentgateway_admin }
     smokeping       = { backend = "smokeping", port = local.pipeline_constants.service_ports.smokeping_web }
     "haproxy-stats" = { backend = "haproxy", port = local.pipeline_constants.service_ports.haproxy_stats }
   }

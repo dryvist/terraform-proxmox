@@ -375,6 +375,21 @@
       "unprivileged": true,
       "root_disk": { "size": 24 }
     },
+    "agentgateway": {
+      "vm_id": 516000,
+      "dhcp": true,
+      "reserved_host": 47,
+      "vlan": "ai",
+      "hostname": "agentgateway",
+      "description": "agentgateway MCP/LLM/A2A data-plane proxy — unified AI traffic layer routing MCP, OpenAI-compat LLM calls, and A2A messages to internal fabric + external providers (Docker-in-LXC)",
+      "cpu_cores": 2,
+      "memory_dedicated": 1024,
+      "tags": ["terraform", "container", "ai", "agentgateway", "docker"],
+      "pool_id": "ai",
+      "unprivileged": true,
+      "root_disk": { "size": 8 },
+      "features": { "nesting": true }
+    },
     "langfuse": {
       "vm_id": 405000,
       "dhcp": true,
