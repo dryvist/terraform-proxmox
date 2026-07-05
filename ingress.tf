@@ -14,6 +14,7 @@ locals {
     seerr            = { backend = "seerr", port = local.pipeline_constants.media_ports.seerr_web }
     sonarr           = { backend = "sonarr", port = local.pipeline_constants.media_ports.sonarr_web }
     radarr           = { backend = "radarr", port = local.pipeline_constants.media_ports.radarr_web }
+    sortarr          = { backend = "sortarr", port = local.pipeline_constants.media_ports.sortarr_web }
     qbittorrent      = { backend = "download-vpn", port = local.pipeline_constants.media_ports.qbittorrent_web }
     prowlarr         = { backend = "download-vpn", port = local.pipeline_constants.media_ports.prowlarr_web }
     technitium       = { backend = "technitium-dns", port = local.pipeline_constants.service_ports.technitium_web }

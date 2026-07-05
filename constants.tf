@@ -174,6 +174,7 @@ locals {
       radarr_web      = 7878
       plex_web        = 32400
       seerr_web       = 5055
+      sortarr_web     = 8787
     }
   }
 }
