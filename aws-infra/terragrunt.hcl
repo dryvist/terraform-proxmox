@@ -38,10 +38,13 @@ inputs = {
   environment          = get_env("ENVIRONMENT", "homelab")
   # Service-alias CNAMEs: comma-separated "label=target.fqdn" pairs, e.g.
   # ROUTE53_CNAMES="llm-large=host.example.com". Values live in Doppler so no
-  # hostname literal is committed.
+  # hostname literal is committed. Entries without "=" (including blank or
+  # whitespace-only fragments from stray commas) are ignored rather than
+  # crashing evaluation on an out-of-bounds index.
   route53_cnames = {
-    for pair in compact(split(",", get_env("ROUTE53_CNAMES", ""))) :
+    for pair in compact([for p in split(",", get_env("ROUTE53_CNAMES", "")) : trimspace(p)]) :
     trimspace(split("=", pair)[0]) => trimspace(split("=", pair)[1])
+    if strcontains(pair, "=")
   }
 }
 

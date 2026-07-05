@@ -96,10 +96,11 @@ variable "route53_cnames" {
 
   validation {
     condition = alltrue([
-      for target in values(var.route53_cnames) :
-      can(regex("^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)*$", target))
+      for label, target in var.route53_cnames :
+      can(regex("^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$", lower(label)))
+      && can(regex("^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)*\\.?$", lower(target)))
     ])
-    error_message = "Every CNAME target must be a valid fully qualified domain name."
+    error_message = "Every CNAME entry must be a single record label mapped to a valid FQDN (optional trailing dot)."
   }
 }
 
