@@ -6,6 +6,12 @@
 # same script, two repos (no shared-script mechanism between them yet). If you
 # change one, change both.
 #
+# ponytail: iac-platform's scripts/openbao-exec-env.sh solves the identical
+# problem with the same curl+jq approach and left "extract a shared helper if
+# a 3rd consumer appears" as a deferred decision. This is that 3rd+ consumer —
+# extracting a shared helper (nix-devenv?) is a reasonable follow-up, not done
+# here to keep this change scoped.
+#
 # This is a drop-in link in the SAME chain as `doppler run --` — it sits
 # between it and whatever it wraps, and does exactly the same job: get
 # secrets into the process environment before the wrapped command starts.
@@ -47,7 +53,8 @@ shift
 shift
 [[ $# -lt 1 ]] && usage
 
-domain_env=$(printf '%s' "$domain" | tr '[:lower:]-' '[:upper:]_')
+domain_env="${domain^^}"
+domain_env="${domain_env//-/_}"
 
 role_id_var="${domain_env}_VAULT_ROLE_ID"
 secret_id_var="${domain_env}_VAULT_SECRET_ID"
@@ -59,11 +66,13 @@ if [[ -z "${BAO_ADDR:-}" || -z "$role_id" || -z "$secret_id" ]]; then
   exec "$@"
 fi
 
+login_payload=$(jq -n --arg r "$role_id" --arg s "$secret_id" '{role_id: $r, secret_id: $s}')
 login_resp=$(curl -sS -m 10 -X POST \
-  -d "{\"role_id\":\"$role_id\",\"secret_id\":\"$secret_id\"}" \
+  -H "Content-Type: application/json" \
+  -d "$login_payload" \
   "$BAO_ADDR/v1/auth/approle/login")
-client_token=$(printf '%s' "$login_resp" | jq -r '.auth.client_token // empty')
-unset login_resp role_id secret_id
+client_token=$(jq -r '.auth.client_token // empty' <<< "$login_resp")
+unset login_resp login_payload role_id secret_id
 
 if [[ -z "$client_token" ]]; then
   echo "fetch-openbao-secrets.sh: AppRole login failed for domain '$domain' — refusing to run with a possibly-stale environment. Check ${role_id_var}/${secret_id_var}." >&2
@@ -72,7 +81,11 @@ fi
 
 list_resp=$(curl -sS -m 10 -H "X-Vault-Token: $client_token" -X LIST \
   "$BAO_ADDR/v1/secret/metadata/apps/$domain")
-mapfile -t keys < <(printf '%s' "$list_resp" | jq -r '.data.keys[]? // empty')
+if jq -e '.errors | select(. != null and length > 0)' <<< "$list_resp" >/dev/null; then
+  echo "fetch-openbao-secrets.sh: failed to list secrets under apps/$domain: $(jq -r '.errors | join(", ")' <<< "$list_resp")" >&2
+  exit 1
+fi
+mapfile -t keys < <(jq -r '.data.keys[]? // empty' <<< "$list_resp")
 unset list_resp
 
 if [[ ${#keys[@]} -eq 0 ]]; then
@@ -82,12 +95,19 @@ fi
 for key in "${keys[@]}"; do
   data_resp=$(curl -sS -m 10 -H "X-Vault-Token: $client_token" \
     "$BAO_ADDR/v1/secret/data/apps/$domain/$key")
+  if ! jq -e '.data.data' <<< "$data_resp" >/dev/null; then
+    echo "fetch-openbao-secrets.sh: failed to read secret '$key' under apps/$domain" >&2
+    exit 1
+  fi
   # Export every field in this KV entry as its own env var (field names are
   # already the UPPER_SNAKE var names the apps expect, e.g. SONARR_API_KEY).
-  while IFS='=' read -r field_name field_value; do
-    [[ -z "$field_name" ]] && continue
+  # Null-terminated reads so multiline/embedded-'=' secret values survive intact.
+  while IFS= read -r -d '' entry; do
+    [[ -z "$entry" ]] && continue
+    field_name="${entry%%=*}"
+    field_value="${entry#*=}"
     export "$field_name=$field_value"
-  done < <(printf '%s' "$data_resp" | jq -r '.data.data // {} | to_entries[] | "\(.key)=\(.value)"')
+  done < <(jq -j '.data.data | to_entries[] | "\(.key)=\(.value)\u0000"' <<< "$data_resp")
   unset data_resp
 done
 unset client_token keys key
