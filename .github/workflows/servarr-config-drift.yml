@@ -71,6 +71,17 @@ jobs:
         with:
           doppler-token: ${{ secrets.DOPPLER_TOKEN }}
 
+      - name: Fetch *arr secrets
+        # See scripts/fetch-openbao-secrets.sh for how this resolves the vars.
+        env:
+          BAO_ADDR: ${{ secrets.BAO_ADDR }}
+          MEDIA_VAULT_ROLE_ID: ${{ secrets.MEDIA_VAULT_ROLE_ID }}
+          MEDIA_VAULT_SECRET_ID: ${{ secrets.MEDIA_VAULT_SECRET_ID }}
+        run: |
+          ../scripts/fetch-openbao-secrets.sh media -- env \
+            | grep -E '^(SONARR_API_KEY|RADARR_API_KEY|QBITTORRENT_ADMIN_PASSWORD)=' \
+            >> "$GITHUB_ENV"
+
       - name: OpenTofu init (S3 backend)
         env:
           # The one read-only AWS account (read counterpart of the tf-proxmox
@@ -88,11 +99,12 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ steps.doppler.outputs.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ steps.doppler.outputs.AWS_SECRET_ACCESS_KEY }}
           TF_VAR_sonarr_url: ${{ steps.doppler.outputs.SONARR_URL }}
-          TF_VAR_sonarr_api_key: ${{ steps.doppler.outputs.SONARR_API_KEY }}
           TF_VAR_radarr_url: ${{ steps.doppler.outputs.RADARR_URL }}
-          TF_VAR_radarr_api_key: ${{ steps.doppler.outputs.RADARR_API_KEY }}
           TF_VAR_qbittorrent_host: ${{ steps.doppler.outputs.QBITTORRENT_HOST }}
-          TF_VAR_qbittorrent_password: ${{ steps.doppler.outputs.QBITTORRENT_ADMIN_PASSWORD }}
+          # These 3 came from OpenBao (previous step), not Doppler.
+          TF_VAR_sonarr_api_key: ${{ env.SONARR_API_KEY }}
+          TF_VAR_radarr_api_key: ${{ env.RADARR_API_KEY }}
+          TF_VAR_qbittorrent_password: ${{ env.QBITTORRENT_ADMIN_PASSWORD }}
         # -lock=false: a read-only drift plan must never block a real apply.
         run: tofu plan -input=false -lock=false -detailed-exitcode
 
