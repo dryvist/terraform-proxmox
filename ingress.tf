@@ -25,9 +25,9 @@ locals {
     # clients (one hostname, no per-bucket vhosts under the wildcard cert).
     s3        = { backend = "object-storage", port = local.pipeline_constants.service_ports.object_storage_s3 }
     infisical = { backend = "infisical", port = local.pipeline_constants.service_ports.infisical_api }
-    # openbao is intentionally NOT here: it is a 3-node Raft HA cluster, fronted
+    # openbao is intentionally NOT here: it is a Raft HA cluster, fronted
     # as a load-balanced multi-backend pool (openbao_backends below) so the
-    # ingress survives a single node loss — not a single-backend route.
+    # ingress survives node loss — not a single-backend route.
     mailpit           = { backend = "mailpit", port = local.pipeline_constants.notification_ports.mailpit_web }
     ntfy              = { backend = "ntfy", port = local.pipeline_constants.notification_ports.ntfy_http }
     "honeypot-notify" = { backend = "honeypot-notify", port = local.pipeline_constants.honeypot_ports.apprise_api }
@@ -59,17 +59,17 @@ locals {
     if n.commissioned
   ]
 
-  # OpenBao 3-node Raft HA backend pool. The three peers (openbao-01/-02/-03)
-  # are load-balanced behind a single openbao.<domain> route with health
-  # checks, so a node loss drops only that node from the pool and the ingress
-  # stays up. Standby peers transparently forward API requests to the active
-  # node, so the client sees one logical endpoint. Skips any peer not yet in
-  # var.containers (partial deployment never emits a dangling backend).
-  # Keys MUST match the deployment.json container keys exactly — a mismatched
-  # key silently empties the pool and no route is ever emitted.
+  # OpenBao Raft HA backend pool. Every LXC tagged "openbao" is load-balanced
+  # behind a single openbao.<domain> route with health checks, so a node loss
+  # drops only that node from the pool and the ingress stays up. Standby peers
+  # transparently forward API requests to the active node, so the client sees
+  # one logical endpoint. The key sort keeps route rendering deterministic.
+  openbao_backend_keys = sort([
+    for k, v in var.containers : k
+    if contains(coalesce(try(v.tags, null), []), "openbao")
+  ])
   openbao_backends = [
-    for k in ["openbao-01", "openbao-02", "openbao-03"] : local.container_address[k]
-    if contains(keys(var.containers), k)
+    for k in local.openbao_backend_keys : local.container_address[k]
   ]
 
   # LiteLLM router pool: THE fabric endpoint (https://llm.<domain>/v1) for every
@@ -137,7 +137,7 @@ locals {
         health_check = true
       }
     ] : [],
-    # OpenBao HA: one openbao.<domain> route load-balancing the 3 Raft peers.
+    # OpenBao HA: one openbao.<domain> route load-balancing the Raft peers.
     # backends (plural) -> multi-server loadBalancer; health_check drops a down
     # node; sticky keeps a browser UI session pinned. Omitted if no peer exists.
     #

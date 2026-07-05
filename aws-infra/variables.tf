@@ -54,12 +54,24 @@ variable "proxmox_domain" {
 }
 
 variable "proxmox_ip_address" {
-  description = "IP address of Proxmox VE host"
+  description = "Legacy single IP address of a Proxmox VE host. Used only when proxmox_ip_addresses is empty."
   type        = string
+  default     = ""
 
   validation {
-    condition     = can(cidrnetmask("${var.proxmox_ip_address}/32"))
+    condition     = var.proxmox_ip_address == "" || can(cidrnetmask("${var.proxmox_ip_address}/32"))
     error_message = "Proxmox IP address must be a valid IPv4 address."
+  }
+}
+
+variable "proxmox_ip_addresses" {
+  description = "IP addresses of active Proxmox VE API endpoints for the shared Proxmox UI/API DNS record."
+  type        = list(string)
+  default     = []
+
+  validation {
+    condition     = alltrue([for ip in var.proxmox_ip_addresses : can(cidrnetmask("${ip}/32"))])
+    error_message = "Every Proxmox IP address must be a valid IPv4 address."
   }
 }
 

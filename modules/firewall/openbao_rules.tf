@@ -1,6 +1,5 @@
-# OpenBao secrets-management containers (native single-binary LXC: Raft node 1 of a future 3-node HA cluster)
-# Raft storage is local to each node (8201 cluster port) — Phase 1 runs a single node, so 8201 has no
-# external peers yet but the rule is in place for the HA scale-out.
+# OpenBao secrets-management containers (native single-binary LXC: Raft HA voters).
+# Raft storage is local to each node; 8201 is the peer-to-peer cluster port.
 #
 # Lives in its own file (rather than container_rules.tf) to keep container_rules.tf under the
 # shared `_file-size` workflow's 12 KB error threshold. As more container types accrete, prefer

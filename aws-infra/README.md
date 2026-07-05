@@ -49,7 +49,7 @@ terraform-proxmox/
    doppler secrets set AWS_ROUTE53_SECRET_KEY=...
    doppler secrets set ROUTE53_ZONE_ID=Z0123456789ABCDEFGHIJ
    doppler secrets set PROXMOX_DOMAIN=pve.example.com
-   doppler secrets set PROXMOX_IP_ADDRESS=192.168.10.10
+   doppler secrets set PROXMOX_IP_ADDRESSES=192.168.10.10,192.168.10.11,192.168.10.12
    ```
 
 2. Run from this directory:
@@ -80,9 +80,9 @@ nix develop "github:JacobPEvans/nix-devenv?dir=shells/terraform" --command bash 
 
 ## Modules
 
-| Module          | Purpose                                   |
-| --------------- | ----------------------------------------- |
-| route53-records | Manages A record for Proxmox VE UI domain |
+| Module          | Purpose                                               |
+| --------------- | ----------------------------------------------------- |
+| route53-records | Manages A record set for the Proxmox VE UI/API domain |
 
 ## Cross-Reference with Proxmox
 

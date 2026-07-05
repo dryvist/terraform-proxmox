@@ -394,6 +394,63 @@ run "ansible_inventory_ingress_apex_proxmox" {
   }
 }
 
+run "ansible_inventory_ingress_openbao_ha_pool" {
+  command = plan
+
+  variables {
+    containers = {
+      "openbao-31" = {
+        vm_id     = 110031
+        hostname  = "openbao-31"
+        vlan      = "mgmt"
+        ip_config = { ipv4_address = "192.168.5.31/24" }
+        tags      = ["terraform", "container", "openbao", "secrets", "infrastructure"]
+      }
+      "openbao-10" = {
+        vm_id     = 110010
+        hostname  = "openbao-10"
+        vlan      = "mgmt"
+        ip_config = { ipv4_address = "192.168.5.10/24" }
+        tags      = ["terraform", "container", "openbao", "secrets", "infrastructure"]
+      }
+      "openbao-21" = {
+        vm_id     = 110021
+        hostname  = "openbao-21"
+        vlan      = "mgmt"
+        ip_config = { ipv4_address = "192.168.5.21/24" }
+        tags      = ["terraform", "container", "openbao", "secrets", "infrastructure"]
+      }
+      "openbao-30" = {
+        vm_id     = 110030
+        hostname  = "openbao-30"
+        vlan      = "mgmt"
+        ip_config = { ipv4_address = "192.168.5.30/24" }
+        tags      = ["terraform", "container", "openbao", "secrets", "infrastructure"]
+      }
+      "openbao-20" = {
+        vm_id     = 110020
+        hostname  = "openbao-20"
+        vlan      = "mgmt"
+        ip_config = { ipv4_address = "192.168.5.20/24" }
+        tags      = ["terraform", "container", "openbao", "secrets", "infrastructure"]
+      }
+    }
+  }
+
+  assert {
+    condition = length([
+      for r in output.ansible_inventory.ingress : r
+      if r.name == "openbao"
+      && try(r.backends, []) == ["192.168.5.10", "192.168.5.20", "192.168.5.21", "192.168.5.30", "192.168.5.31"]
+      && try(r.port, 0) == 8200
+      && try(r.sticky, false)
+      && try(r.health_check, false)
+      && try(r.health_check_path, "") == "/v1/sys/health?standbyok=true"
+    ]) == 1
+    error_message = "ingress must front OpenBao with a sorted, sticky, standby-aware 5-backend HA pool"
+  }
+}
+
 # --- host_services structure tests ---
 
 run "ansible_inventory_host_services_exists" {

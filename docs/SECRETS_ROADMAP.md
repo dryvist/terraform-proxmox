@@ -94,7 +94,9 @@ the **global flow-lock lease authority** (below).
 **Architecture:**
 
 - **Self-hosted on Proxmox LXCs** on the management VLAN, Raft storage with
-  automated snapshots. A **2-node Raft cluster** is live; a 3rd voter is planned.
+  automated snapshots. The target topology is a **5-voter Raft cluster**
+  distributed as pve1:1, pve2:2, pve3:2 so any one Proxmox server outage still
+  leaves quorum.
 - **On-prem static-key auto-unseal (no cloud)** — nodes self-unseal on reboot
   from a 32-byte AES-256 seal key in a `0600` EnvironmentFile, sourced from the
   Doppler strict tier (T3). This is the chosen seal model; there is no AWS-KMS

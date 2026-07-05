@@ -17,8 +17,13 @@ output "proxmox_dns_ttl" {
 }
 
 output "proxmox_ip_address" {
-  description = "IP address the Proxmox domain resolves to"
+  description = "First IP address the Proxmox domain resolves to"
   value       = try(module.route53_records[0].proxmox_ip_address, "")
+}
+
+output "proxmox_ip_addresses" {
+  description = "IP addresses the Proxmox domain resolves to"
+  value       = try(module.route53_records[0].proxmox_ip_addresses, [])
 }
 
 output "route53_zone_id" {

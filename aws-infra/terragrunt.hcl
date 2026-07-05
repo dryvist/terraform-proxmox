@@ -28,13 +28,14 @@ remote_state {
 # These should be set for the Route53/IAM user, NOT the terraform S3 backend user
 # Supports both AWS_ROUTE53_* and ROUTE53_* naming conventions for backwards compatibility
 inputs = {
-  aws_access_key     = get_env("AWS_ROUTE53_ACCESS_KEY", get_env("ROUTE53_ACCESS_KEY", ""))
-  aws_secret_key     = get_env("AWS_ROUTE53_SECRET_KEY", get_env("ROUTE53_SECRET_KEY", ""))
-  route53_zone_id    = get_env("ROUTE53_ZONE_ID", "")
-  proxmox_domain     = get_env("PROXMOX_DOMAIN", "")
-  proxmox_ip_address = get_env("PROXMOX_IP_ADDRESS", "")
-  aws_region         = get_env("AWS_REGION", "us-east-1")
-  environment        = get_env("ENVIRONMENT", "homelab")
+  aws_access_key       = get_env("AWS_ROUTE53_ACCESS_KEY", get_env("ROUTE53_ACCESS_KEY", ""))
+  aws_secret_key       = get_env("AWS_ROUTE53_SECRET_KEY", get_env("ROUTE53_SECRET_KEY", ""))
+  route53_zone_id      = get_env("ROUTE53_ZONE_ID", "")
+  proxmox_domain       = get_env("PROXMOX_DOMAIN", "")
+  proxmox_ip_address   = get_env("PROXMOX_IP_ADDRESS", "")
+  proxmox_ip_addresses = compact(split(",", get_env("PROXMOX_IP_ADDRESSES", get_env("PROXMOX_IP_ADDRESS", ""))))
+  aws_region           = get_env("AWS_REGION", "us-east-1")
+  environment          = get_env("ENVIRONMENT", "homelab")
 }
 
 # Terragrunt will generate provider.tf with AWS provider settings

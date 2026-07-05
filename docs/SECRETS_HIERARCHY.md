@@ -95,7 +95,8 @@ bound to internal RFC1918 CIDRs so they are useless if ever exfiltrated off-LAN.
 
 ## Resilience (never lost, near-zero unavailability)
 
-- **3-node Raft HA** (quorum 2) — survives one node loss with no downtime.
+- **5-voter Raft HA** (quorum 3) — survives any one Proxmox server being
+  down: pve1 loss leaves 4 voters, pve2 loss leaves 3, and pve3 loss leaves 3.
 - **On-prem static-key auto-unseal** — each node self-unseals on reboot from the
   seal key in its 0600 EnvironmentFile (sourced from Doppler tier-0). No cloud.
   The 0600 EnvironmentFile is the at-rest exposure of the seal key: a node-disk
@@ -116,7 +117,7 @@ bound to internal RFC1918 CIDRs so they are useless if ever exfiltrated off-LAN.
 
 ## Migration order (greenfield-first)
 
-1. Stand up the 3-node HA cluster + KV hierarchy + RBAC (Phase 1).
+1. Stand up the 5-voter HA cluster + KV hierarchy + RBAC (Phase 1).
 2. New generated secrets go into OpenBao; consumers read via AppRole.
 3. Leave Doppler/SOPS authoritative for existing secrets until each consumer is
    proven against OpenBao, then migrate per-secret.
