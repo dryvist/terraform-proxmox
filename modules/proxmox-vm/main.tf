@@ -176,6 +176,11 @@ resource "proxmox_virtual_environment_vm" "vms" {
       # pick up the dns block at first boot; existing VMs get resolvers via
       # Ansible post-boot.
       initialization[0].dns,
+      # A cloned VM re-imported (e.g. after a manual VMID move) reports its
+      # `clone` block as a new addition, which is ForceNew — terraform would
+      # destroy+recreate a healthy VM. The clone source only matters at first
+      # creation, so ignore it: imports and template changes never rebuild a VM.
+      clone,
     ]
   }
 
