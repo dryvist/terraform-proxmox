@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.55.0](https://github.com/dryvist/terraform-proxmox/compare/v1.54.0...v1.55.0) (2026-07-05)
+
+
+### Features
+
+* **aws-infra:** env-driven service-alias CNAMEs in the public zone ([#555](https://github.com/dryvist/terraform-proxmox/issues/555)) ([75e2c09](https://github.com/dryvist/terraform-proxmox/commit/75e2c09d2fe935babab34b743cac2aab43f8851c))
+
 ## [1.54.0](https://github.com/dryvist/terraform-proxmox/compare/v1.53.0...v1.54.0) (2026-07-05)
 
 
