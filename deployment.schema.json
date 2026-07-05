@@ -49,6 +49,9 @@
       "type": "object",
       "additionalProperties": true
     },
+    "openbao_cluster": {
+      "$ref": "#/definitions/openbao_cluster_input"
+    },
     "proxmox_node": {
       "type": "string",
       "minLength": 1
@@ -84,6 +87,92 @@
         "pool_id": {
           "type": "string",
           "minLength": 1
+        }
+      }
+    },
+    "openbao_cluster_input": {
+      "type": "object",
+      "description": "Parameterized OpenBao LXC cluster generator. Terragrunt expands this into regular containers so shared peer config is defined once.",
+      "required": [
+        "enabled",
+        "name_prefix",
+        "vm_id_base",
+        "vlan",
+        "placement",
+        "container_defaults",
+        "root_disk"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "name_prefix": {
+          "type": "string",
+          "pattern": "^openbao-$"
+        },
+        "vm_id_base": {
+          "type": "integer",
+          "minimum": 100
+        },
+        "vlan": {
+          "type": "string",
+          "minLength": 1
+        },
+        "placement": {
+          "type": "object",
+          "description": "Map of Proxmox node name to OpenBao suffixes. Suffix drives name, VMID, and IP host octet.",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "integer",
+              "minimum": 2,
+              "maximum": 254
+            }
+          }
+        },
+        "container_defaults": {
+          "type": "object",
+          "required": [
+            "tags",
+            "pool_id"
+          ],
+          "additionalProperties": true,
+          "properties": {
+            "tags": {
+              "type": "array",
+              "contains": {
+                "const": "openbao"
+              }
+            },
+            "pool_id": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "root_disk": {
+          "type": "object",
+          "required": [
+            "size"
+          ],
+          "additionalProperties": true,
+          "properties": {
+            "size": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        },
+        "root_disk_datastore_by_node": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          }
         }
       }
     }

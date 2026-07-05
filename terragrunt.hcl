@@ -26,14 +26,6 @@ locals {
   )
   deployment_config = jsondecode(trimspace(local.deployment_json))
 
-  # Strip any "_"-prefixed key: deployment.json uses "_comment" / "_*_comment"
-  # keys for inline documentation (JSON has no comment syntax). These are not
-  # Terraform variables and must not be passed as inputs.
-  deployment_inputs = {
-    for k, v in local.deployment_config : k => v
-    if !startswith(k, "_")
-  }
-
   # Layer 2: Network topology + SSH paths (committed, SOPS-encrypted — edit with `sops terraform.sops.json`).
   # Values: domain, vm_ssh_public_key_path, vm_ssh_private_key_path, proxmox_ssh_username.
   # Per-VLAN CIDRs come from Doppler (local.network_cidrs below), not SOPS.
@@ -68,6 +60,61 @@ locals {
     homeauto    = get_env("NETWORK_CIDR_HOMEAUTO")
     nonprod     = get_env("NETWORK_CIDR_NONPROD")
   }
+
+  # Parameterized generated infrastructure. The private deployment.json keeps
+  # shared OpenBao defaults once under openbao_cluster, and this expands them
+  # into normal container inputs before Terraform sees the map.
+  openbao_cluster         = try(local.deployment_config.openbao_cluster, {})
+  openbao_cluster_enabled = try(local.openbao_cluster.enabled, false)
+  openbao_cluster_peers = local.openbao_cluster_enabled ? flatten([
+    for node_name, suffixes in local.openbao_cluster.placement : [
+      for suffix in suffixes : {
+        node_name = node_name
+        suffix    = suffix
+      }
+    ]
+  ]) : []
+  openbao_generated_containers = local.openbao_cluster_enabled ? {
+    for peer in local.openbao_cluster_peers :
+    format("%s%02d", try(local.openbao_cluster.name_prefix, "openbao-"), peer.suffix) => merge(
+      try(local.openbao_cluster.container_defaults, {}),
+      {
+        vm_id     = try(local.openbao_cluster.vm_id_base, 110000) + peer.suffix
+        vlan      = local.openbao_cluster.vlan
+        hostname  = format("%s%02d", try(local.openbao_cluster.name_prefix, "openbao-"), peer.suffix)
+        node_name = peer.node_name
+        ip_config = {
+          ipv4_address = format(
+            "%s/%s",
+            cidrhost(local.network_cidrs[local.openbao_cluster.vlan], peer.suffix),
+            split("/", local.network_cidrs[local.openbao_cluster.vlan])[1],
+          )
+        }
+        root_disk = {
+          size         = tonumber(local.openbao_cluster.root_disk.size)
+          datastore_id = try(local.openbao_cluster.root_disk_datastore_by_node[peer.node_name], try(local.openbao_cluster.root_disk.datastore_id, null))
+        }
+      }
+    )
+  } : {}
+
+  # Strip any "_"-prefixed key: deployment.json uses "_comment" / "_*_comment"
+  # keys for inline documentation (JSON has no comment syntax). These are not
+  # Terraform variables and must not be passed as inputs. openbao_cluster is a
+  # Terragrunt-side generator input, not a Terraform variable.
+  deployment_inputs_base = {
+    for k, v in local.deployment_config : k => v
+    if !startswith(k, "_") && !contains(["containers", "openbao_cluster"], k)
+  }
+  deployment_inputs = merge(
+    local.deployment_inputs_base,
+    {
+      containers = merge(
+        try(local.deployment_config.containers, {}),
+        local.openbao_generated_containers,
+      )
+    }
+  )
 
   # Layer 3: Doppler env vars — credentials only (API tokens, SSH keys, passwords).
   # SSH credentials for BPG provider file operations.
