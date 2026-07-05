@@ -50,6 +50,11 @@ terraform-proxmox/
    doppler secrets set ROUTE53_ZONE_ID=Z0123456789ABCDEFGHIJ
    doppler secrets set PROXMOX_DOMAIN=pve.example.com
    doppler secrets set PROXMOX_IP_ADDRESSES=192.168.10.10,192.168.10.11,192.168.10.12
+   # Optional: service-alias CNAMEs and the host A records they resolve to.
+   # A CNAME target that isn't also listed in ROUTE53_A_RECORDS is a dangling
+   # alias — see modules/route53-records/README.md.
+   doppler secrets set ROUTE53_CNAMES=llm-large=host.example.com
+   doppler secrets set ROUTE53_A_RECORDS=host=192.168.10.20
    ```
 
 2. Run from this directory:

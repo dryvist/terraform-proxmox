@@ -57,6 +57,12 @@ variable "route53_cnames" {
   default     = {}
 }
 
+variable "route53_a_records" {
+  description = "Map of host A records: record label (relative to the zone) -> IPv4 address"
+  type        = map(string)
+  default     = {}
+}
+
 variable "environment" {
   description = "Environment name for tagging and organization"
   type        = string
