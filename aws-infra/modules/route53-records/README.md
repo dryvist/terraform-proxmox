@@ -41,14 +41,14 @@ module "route53_records" {
 
 ## Outputs
 
-| Name                | Description                          |
-| ------------------- | ------------------------------------ |
-| proxmox_record_fqdn | FQDN of the Proxmox A record         |
-| proxmox_record_name | Name of the Proxmox A record         |
-| proxmox_record_ttl  | TTL of the Proxmox A record          |
-| proxmox_ip_address  | First IP address the domain resolves to |
-| proxmox_ip_addresses | IP addresses the domain resolves to |
-| route53_zone_id     | Route53 hosted zone ID               |
+| Name                 | Description                             |
+| -------------------- | --------------------------------------- |
+| proxmox_record_fqdn  | FQDN of the Proxmox A record            |
+| proxmox_record_name  | Name of the Proxmox A record            |
+| proxmox_record_ttl   | TTL of the Proxmox A record             |
+| proxmox_ip_address   | First IP address the domain resolves to |
+| proxmox_ip_addresses | IP addresses the domain resolves to     |
+| route53_zone_id      | Route53 hosted zone ID                  |
 
 ## Architecture
 

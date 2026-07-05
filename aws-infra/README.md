@@ -80,8 +80,8 @@ nix develop "github:JacobPEvans/nix-devenv?dir=shells/terraform" --command bash 
 
 ## Modules
 
-| Module          | Purpose                                   |
-| --------------- | ----------------------------------------- |
+| Module          | Purpose                                               |
+| --------------- | ----------------------------------------------------- |
 | route53-records | Manages A record set for the Proxmox VE UI/API domain |
 
 ## Cross-Reference with Proxmox
