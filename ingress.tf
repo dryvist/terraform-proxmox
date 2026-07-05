@@ -20,41 +20,30 @@ locals {
     technitium       = { backend = "technitium-dns", port = local.pipeline_constants.service_ports.technitium_web }
     phpipam          = { backend = "phpipam", port = local.pipeline_constants.service_ports.phpipam_web }
     "object-storage" = { backend = "object-storage", port = local.pipeline_constants.service_ports.object_storage_console }
-    # RustFS S3 API behind its own FQDN so consumers (Terrakube state storage,
-    # anything S3) never dial an IP:port — per the no-IP-references rule every
-    # system is reached via a valid-TLS hostname. Path-style S3 required by
-    # clients (one hostname, no per-bucket vhosts under the wildcard cert).
+    # RustFS S3 API fronted by a valid-TLS hostname. Path-style S3 format.
     s3        = { backend = "object-storage", port = local.pipeline_constants.service_ports.object_storage_s3 }
     infisical = { backend = "infisical", port = local.pipeline_constants.service_ports.infisical_api }
-    # openbao is intentionally NOT here: it is a Raft HA cluster, fronted
-    # as a load-balanced multi-backend pool (openbao_backends below) so the
-    # ingress survives node loss — not a single-backend route.
+    # openbao is fronted as a load-balanced pool (openbao_backends below).
     mailpit           = { backend = "mailpit", port = local.pipeline_constants.notification_ports.mailpit_web }
     ntfy              = { backend = "ntfy", port = local.pipeline_constants.notification_ports.ntfy_http }
     "honeypot-notify" = { backend = "honeypot-notify", port = local.pipeline_constants.honeypot_ports.apprise_api }
     homeassistant     = { backend = "homeassistant", port = local.pipeline_constants.service_ports.homeassistant_web }
     openproject       = { backend = "openproject", port = local.pipeline_constants.service_ports.openproject_web }
     prometheus        = { backend = "prometheus", port = local.pipeline_constants.service_ports.prometheus_web }
-    # llm is intentionally NOT here: it is the LiteLLM router pool
-    # (llm_router_backends below), load-balanced across the stateless router
-    # guests — not a single-backend route. The chat UI gets its own name.
+    # llm is fronted as a load-balanced router pool (llm_router_backends below).
     chat   = { backend = "open-webui", port = local.pipeline_constants.service_ports.open_webui_web }
     qdrant = { backend = "qdrant", port = local.pipeline_constants.vector_db_ports.qdrant_http }
     # AI orchestration stack UIs (ai VLAN) + Langfuse LLM observability (siem VLAN).
     dify            = { backend = "dify", port = local.pipeline_constants.service_ports.dify_web }
     langflow        = { backend = "langflow", port = local.pipeline_constants.service_ports.langflow_web }
     langfuse        = { backend = "langfuse", port = local.pipeline_constants.service_ports.langfuse_web }
+    agentgateway    = { backend = "agentgateway", port = local.pipeline_constants.service_ports.agentgateway_admin }
     smokeping       = { backend = "smokeping", port = local.pipeline_constants.service_ports.smokeping_web }
     "haproxy-stats" = { backend = "haproxy", port = local.pipeline_constants.service_ports.haproxy_stats }
   }
 
-  # Proxmox cluster UI apex backend pool. Every commissioned node's web UI is
-  # reachable at https://<role>.<domain>:8006, using each node's role FQDN —
-  # these already resolve internally, while the bare Proxmox cluster-member name
-  # deliberately does NOT, so it never collides with the subdomain ingress apex.
-  # These are HOSTNAMES, not IPs: no node management IP is exported, so the
-  # sensitive rack_servers data stays out of the inventory. Traefik load-balances
-  # the pool and skips backend cert verification (nodes serve self-signed certs).
+  # Proxmox cluster UI apex backend pool. Load-balanced across commissioned
+  # nodes by role FQDN. Traefik skips backend cert verification.
   proxmox_ui_backends = [
     for name, n in var.nodes : "${n.role}.${var.domain}"
     if n.commissioned

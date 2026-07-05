@@ -117,6 +117,12 @@ variable "llm_fast_container_ids" {
   default     = {}
 }
 
+variable "agentgateway_container_ids" {
+  description = "Map of agentgateway MCP/LLM/A2A proxy LXC names to IDs (tag-driven: agentgateway). AI-first data plane — inbound proxy (8080) from internal + admin UI (15000) from internal; outbound internal (local LLM fabric) + HTTPS (external MCP servers, upstream LLM APIs)."
+  type        = map(number)
+  default     = {}
+}
+
 variable "honeypot_container_ids" {
   description = "Map of honeypot LXC names to IDs (honeypot tag): per-VLAN OpenCanary tripwires + the apprise-api notify gateway. Tag-driven, set by root locals."
   type        = map(number)

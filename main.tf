@@ -175,8 +175,7 @@ module "splunk_vm" {
   depends_on = [module.pools]
 }
 
-# Firewall module - manages Proxmox firewall rules for Splunk and pipeline containers
-# Configured to enforce network policies on Splunk resources and log pipeline
+# Firewall module - rules for Splunk and containers
 module "firewall" {
   source = "./modules/firewall"
 
@@ -248,6 +247,9 @@ module "firewall" {
   llm_router_container_ids = local.llm_router_container_ids
   llm_fast_container_ids   = local.llm_fast_container_ids
 
+  # agentgateway MCP/LLM/A2A data-plane proxy (agentgateway tag).
+  agentgateway_container_ids = local.agentgateway_container_ids
+
   # Honeypots (honeypot/notify/tpot tags); filters in locals-honeypot.tf.
   honeypot_container_ids        = local.honeypot_container_ids
   honeypot_notify_container_ids = local.honeypot_notify_container_ids
@@ -267,9 +269,7 @@ module "firewall" {
   depends_on = [module.vms, module.containers, module.splunk_vm]
 }
 
-# ACME Certificate module - manages Let's Encrypt certificates via Route53
-# NOTE: Route53 DNS records are managed separately in aws-infra/
-# Ensure Route53 A record exists before running ACME certificate provisioning
+# ACME Certificate module - Let's Encrypt via Route53
 module "acme_certificates" {
   count  = length(var.acme_accounts) > 0 ? 1 : 0
   source = "./modules/acme-certificate"
@@ -279,10 +279,7 @@ module "acme_certificates" {
   acme_certificates = var.acme_certificates
   environment       = var.environment
 
-  # SSH credentials for the null_resource cert-delivery provisioner.
-  # The provisioner SSHes to the Proxmox node and uses `pct push` (LXC) or
-  # `scp` (VM) to deliver the issued cert to each destination configured
-  # in acme_certificates[*].destinations.
+  # SSH credentials for cert-delivery provisioner.
   proxmox_ssh_host        = var.proxmox_ssh_host
   proxmox_ssh_username    = var.proxmox_ssh_username
   proxmox_ssh_private_key = var.proxmox_ssh_private_key
@@ -291,10 +288,7 @@ module "acme_certificates" {
   depends_on = [module.pools, module.containers, module.vms, module.splunk_vm]
 }
 
-# Rack-server cluster inventory. Declarative-only today (no resources
-# created); real values come from SOPS-encrypted terraform.sops.json.
-# Outputs are consumed by ansible-proxmox via terraform_remote_state to
-# keep IP/MAC/service-tag identity DRY across repos.
+# Rack-server cluster inventory (SOPS-encrypted values).
 module "rack_server_cluster" {
   source       = "./modules/rack-server-cluster"
   rack_servers = var.rack_servers

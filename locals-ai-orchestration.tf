@@ -20,4 +20,12 @@ locals {
     for k, v in var.containers : k => v.vm_id
     if contains(coalesce(try(v.tags, null), []), "langfuse")
   }
+
+  # agentgateway MCP/LLM/A2A data-plane proxy (agentgateway tag). Inbound proxy
+  # (8080) from internal AI agents/tools + admin UI (15000) from internal;
+  # outbound internal (local LLM fabric) + HTTPS (external MCP servers, LLM APIs).
+  agentgateway_container_ids = {
+    for k, v in var.containers : k => v.vm_id
+    if contains(coalesce(try(v.tags, null), []), "agentgateway")
+  }
 }
