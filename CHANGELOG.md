@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.58.0](https://github.com/dryvist/terraform-proxmox/compare/v1.57.1...v1.58.0) (2026-07-06)
+
+
+### Features
+
+* **dr:** ingress VRRP HA + deployment.json S3 fetch failover ([#570](https://github.com/dryvist/terraform-proxmox/issues/570)) ([980d5cc](https://github.com/dryvist/terraform-proxmox/commit/980d5cc8186ca8ba72b16910162f7cccf8c01420))
+
 ## [1.57.1](https://github.com/dryvist/terraform-proxmox/compare/v1.57.0...v1.57.1) (2026-07-06)
 
 
