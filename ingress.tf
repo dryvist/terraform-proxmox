@@ -42,36 +42,10 @@ locals {
     "haproxy-stats" = { backend = "haproxy", port = local.pipeline_constants.service_ports.haproxy_stats }
   }
 
-  # --- Ingress HA (keepalived VRRP virtual IP) --------------------------------
-  # Traefik is no longer a single-node SPOF: every LXC tagged "ingress" runs an
-  # identical Traefik instance, and keepalived floats ONE virtual IP across them
-  # (unicast VRRP). DNS points every fronted service at this VIP (see the
-  # technitium_dns role), so a node loss migrates the VIP to a surviving Traefik
-  # with zero manual action. Both instances always run and each fetches its own
-  # ACME cert independently (no shared acme.json state to coordinate).
-  #
-  # ingress_vip_host: the reserved HOST OCTET for the VIP inside the ingress
-  # VLAN. It is NOT a literal IP — the address is derived via cidrhost() from the
-  # Doppler-sourced network_cidrs, so the real subnet never appears in-repo.
-  # Reserved-octet map for the ingress (mgmt) VLAN: .1 gateway, .4/.5 openbao,
-  # .33 unifi-metrics, .101/.107 the two Traefik LXCs (vm_id-derived). .2 is
-  # carved out here for the ingress VIP and must stay out of the DHCP pool.
-  ingress_vip_host = 2
-  ingress_container_keys = sort([
-    for k, v in var.containers : k
-    if contains(coalesce(try(v.tags, null), []), "ingress")
-  ])
-  # VLAN taken from the ingress containers themselves, so the VIP follows a VLAN
-  # move automatically instead of pinning a hardcoded key. Falls back to "mgmt"
-  # only when no ingress container is deployed (VIP then resolves to "").
-  ingress_vlan = try(var.containers[local.ingress_container_keys[0]].vlan, "mgmt")
-  ingress_vip = length(local.ingress_container_keys) > 0 ? nonsensitive(
-    cidrhost(var.network_cidrs[local.ingress_vlan], local.ingress_vip_host)
-  ) : ""
-  # Advertised address of each ingress instance — the keepalived unicast_peer
-  # list. Same container_address shape (static host IP / DNS-first FQDN) as every
-  # other backend pool.
-  ingress_hosts = [for k in local.ingress_container_keys : local.container_address[k]]
+  # Ingress HA (keepalived VRRP VIP) locals — ingress_vip / ingress_hosts /
+  # ingress_container_keys — live in locals-ingress-ha.tf so this file stays under
+  # the shared _file-size workflow's 12 KB error threshold (locals merge across
+  # files in the module, same split as locals-honeypot.tf / locals-vm-network.tf).
 
   # Proxmox cluster UI apex backend pool. Load-balanced across commissioned
   # nodes by role FQDN. Traefik skips backend cert verification.
