@@ -40,5 +40,32 @@ resource "proxmox_virtual_environment_firewall_rules" "openbao_container" {
     comment        = "Outbound to internal only"
   }
 
+  # --- zero-trust (staged disabled): narrows the "from internal" ACCEPT
+  # above to the specific source VLANs the service-flow matrix permits.
+  # ponytail: disabled-only for now — enable per-rule once observed against
+  # the allow+log baseline (see docs/zero-trust design notes).
+  dynamic "rule" {
+    for_each = local.zt_src
+    content {
+      enabled = local.zt_enabled
+      type    = "in"
+      action  = "ACCEPT"
+      proto   = "tcp"
+      dport   = tostring(local.svc_ports.openbao_api)
+      source  = rule.value
+      comment = "ZT: OpenBao API from ${rule.key}"
+    }
+  }
+
+  rule {
+    enabled = local.zt_enabled
+    type    = "in"
+    action  = "ACCEPT"
+    proto   = "tcp"
+    dport   = tostring(local.svc_ports.openbao_cluster)
+    source  = local.zt_src["mgmt"]
+    comment = "ZT: OpenBao Raft peer from mgmt"
+  }
+
   depends_on = [proxmox_virtual_environment_firewall_options.openbao_container]
 }

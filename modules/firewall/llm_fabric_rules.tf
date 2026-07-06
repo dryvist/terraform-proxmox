@@ -101,6 +101,20 @@ resource "proxmox_virtual_environment_firewall_rules" "llm_router_container" {
     comment        = "Outbound HTTPS (external model APIs, package installs)"
   }
 
+  # --- zero-trust (staged disabled): router is a fan-in for every consumer VLAN.
+  dynamic "rule" {
+    for_each = local.zt_src
+    content {
+      enabled = local.zt_enabled
+      type    = "in"
+      action  = "ACCEPT"
+      proto   = "tcp"
+      dport   = tostring(local.svc_ports.llm_router_api)
+      source  = rule.value
+      comment = "ZT: LLM router from ${rule.key}"
+    }
+  }
+
   depends_on = [proxmox_virtual_environment_firewall_options.llm_router_container]
 }
 
@@ -146,6 +160,17 @@ resource "proxmox_virtual_environment_firewall_rules" "llm_fast_container" {
   rule {
     security_group = proxmox_virtual_environment_cluster_firewall_security_group.outbound_https.name
     comment        = "Outbound HTTPS (model/weight downloads, package installs)"
+  }
+
+  # --- zero-trust (staged disabled): intra-fabric only, not a fan-in like the router.
+  rule {
+    enabled = local.zt_enabled
+    type    = "in"
+    action  = "ACCEPT"
+    proto   = "tcp"
+    dport   = tostring(local.svc_ports.llm_fast_api)
+    source  = local.zt_src["ai"]
+    comment = "ZT: llm-fast intra-ai"
   }
 
   depends_on = [proxmox_virtual_environment_firewall_options.llm_fast_container]

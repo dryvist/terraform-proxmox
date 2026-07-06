@@ -175,6 +175,12 @@ variable "pipeline_constants" {
   })
 }
 
+variable "network_cidrs" {
+  description = "VLAN key => network-form CIDR, for per-source-VLAN zero-trust rule scoping (staged disabled). Resolved nonsensitive in the root; a single subnet range is not independently secret."
+  type        = map(string)
+  default     = {}
+}
+
 variable "internal_networks" {
   description = "Internal CIDRs allowed through guest firewalls (SSH, service ports). No default — the real ranges come from Doppler via the root module and are never committed."
   type        = list(string)
