@@ -34,12 +34,18 @@ locals {
     chat   = { backend = "open-webui", port = local.pipeline_constants.service_ports.open_webui_web }
     qdrant = { backend = "qdrant", port = local.pipeline_constants.vector_db_ports.qdrant_http }
     # AI orchestration stack UIs (ai VLAN) + Langfuse LLM observability (siem VLAN).
-    dify            = { backend = "dify", port = local.pipeline_constants.service_ports.dify_web }
-    langflow        = { backend = "langflow", port = local.pipeline_constants.service_ports.langflow_web }
-    langfuse        = { backend = "langfuse", port = local.pipeline_constants.service_ports.langfuse_web }
-    agentgateway    = { backend = "agentgateway", port = local.pipeline_constants.service_ports.agentgateway_admin }
-    smokeping       = { backend = "smokeping", port = local.pipeline_constants.service_ports.smokeping_web }
-    "haproxy-stats" = { backend = "haproxy", port = local.pipeline_constants.service_ports.haproxy_stats }
+    n8n          = { backend = "n8n", port = local.pipeline_constants.service_ports.n8n_web }
+    dify         = { backend = "dify", port = local.pipeline_constants.service_ports.dify_web }
+    langflow     = { backend = "langflow", port = local.pipeline_constants.service_ports.langflow_web }
+    langfuse     = { backend = "langfuse", port = local.pipeline_constants.service_ports.langfuse_web }
+    agentgateway = { backend = "agentgateway", port = local.pipeline_constants.service_ports.agentgateway_admin }
+    # LangGraph (self-hosted): the `langgraph dev` server API + its Agent Chat UI,
+    # both backed by the one `langgraph` guest. Chat UI is the primary play surface;
+    # the API host also lets browser Studio point its ?baseUrl at it.
+    langgraph        = { backend = "langgraph", port = local.pipeline_constants.service_ports.langgraph_api }
+    "langgraph-chat" = { backend = "langgraph", port = local.pipeline_constants.service_ports.agent_chat_ui_web }
+    smokeping        = { backend = "smokeping", port = local.pipeline_constants.service_ports.smokeping_web }
+    "haproxy-stats"  = { backend = "haproxy", port = local.pipeline_constants.service_ports.haproxy_stats }
   }
 
   # Ingress HA (keepalived VRRP VIP) locals — ingress_vip / ingress_hosts /

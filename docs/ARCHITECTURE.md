@@ -180,8 +180,9 @@ Summary by pool:
   `splunk-mgmt` (SH + DS + LM + MC + CM)
 - **`ai`** — `qdrant`, `llamaindex`,
   `hermes-infer` (Ollama LLM inference on the RX 6800 GPU), `hermes-chat`
-  (Open WebUI chat frontend), `dify`, `langflow` (LLM orchestration / flow
-  builders), `agent-exec` (CrewAI + LangChain runtime with OpenLLMetry tracing)
+  (Open WebUI chat frontend), `n8n` (workflow automation), `dify`, `langflow`
+  (LLM orchestration / flow builders), `langgraph` (self-hosted LangGraph server +
+  Agent Chat UI), `agent-exec` (CrewAI + LangChain runtime with OpenLLMetry tracing)
 - **`media`** (v1 pinned to the primary media node — `node_name`,
   `node_storage`, and ansible inventory label all aligned on that node;
   v2 lives on the secondary media node) — `download-vpn` (qBittorrent +
@@ -202,13 +203,15 @@ Notable per-container facts:
   from a 120 GB `/var/lib/ollama` volume.
   `hermes-chat` runs Open WebUI (`llm` ingress); `ollama` exposes the raw API.
   Full write-up: [local-llm](https://docs.jacobpevans.com/infrastructure/local-llm).
-- The **AI orchestration tier** — `dify`/`langflow` (Traefik-fronted) and
-  `agent-exec` on the `ai` VLAN, plus `langfuse` (Langfuse v3 observability on the
-  **siem** VLAN, `infrastructure` pool, OTLP ingest `:3000/api/public/otel`) —
-  emits OpenTelemetry to Cribl Edge, which forks traces to Langfuse + Splunk. Each
-  tool's model endpoint resolves by DNS to an OpenAI-compatible runner, so the
-  backend is swappable. **Tools evaluated:** n8n — not adopted; Community Edition
-  gates needed features and paid tiers cost more than self-hosted even on-prem.
+- The **AI orchestration tier** — `n8n`, `dify`, `langflow`, `langgraph` (all
+  Traefik-fronted) and `agent-exec` on the `ai` VLAN, plus `langfuse` (Langfuse v3
+  observability on the **siem** VLAN, `infrastructure` pool, OTLP ingest
+  `:3000/api/public/otel`) — emits OpenTelemetry to Cribl Edge, which forks traces
+  to Langfuse + Splunk. Each tool's model endpoint resolves by DNS to the
+  OpenAI-compatible LiteLLM router, so the backend is swappable. `langgraph` is
+  self-hosted **zero-cloud** (`langgraph dev`, in-memory) with a self-hosted Agent
+  Chat UI, so no LangSmith account or cloud egress is required; `n8n` is Community
+  Edition (self-hosted for a personal automation playground).
 - `mailpit` and `ntfy` run Docker-in-LXC (`nesting: true`, `keyctl: true`) for
   internal notifications.
 - `download-vpn` is an unprivileged LXC with `/dev/net/tun` passed through

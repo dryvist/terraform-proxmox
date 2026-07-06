@@ -25,7 +25,7 @@
   "pools": {
     "logging": { "comment": "Logging and observability infrastructure" },
     "infrastructure": { "comment": "Core infrastructure services" },
-    "ai": { "comment": "AI orchestration tier (Dify, LangFlow, agent-exec)" },
+    "ai": { "comment": "AI orchestration tier (n8n, Dify, LangFlow, LangGraph, agent-exec)" },
     "security": { "comment": "Honeypots and deception sensors (OpenCanary tripwires, T-Pot, apprise notify gateway)" }
   },
 
@@ -352,7 +352,23 @@
       "root_disk": { "size": 16 },
       "features": { "nesting": true }
     },
-    "_ai_orchestration_comment": "AI orchestration tier (AI/ML tier 5). Dify/LangFlow are Docker-in-LXC visual builders; agent-exec is a plain Python LXC running CrewAI + LangChain code with OpenLLMetry. VMIDs follow the 6-digit positional convention (docs vmid-network-tiers); the values here are illustrative. They sit on the 'ai' VLAN (tier 5) and 'siem' VLAN (tier 4) — the committed end-state of the vlan_ids map — addressed DNS-first (dhcp + reserved_host). Each tool's model provider + vector store is configured per its own install standard; Dify keeps its bundled vector store rather than the shared qdrant. Docker guests carry only nesting (the API token cannot set keyctl/fuse on unprivileged LXC; ansible-proxmox adds those via root@pam, same as the media guests). Firewall: ai-orch-svc (UI ports) + native OTLP egress to Cribl Edge; Langfuse adds langfuse-svc (3000). Node placement is set in the live (private) deployment input; the example omits node_name and uses the default.",
+    "_ai_orchestration_comment": "AI orchestration tier (AI/ML tier 5). n8n/Dify/LangFlow are Docker-in-LXC visual builders; LangGraph is a Docker-in-LXC zero-cloud `langgraph dev` (in-memory) server + self-hosted Agent Chat UI; agent-exec is a plain Python LXC running CrewAI + LangChain code with OpenLLMetry. VMIDs follow the 6-digit positional convention (docs vmid-network-tiers); the values here are illustrative. They sit on the 'ai' VLAN (tier 5) and 'siem' VLAN (tier 4) — the committed end-state of the vlan_ids map — addressed DNS-first (dhcp + reserved_host). Each tool's model provider + vector store is configured per its own install standard; Dify keeps its bundled vector store rather than the shared qdrant. Docker guests carry only nesting (the API token cannot set keyctl/fuse on unprivileged LXC; ansible-proxmox adds those via root@pam, same as the media guests). Firewall: ai-orch-svc (UI ports) + native OTLP egress to Cribl Edge; Langfuse adds langfuse-svc (3000). Node placement is set in the live (private) deployment input; the example omits node_name and uses the default.",
+    "n8n": {
+      "vm_id": 505030,
+      "dhcp": true,
+      "reserved_host": 49,
+      "vlan": "ai",
+      "hostname": "n8n",
+      "description": "n8n workflow automation, Community Edition (Docker-in-LXC)",
+      "cpu_cores": 2,
+      "memory_dedicated": 4096,
+      "tags": ["terraform", "container", "ai", "ai-orchestration", "n8n", "docker"],
+      "pool_id": "ai",
+      "unprivileged": true,
+      "root_disk": { "size": 16 },
+      "mount_points": [{ "volume": "local-zfs", "size": "30G", "path": "/opt/n8n" }],
+      "features": { "nesting": true }
+    },
     "dify": {
       "vm_id": 505010,
       "dhcp": true,
@@ -383,6 +399,22 @@
       "unprivileged": true,
       "root_disk": { "size": 16 },
       "mount_points": [{ "volume": "local-zfs", "size": "20G", "path": "/opt/langflow" }],
+      "features": { "nesting": true }
+    },
+    "langgraph": {
+      "vm_id": 505040,
+      "dhcp": true,
+      "reserved_host": 50,
+      "vlan": "ai",
+      "hostname": "langgraph",
+      "description": "LangGraph server (zero-cloud `langgraph dev`, in-memory) + self-hosted Agent Chat UI (Docker-in-LXC)",
+      "cpu_cores": 4,
+      "memory_dedicated": 8192,
+      "tags": ["terraform", "container", "ai", "ai-orchestration", "langgraph", "docker"],
+      "pool_id": "ai",
+      "unprivileged": true,
+      "root_disk": { "size": 24 },
+      "mount_points": [{ "volume": "local-zfs", "size": "30G", "path": "/opt/langgraph" }],
       "features": { "nesting": true }
     },
     "agent-exec": {
