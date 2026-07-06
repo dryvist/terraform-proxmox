@@ -36,6 +36,10 @@ inputs = {
   proxmox_ip_addresses = compact(split(",", get_env("PROXMOX_IP_ADDRESSES", get_env("PROXMOX_IP_ADDRESS", ""))))
   aws_region           = get_env("AWS_REGION", "us-east-1")
   environment          = get_env("ENVIRONMENT", "homelab")
+  # Keep the pve apex A record OUT of the public zone by default (it holds RFC1918
+  # node IPs; internal clients resolve pve.<domain> via Technitium). Flip to true
+  # via env only if an off-LAN consumer genuinely needs the public record.
+  publish_proxmox_public_a = tobool(get_env("PUBLISH_PROXMOX_PUBLIC_A", "false"))
   # Service-alias CNAMEs: comma-separated "label=target.fqdn" pairs, e.g.
   # ROUTE53_CNAMES="llm-large=host.example.com". Values live in Doppler so no
   # hostname literal is committed. Entries without "=" (including blank or
