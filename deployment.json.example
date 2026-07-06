@@ -97,7 +97,6 @@
       "proxmox-3": [30, 31]
     },
     "container_defaults": {
-      "protection": true,
       "unprivileged": true,
       "description": "OpenBao secrets manager - Raft voter",
       "cpu_cores": 2,
