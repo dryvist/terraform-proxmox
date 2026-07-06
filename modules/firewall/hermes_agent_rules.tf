@@ -29,6 +29,13 @@ resource "proxmox_virtual_environment_firewall_options" "hermes_agent_container"
   log_level_in  = local.firewall_defaults.log_level_in
   log_level_out = local.firewall_defaults.log_level_out
 
+  # hermes-agent is a DHCP-first guest (no static ip_config; leases its reserved
+  # ai-VLAN address by MAC). Behind DROP in/out policies it needs its own
+  # DHCPDISCOVER/OFFER allowed or it never leases — same reason as
+  # ai_orchestration_rules.tf. (Previously supplied by the ai-orchestration tag;
+  # required here now that hermes_agent is the sole manager of this ruleset.)
+  dhcp = true
+
   depends_on = [proxmox_virtual_environment_cluster_firewall.main]
 }
 
