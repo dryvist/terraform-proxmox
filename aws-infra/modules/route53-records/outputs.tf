@@ -1,16 +1,16 @@
 output "proxmox_record_fqdn" {
-  description = "Fully qualified domain name of the Proxmox A record"
-  value       = aws_route53_record.proxmox.fqdn
+  description = "Fully qualified domain name of the Proxmox A record (null when not published)"
+  value       = one(aws_route53_record.proxmox[*].fqdn)
 }
 
 output "proxmox_record_name" {
-  description = "Name of the Proxmox A record"
-  value       = aws_route53_record.proxmox.name
+  description = "Name of the Proxmox A record (null when not published)"
+  value       = one(aws_route53_record.proxmox[*].name)
 }
 
 output "proxmox_record_ttl" {
-  description = "TTL of the Proxmox A record"
-  value       = aws_route53_record.proxmox.ttl
+  description = "TTL of the Proxmox A record (null when not published)"
+  value       = one(aws_route53_record.proxmox[*].ttl)
 }
 
 output "proxmox_ip_address" {

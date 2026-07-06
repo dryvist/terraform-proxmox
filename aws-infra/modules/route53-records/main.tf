@@ -12,7 +12,14 @@ terraform {
 
 # A Record for Proxmox VE UI
 # Points the Proxmox domain to all active Proxmox API endpoints.
+# Gated OFF by default: the Proxmox endpoints are RFC1918 hosts, so publishing
+# them in the PUBLIC hosted zone leaks internal IPs. Internal clients resolve
+# pve.<domain> via Technitium (authoritative for the pve subdomain zone), so the
+# public record is unnecessary. Flip publish_proxmox_public_a=true only if an
+# off-LAN consumer genuinely needs it. Cert renewal is unaffected — lego DNS-01
+# writes only _acme-challenge.* TXT, never this A record.
 resource "aws_route53_record" "proxmox" {
+  count = var.publish_proxmox_public_a ? 1 : 0
   #checkov:skip=CKV2_AWS_23: Proxmox is on-premises infrastructure with a static IP; AWS alias resource is architecturally inapplicable
   zone_id = var.route53_zone_id
   name    = var.proxmox_domain

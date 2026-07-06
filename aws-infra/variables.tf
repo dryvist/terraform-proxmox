@@ -75,6 +75,12 @@ variable "proxmox_ip_addresses" {
   }
 }
 
+variable "publish_proxmox_public_a" {
+  description = "Publish the pve apex A record (RFC1918 node IPs) in the PUBLIC Route53 zone. Default false: internal clients resolve pve.<domain> via Technitium, so publishing it here only leaks internal IPs."
+  type        = bool
+  default     = false
+}
+
 variable "dns_ttl" {
   description = "DNS TTL in seconds for the A record"
   type        = number

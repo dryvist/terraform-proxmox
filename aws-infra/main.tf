@@ -24,14 +24,15 @@ module "route53_records" {
   count  = var.enable_route53_dns ? 1 : 0
   source = "./modules/route53-records"
 
-  route53_zone_id      = var.route53_zone_id
-  proxmox_domain       = var.proxmox_domain
-  proxmox_ip_address   = var.proxmox_ip_address
-  proxmox_ip_addresses = var.proxmox_ip_addresses
-  route53_cnames       = var.route53_cnames
-  route53_a_records    = var.route53_a_records
-  dns_ttl              = var.dns_ttl
-  environment          = var.environment
+  route53_zone_id          = var.route53_zone_id
+  proxmox_domain           = var.proxmox_domain
+  proxmox_ip_address       = var.proxmox_ip_address
+  proxmox_ip_addresses     = var.proxmox_ip_addresses
+  route53_cnames           = var.route53_cnames
+  route53_a_records        = var.route53_a_records
+  publish_proxmox_public_a = var.publish_proxmox_public_a
+  dns_ttl                  = var.dns_ttl
+  environment              = var.environment
 }
 
 # Future AWS resources go here:
