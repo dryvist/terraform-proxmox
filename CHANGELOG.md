@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.57.0](https://github.com/dryvist/terraform-proxmox/compare/v1.56.1...v1.57.0) (2026-07-06)
+
+
+### Features
+
+* **firewall:** stage zero-trust rule scoping (disabled) ([0d58b03](https://github.com/dryvist/terraform-proxmox/commit/0d58b03f448974efac1bf80e36562dedf07caf26))
+
 ## [1.56.1](https://github.com/dryvist/terraform-proxmox/compare/v1.56.0...v1.56.1) (2026-07-05)
 
 
