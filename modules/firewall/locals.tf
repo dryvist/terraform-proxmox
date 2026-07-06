@@ -25,6 +25,14 @@ locals {
   # Zero-trust flows are staged disabled. Flip per-rule in a later PR once
   # each is observed against the allow+log baseline.
   zt_enabled = false
+
+  # Ingress (Traefik HA) guest firewall is DEFINE-DISABLED, same staged pattern
+  # as zero-trust above. Today the ingress containers run un-firewalled so
+  # keepalived VRRP flows freely; ingress_rules.tf declares the eventual DROP
+  # policy + its 80/443 and VRRP pre-allows so a future flip to `true` (in its
+  # own observed PR) cannot black-hole the floating VIP. Follow-up: enable after
+  # an allow+log baseline confirms no legitimate ingress flow is missed.
+  ingress_fw_enabled = false
 }
 
 # Security group rule definitions - use comma-joined source/dest for multi-network rules

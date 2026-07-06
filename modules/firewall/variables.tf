@@ -75,6 +75,12 @@ variable "openbao_container_ids" {
   default     = {}
 }
 
+variable "ingress_container_ids" {
+  description = "Map of ingress (Traefik HA) container names to their IDs (ingress tag). Firewall is DEFINE-DISABLED (see ingress_rules.tf): it pre-allows keepalived VRRP + 80/443 so enabling enforcement later never breaks the floating VIP."
+  type        = map(number)
+  default     = {}
+}
+
 variable "idrac_kvm_container_ids" {
   description = "Map of iDRAC KVM LXC names to IDs (tag-driven, set by root locals)"
   type        = map(number)

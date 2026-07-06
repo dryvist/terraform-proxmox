@@ -16,12 +16,45 @@ locals {
   s3_inventory_bucket = get_env("S3_INVENTORY_BUCKET", "iac-inventory")
   s3_inventory_key    = get_env("S3_INVENTORY_KEY", "deployment.json")
   s3_inventory_region = get_env("S3_INVENTORY_REGION", "us-east-1")
+
+  # HA fetch failover: the desired-state INPUT is no longer a single-store SPOF.
+  # PRIMARY  = the on-prem RustFS object store (S3_* creds, private endpoint).
+  # FALLBACK = an AWS-S3 mirror in the same versioned state bucket that holds the
+  #            published inventory (ambient AWS creds — aws-vault locally / OIDC in
+  #            CI — the SAME chain as remote_state, NOT the S3_* creds). Refreshed
+  #            after every apply by scripts/mirror-deployment-json.sh (the
+  #            mirror_deployment_json after_hook below). If on-prem is unreachable,
+  #            the fetch transparently reads the AWS mirror, so a RustFS outage no
+  #            longer blocks plan/apply. FAIL-LOUD preserved: only if BOTH stores
+  #            fail (or return empty) does the command exit non-zero and run_cmd
+  #            raise — never a silent {} that would plan a full destroy.
+  s3_mirror_bucket = "terraform-proxmox-state-useast2-${get_aws_account_id()}"
+  s3_mirror_key    = "terraform-proxmox/input/deployment.json"
   deployment_json = (
     get_env("DEPLOYMENT_JSON_PATH", "") != ""
     ? file(get_env("DEPLOYMENT_JSON_PATH"))
     : run_cmd(
       "--terragrunt-quiet", "bash", "-c",
-      "unset AWS_PROFILE AWS_SESSION_TOKEN; AWS_ACCESS_KEY_ID=\"$S3_ACCESS_KEY\" AWS_SECRET_ACCESS_KEY=\"$S3_SECRET_KEY\" AWS_REGION=${local.s3_inventory_region} aws --endpoint-url \"$S3_ENDPOINT\" s3 cp s3://${local.s3_inventory_bucket}/${local.s3_inventory_key} - --quiet"
+      <<-FETCH
+        set -o pipefail
+        # PRIMARY: on-prem RustFS in a subshell so its unset/S3_* env never leaks
+        # into the AWS-credentialed fallback below.
+        if primary=$( (
+          unset AWS_PROFILE AWS_SESSION_TOKEN
+          AWS_ACCESS_KEY_ID="$S3_ACCESS_KEY" AWS_SECRET_ACCESS_KEY="$S3_SECRET_KEY" \
+          AWS_REGION=${local.s3_inventory_region} \
+          aws --endpoint-url "$S3_ENDPOINT" \
+            s3 cp "s3://${local.s3_inventory_bucket}/${local.s3_inventory_key}" - --quiet
+        ) 2>/dev/null ) && [ -n "$primary" ]; then
+          printf '%s' "$primary"
+        else
+          # FALLBACK: AWS-S3 mirror with the ambient credential chain. A failure
+          # here exits non-zero (last command) -> run_cmd raises. FAIL-LOUD.
+          echo "deployment.json: on-prem fetch failed, reading AWS-S3 mirror" >&2
+          AWS_REGION=us-east-2 aws --region us-east-2 \
+            s3 cp "s3://${local.s3_mirror_bucket}/${local.s3_mirror_key}" - --quiet
+        fi
+      FETCH
     )
   )
   deployment_config = jsondecode(trimspace(local.deployment_json))
@@ -155,6 +188,18 @@ terraform {
   after_hook "sync_inventory" {
     commands     = ["apply"]
     execute      = ["bash", "${get_terragrunt_dir()}/scripts/sync-inventory.sh"]
+    run_on_error = false
+  }
+
+  # Refresh the AWS-S3 mirror of the desired-state INPUT (deployment.json) after
+  # every successful apply, so the fetch-failover fallback above always has a
+  # current copy if the on-prem RustFS is later unreachable. Best-effort: the
+  # script warns and exits 0 on a mirror hiccup so a transient S3 blip never fails
+  # an otherwise-good apply (the prior mirror copy simply persists). Logic lives in
+  # scripts/mirror-deployment-json.sh (no-inline-scripts rule).
+  after_hook "mirror_deployment_json" {
+    commands     = ["apply"]
+    execute      = ["bash", "${get_terragrunt_dir()}/scripts/mirror-deployment-json.sh"]
     run_on_error = false
   }
 }
