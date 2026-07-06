@@ -104,6 +104,21 @@ containers, IPs, ports, and firewall rules.
 - **Pipeline constants**: `locals.tf` defines `pipeline_constants` with
   service / syslog / netflow / notification / vector-db port mappings,
   surfaced via `ansible_inventory.constants` in `outputs.tf`.
+- **Firewall model**: default-deny, two independent layers. The guest layer
+  (`modules/firewall/*.tf`) is live today — every VM/LXC gets
+  `input_policy = DROP` / `output_policy = DROP` plus per-service allow
+  rules keyed off `pipeline_constants` ports. The network layer (`tofu-unifi`
+  inter-VLAN `LAN_IN` rules) is written to the same model but not yet
+  enforced (blocked on a provider/controller rule-index gap — see that
+  repo's docs). Add a new inter-VLAN flow at the guest layer first; the
+  UniFi rule is written alongside it but ships `enabled = false` until the
+  gap closes.
+- **Media appdata**: each app's persistent config lives on its own
+  `<pool>/appdata/<app>` ZFS dataset (declared in `node_storage.zfs_pools`),
+  bind-mounted by `ansible-proxmox`'s `media_lxc_features` — never on the
+  container's ephemeral rootfs. Sortarr (the read-only insights dashboard)
+  follows this pattern with no `/data` media mount, since it never touches
+  media files directly.
 
 ### Downstream repos
 
