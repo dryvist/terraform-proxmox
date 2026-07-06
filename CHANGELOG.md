@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.57.1](https://github.com/dryvist/terraform-proxmox/compare/v1.57.0...v1.57.1) (2026-07-06)
+
+
+### Bug Fixes
+
+* **firewall:** allow DHCP on hermes-agent so it leases behind DROP ([#568](https://github.com/dryvist/terraform-proxmox/issues/568)) ([9db0404](https://github.com/dryvist/terraform-proxmox/commit/9db04041fd00f25e4ab8de527222d852501ec963))
+
 ## [1.57.0](https://github.com/dryvist/terraform-proxmox/compare/v1.56.1...v1.57.0) (2026-07-06)
 
 
