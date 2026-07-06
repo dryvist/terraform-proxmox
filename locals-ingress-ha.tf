@@ -26,7 +26,11 @@ locals {
   # move automatically instead of pinning a hardcoded key. Falls back to "mgmt"
   # only when no ingress container is deployed (VIP then resolves to "").
   ingress_vlan = try(var.containers[local.ingress_container_keys[0]].vlan, "mgmt")
-  ingress_vip = length(local.ingress_container_keys) > 0 ? nonsensitive(
+  # A VIP is only synthesized with >= 2 ingress instances. With a single (or zero)
+  # ingress node keepalived never binds the VIP, so publishing it would black-hole
+  # DNS (technitium points fronted services at an unbound address). Empty here lets
+  # the technitium_dns role fall back to the single Traefik host's own IP.
+  ingress_vip = length(local.ingress_container_keys) > 1 ? nonsensitive(
     cidrhost(var.network_cidrs[local.ingress_vlan], local.ingress_vip_host)
   ) : ""
   # Advertised address of each ingress instance — the keepalived unicast_peer

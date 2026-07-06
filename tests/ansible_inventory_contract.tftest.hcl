@@ -425,8 +425,8 @@ run "ansible_inventory_ingress_ha_single_node_no_vip" {
   }
 
   assert {
-    condition     = output.ansible_inventory.ingress_vip == "192.168.5.2" && length(output.ansible_inventory.ingress_hosts) == 1
-    error_message = "a single ingress instance still advertises the VIP octet but lists one peer; keepalived no-ops below 2 peers"
+    condition     = output.ansible_inventory.ingress_vip == "" && length(output.ansible_inventory.ingress_hosts) == 1
+    error_message = "a single ingress instance must NOT synthesize a VIP (it would never bind, black-holing DNS) — DNS must fall back to the single host's IP"
   }
 }
 

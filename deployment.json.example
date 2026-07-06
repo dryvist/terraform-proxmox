@@ -188,7 +188,7 @@
       "pool_id": "infrastructure",
       "root_disk": { "size": 8 }
     },
-    "_ingress_ha_comment": "Ingress is HA: two identical Traefik LXCs on DIFFERENT nodes carry the `ingress` tag; keepalived floats one VRRP virtual IP across them (ingress.tf derives ingress_vip/ingress_hosts from the `ingress` tag + network_cidrs). Add a THIRD ingress node by copying the block and bumping vm_id/node_name — no code change. DNS points every fronted service at the VIP, so a node loss migrates the VIP automatically.",
+    "_ingress_ha_comment": "Ingress is HA: identical Traefik LXCs on DIFFERENT nodes carry the `ingress` tag; keepalived floats one VRRP virtual IP across them (ingress.tf derives ingress_vip/ingress_hosts from the `ingress` tag + network_cidrs). A VIP is synthesized only with at least two ingress nodes; add another by copying the block and bumping vm_id/node_name — no code change. DNS points every fronted service at the VIP, so a node loss migrates the VIP automatically.",
     "traefik": {
       "vm_id": 101,
       "vlan": "mgmt",
