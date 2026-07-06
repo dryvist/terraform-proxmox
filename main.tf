@@ -228,6 +228,10 @@ module "firewall" {
   # OpenBao secrets-management containers (openbao tag)
   openbao_container_ids = local.openbao_container_ids
 
+  # Ingress (Traefik HA) containers (ingress tag) — define-disabled guest firewall
+  # that pre-allows keepalived VRRP + 80/443 so a later enforcement flip is safe.
+  ingress_container_ids = local.ingress_container_ids
+
   # iDRAC KVM LXC: tagged "idrac" (domistyle/idrac6-based viewers, Docker-in-LXC)
   idrac_kvm_container_ids = local.idrac_kvm_container_ids
 

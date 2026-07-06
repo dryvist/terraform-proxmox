@@ -120,6 +120,14 @@ locals {
     netflow_ports = {
       unifi = 2055
     }
+    # Ingress HA (keepalived VRRP). keepalived_vrid is the VRRP virtual_router_id
+    # the two Traefik instances share to elect a master for the ingress VIP —
+    # cluster-unique (no other VRRP group on these VLANs) and referenced by the
+    # keepalived role via the inventory, never hardcoded there. VRRP is IP
+    # protocol 112 and carries no L4 port, so there is no port constant here.
+    ingress_ports = {
+      keepalived_vrid = 51
+    }
     notification_ports = {
       mailpit_smtp = 1025
       mailpit_web  = 8025

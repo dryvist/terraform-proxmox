@@ -356,6 +356,80 @@ run "ansible_inventory_ingress_route_table" {
   }
 }
 
+# --- ingress HA: keepalived VRRP virtual IP contract ---
+#
+# The keepalived role (ansible-proxmox-apps) + technitium_dns consume ingress_vip
+# (the floating IP DNS points every fronted service at) and ingress_hosts (the
+# unicast_peer members). Pin: the VIP is derived via cidrhost from the ingress
+# containers' own VLAN + the documented reserved octet (2), and every
+# ingress-tagged instance is listed. This is what makes ingress node-loss failover
+# fully automatic with no hardcoded IP.
+run "ansible_inventory_ingress_ha_vip" {
+  command = plan
+
+  variables {
+    # Two identical Traefik instances on the mgmt VLAN (vlan_id 5 -> 192.168.5.0/24
+    # in the test's derived CIDRs). vm_ids derive .101/.107; the VIP is .2.
+    containers = {
+      "traefik" = {
+        vm_id    = 101
+        hostname = "traefik"
+        vlan     = "mgmt"
+        tags     = ["terraform", "container", "ingress", "traefik"]
+      }
+      "traefik-2" = {
+        vm_id    = 107
+        hostname = "traefik-2"
+        vlan     = "mgmt"
+        tags     = ["terraform", "container", "ingress", "traefik"]
+      }
+    }
+  }
+
+  # VIP = cidrhost(192.168.5.0/24, 2) — derived, never a literal.
+  assert {
+    condition     = output.ansible_inventory.ingress_vip == "192.168.5.2"
+    error_message = "ingress_vip must be the .2 reserved octet of the ingress VLAN, derived via cidrhost"
+  }
+
+  # Both ingress instances are enrolled as keepalived unicast peers.
+  assert {
+    condition = length(output.ansible_inventory.ingress_hosts) == 2 && (
+      contains(output.ansible_inventory.ingress_hosts, "192.168.5.101") &&
+      contains(output.ansible_inventory.ingress_hosts, "192.168.5.107")
+    )
+    error_message = "ingress_hosts must list every ingress-tagged instance's address (the unicast_peer set)"
+  }
+
+  # The VRRP virtual_router_id is surfaced as a constant, not hardcoded downstream.
+  assert {
+    condition     = output.ansible_inventory.constants.ingress_ports.keepalived_vrid == 51
+    error_message = "constants must surface the keepalived VRRP vrid for the ingress HA role"
+  }
+}
+
+# A single-ingress (or zero) deployment must NOT synthesize a VIP — keepalived
+# then no-ops and the deployment stays valid (partial-deploy resilience).
+run "ansible_inventory_ingress_ha_single_node_no_vip" {
+  command = plan
+
+  variables {
+    containers = {
+      "traefik" = {
+        vm_id    = 101
+        hostname = "traefik"
+        vlan     = "mgmt"
+        tags     = ["terraform", "container", "ingress", "traefik"]
+      }
+    }
+  }
+
+  assert {
+    condition     = output.ansible_inventory.ingress_vip == "" && length(output.ansible_inventory.ingress_hosts) == 1
+    error_message = "a single ingress instance must NOT synthesize a VIP (it would never bind, black-holing DNS) — DNS must fall back to the single host's IP"
+  }
+}
+
 # Proxmox cluster UI apex: the subdomain apex load-balanced across the
 # commissioned node role FQDNs (https://<role>.<domain>:8006). Pins the
 # multi-backend + apex contract the ansible-proxmox-apps traefik role consumes.

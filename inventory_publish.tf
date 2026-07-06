@@ -78,6 +78,12 @@ locals {
     # The ansible-proxmox-apps traefik + technitium_dns roles derive their routers
     # and DNS aliases from this single source instead of hand-listing hosts.
     ingress = local.ingress
+    # Ingress HA: the keepalived VRRP virtual IP every fronted service DNS record
+    # points at, and the list of ingress-instance addresses (keepalived
+    # unicast_peer members). Empty vip + <2 hosts => the keepalived role no-ops,
+    # so a single-ingress or partial deployment stays valid.
+    ingress_vip   = local.ingress_vip
+    ingress_hosts = local.ingress_hosts
     # Host-level NAS service config - consumed by ansible-proxmox to provision ZFS dataset + Samba
     host_services = var.host_services
     # Cluster node inventory (non-secret identity) - ansible-proxmox targets hosts and

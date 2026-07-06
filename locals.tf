@@ -179,6 +179,16 @@ locals {
     if contains(coalesce(try(v.tags, null), []), "openbao")
   }
 
+  # Ingress containers (ingress tag) — the Traefik HA instances. Guest-firewalled
+  # only when the define-disabled ingress firewall is enabled (see
+  # modules/firewall/ingress_rules.tf); today these run un-firewalled, so keepalived
+  # VRRP already flows freely between them. The rules exist pre-allowed so a future
+  # enforcement flip never breaks the VIP.
+  ingress_container_ids = {
+    for k, v in var.containers : k => v.vm_id
+    if contains(coalesce(try(v.tags, null), []), "ingress")
+  }
+
   # HAProxy LXCs (haproxy tag) — receive delivered ACME certs for HTTPS frontends.
   # Distinct from pipeline_container_ids (which also includes Cribl Edge); this
   # local is dedicated to cert-delivery targeting.

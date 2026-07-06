@@ -42,6 +42,11 @@ locals {
     "haproxy-stats" = { backend = "haproxy", port = local.pipeline_constants.service_ports.haproxy_stats }
   }
 
+  # Ingress HA (keepalived VRRP VIP) locals — ingress_vip / ingress_hosts /
+  # ingress_container_keys — live in locals-ingress-ha.tf so this file stays under
+  # the shared _file-size workflow's 12 KB error threshold (locals merge across
+  # files in the module, same split as locals-honeypot.tf / locals-vm-network.tf).
+
   # Proxmox cluster UI apex backend pool. Load-balanced across commissioned
   # nodes by role FQDN. Traefik skips backend cert verification.
   proxmox_ui_backends = [
