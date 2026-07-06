@@ -265,6 +265,8 @@ module "firewall" {
   internal_networks = local.internal_networks
   # AI VLAN CIDR — least-privilege source scope for the Cribl Edge OTLP ingest.
   ai_network = local.ai_network
+  # Per-VLAN CIDR map for zero-trust rule source scoping (staged disabled).
+  network_cidrs = nonsensitive(var.network_cidrs)
 
   depends_on = [module.vms, module.containers, module.splunk_vm]
 }

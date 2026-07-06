@@ -45,6 +45,40 @@ resource "proxmox_virtual_environment_firewall_rules" "splunk_container" {
     comment        = "Outbound to internal only"
   }
 
+  # --- zero-trust (staged disabled) ---
+  rule {
+    enabled = local.zt_enabled
+    type    = "in"
+    action  = "ACCEPT"
+    proto   = "tcp"
+    dport   = tostring(local.svc_ports.splunk_hec)
+    source  = local.zt_src["pipeline"]
+    comment = "ZT: Splunk HEC from pipeline"
+  }
+
+  dynamic "rule" {
+    for_each = local.zt_src
+    content {
+      enabled = local.zt_enabled
+      type    = "in"
+      action  = "ACCEPT"
+      proto   = "tcp"
+      dport   = tostring(local.svc_ports.splunk_forwarding)
+      source  = rule.value
+      comment = "ZT: Splunk forwarding (universal forwarders) from ${rule.key}"
+    }
+  }
+
+  rule {
+    enabled = local.zt_enabled
+    type    = "in"
+    action  = "ACCEPT"
+    proto   = "tcp"
+    dport   = tostring(local.svc_ports.splunk_web)
+    source  = local.zt_src["mgmt"]
+    comment = "ZT: Splunk Web UI (admin plane) from mgmt"
+  }
+
   depends_on = [proxmox_virtual_environment_firewall_options.splunk_container]
 }
 
@@ -113,6 +147,80 @@ resource "proxmox_virtual_environment_firewall_rules" "pipeline_container" {
       security_group = proxmox_virtual_environment_cluster_firewall_security_group.otel_ingest.name
       comment        = "OTLP ingest (traces/metrics/logs) from the AI VLAN"
     }
+  }
+
+  # --- zero-trust (staged disabled) ---
+  dynamic "rule" {
+    for_each = local.zt_src
+    content {
+      enabled = local.zt_enabled
+      type    = "in"
+      action  = "ACCEPT"
+      proto   = "udp"
+      dport   = local.syslog_standard_range
+      source  = rule.value
+      comment = "ZT: syslog frontends from ${rule.key}"
+    }
+  }
+
+  dynamic "rule" {
+    for_each = local.zt_src
+    content {
+      enabled = local.zt_enabled
+      type    = "in"
+      action  = "ACCEPT"
+      proto   = "udp"
+      dport   = tostring(local.netflow_ports.unifi)
+      source  = rule.value
+      comment = "ZT: NetFlow from ${rule.key}"
+    }
+  }
+
+  rule {
+    enabled = local.zt_enabled
+    type    = "in"
+    action  = "ACCEPT"
+    proto   = "tcp"
+    dport   = local.pipeline_syslog_range
+    source  = local.zt_src["pipeline"]
+    comment = "ZT: Cribl backend intra-pipeline"
+  }
+
+  rule {
+    enabled = local.zt_enabled
+    type    = "in"
+    action  = "ACCEPT"
+    proto   = "tcp"
+    dport   = tostring(local.svc_ports.cribl_s2s)
+    source  = local.zt_src["pipeline"]
+    comment = "ZT: Cribl S2S intra-pipeline"
+  }
+
+  dynamic "rule" {
+    for_each = contains(keys(var.cribl_edge_container_ids), each.key) ? [1] : []
+    content {
+      enabled = local.zt_enabled
+      type    = "in"
+      action  = "ACCEPT"
+      proto   = "tcp"
+      dport = join(",", [
+        tostring(local.svc_ports.otel_traces_grpc), tostring(local.svc_ports.otel_traces_http),
+        tostring(local.svc_ports.otel_metrics_grpc), tostring(local.svc_ports.otel_metrics_http),
+        tostring(local.svc_ports.otel_logs_grpc), tostring(local.svc_ports.otel_logs_http),
+      ])
+      source  = local.zt_src["ai"]
+      comment = "ZT: OTLP ingest from ai"
+    }
+  }
+
+  rule {
+    enabled = local.zt_enabled
+    type    = "in"
+    action  = "ACCEPT"
+    proto   = "tcp"
+    dport   = tostring(local.svc_ports.cribl_prometheus_rw)
+    source  = local.zt_src["siem"]
+    comment = "ZT: Prometheus remote_write from siem"
   }
 
   depends_on = [proxmox_virtual_environment_firewall_options.pipeline_container]

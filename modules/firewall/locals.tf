@@ -13,6 +13,20 @@ locals {
   }
 }
 
+# Zero-trust source-VLAN CIDRs (staged disabled). Keys mirror var.vlan_ids /
+# terragrunt.hcl's network_cidrs map. A missing key -> "" so a rule referencing
+# an undeployed VLAN is inert rather than a plan error.
+locals {
+  zt_src = { for k in [
+    "dns", "mgmt", "bmc", "compute", "pipeline", "data",
+    "siem", "ai", "apps", "media_svc", "homeauto", "nonprod",
+  ] : k => lookup(var.network_cidrs, k, "") }
+
+  # Zero-trust flows are staged disabled. Flip per-rule in a later PR once
+  # each is observed against the allow+log baseline.
+  zt_enabled = false
+}
+
 # Security group rule definitions - use comma-joined source/dest for multi-network rules
 # Proxmox natively supports comma-separated CIDRs in source/dest fields,
 # so we generate one rule per protocol/port rather than one per network.
