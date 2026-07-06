@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.59.0](https://github.com/dryvist/terraform-proxmox/compare/v1.58.0...v1.59.0) (2026-07-06)
+
+
+### Features
+
+* **aws-infra:** gate pve public A record off by default (split-horizon DNS) ([#572](https://github.com/dryvist/terraform-proxmox/issues/572)) ([1112df1](https://github.com/dryvist/terraform-proxmox/commit/1112df1bf43a5f6f1029de4849941c5fdac8b559))
+
 ## [1.58.0](https://github.com/dryvist/terraform-proxmox/compare/v1.57.1...v1.58.0) (2026-07-06)
 
 
