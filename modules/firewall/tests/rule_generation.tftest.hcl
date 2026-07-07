@@ -11,6 +11,7 @@ variables {
   management_network = "192.168.10.0/24"
   splunk_network     = "192.168.20.200"
   internal_networks  = ["192.168.0.0/16"]
+  ai_network         = "192.168.50.0/24"
   pipeline_constants = {
     service_ports = {
       haproxy_stats     = 8404
@@ -33,8 +34,8 @@ variables {
       postgres_default       = 5432
       redis_default          = 6379
       ntp                    = 123
-      idrac_kvm_r410         = 5800
-      idrac_kvm_r710         = 5801
+      idrac_kvm_r410         = 5410
+      idrac_kvm_r710         = 5710
       # monitoring ports (own alignment group — longest key in the map)
       smokeping_web      = 80
       speedtest_exporter = 9798
@@ -42,6 +43,24 @@ variables {
       blackbox_exporter  = 9115
       atlas_exporter     = 9400
       irtt               = 2112
+      # LLM fabric + agentgateway (referenced by llm_fabric/agentgateway rules)
+      llm_fast_api       = 10434
+      llm_router_api     = 4000
+      agentgateway_proxy = 8080
+      agentgateway_admin = 15000
+      # AI orchestration + observability (referenced by ai_orchestration rules)
+      n8n_web           = 5678
+      dify_web          = 80
+      langflow_web      = 7860
+      langfuse_web      = 3000
+      langgraph_api     = 8124
+      agent_chat_ui_web = 3000
+      otel_traces_grpc  = 4317
+      otel_traces_http  = 4318
+      otel_metrics_grpc = 4327
+      otel_metrics_http = 4328
+      otel_logs_grpc    = 4337
+      otel_logs_http    = 4338
     }
     syslog_ports = {
       default   = 514

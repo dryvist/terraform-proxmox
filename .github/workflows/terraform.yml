@@ -40,6 +40,18 @@ jobs:
         id: test
         run: tofu test -no-color
 
+      # tofu test does not recurse into modules/*/tests — gate module suites
+      # explicitly so they can never silently rot again (#580).
+      - name: OpenTofu Init (firewall module)
+        id: init_firewall
+        run: tofu init -backend=false
+        working-directory: modules/firewall
+
+      - name: OpenTofu Test (firewall module)
+        id: test_firewall
+        run: tofu test -no-color
+        working-directory: modules/firewall
+
       # - name: Terraform Plan
       #   id: plan
       #   run: terraform plan -no-color
