@@ -107,7 +107,7 @@ resource "proxmox_virtual_environment_firewall_rules" "pipeline_container" {
     action  = "ACCEPT"
     proto   = "tcp"
     dport   = local.pipeline_syslog_range
-    source  = local.zt_src["pipeline"]
+    source  = join(",", compact([local.zt_src["pipeline"], local.zt_src["siem"]]))
     comment = "ZT: Cribl backend intra-pipeline"
   }
 
@@ -117,7 +117,7 @@ resource "proxmox_virtual_environment_firewall_rules" "pipeline_container" {
     action  = "ACCEPT"
     proto   = "tcp"
     dport   = tostring(local.svc_ports.cribl_s2s)
-    source  = local.zt_src["pipeline"]
+    source  = join(",", compact([local.zt_src["pipeline"], local.zt_src["siem"]]))
     comment = "ZT: Cribl S2S intra-pipeline"
   }
 
