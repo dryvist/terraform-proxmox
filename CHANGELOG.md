@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.62.0](https://github.com/dryvist/terraform-proxmox/compare/v1.61.1...v1.62.0) (2026-07-07)
+
+
+### Features
+
+* **constants:** ai_log_routing map — per-source index/sourcetype truth ([#584](https://github.com/dryvist/terraform-proxmox/issues/584)) ([1835b69](https://github.com/dryvist/terraform-proxmox/commit/1835b69b565081459b2abae05a60f5a93cb056b6)), closes [#579](https://github.com/dryvist/terraform-proxmox/issues/579)
+
 ## [1.61.1](https://github.com/dryvist/terraform-proxmox/compare/v1.61.0...v1.61.1) (2026-07-07)
 
 
