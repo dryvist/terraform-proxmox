@@ -55,6 +55,27 @@ terragrunt state rm module.security.random_password.vm_password
 terragrunt state rm module.security.tls_private_key.vm_key
 ```
 
+#### Known recurring diff: `iac-platform` VM `startup.order`
+
+Every `plan` shows the `iac-platform` VM as **updated in-place** with a lone
+change like:
+
+```text
+# module.vms.proxmox_virtual_environment_vm.vms["iac-platform"] will be updated in-place
+  ~ startup {
+      ~ order = -1 -> -109874
+    }
+```
+
+This is **expected, benign, and not caused by whatever change you are applying.**
+The BPG provider recomputes a `startup.order` for this VM on every refresh, so a
+persistent no-op-ish in-place diff reappears each run. It is safe to apply
+(in-place only, never a replace/destroy) and does not affect the guest. Do **not**
+try to fix it by `-target`-ing around it — the workspace rule is always a full
+apply (a partial apply corrupts the published `ansible_inventory` that all three
+consumer repos read). If you see only this diff plus your intended change with
+`0 to destroy`, proceed.
+
 ### Timeout Issues
 
 #### Problem: Proxmox API calls timing out during plan/apply refresh phase
