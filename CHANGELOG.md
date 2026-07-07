@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.61.0](https://github.com/dryvist/terraform-proxmox/compare/v1.60.0...v1.61.0) (2026-07-07)
+
+
+### Features
+
+* **telemetry:** per-source Cribl ports + universal logging firewall rules ([#578](https://github.com/dryvist/terraform-proxmox/issues/578)) ([af5d7a4](https://github.com/dryvist/terraform-proxmox/commit/af5d7a40ef753d6b1aeded00d6a4636599de6513))
+
 ## [1.60.0](https://github.com/dryvist/terraform-proxmox/compare/v1.59.0...v1.60.0) (2026-07-07)
 
 
