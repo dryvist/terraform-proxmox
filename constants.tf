@@ -164,24 +164,9 @@ locals {
       qdrant_grpc = 6334
     }
     # AI / LLM log-ingest ports — one dedicated Cribl TCP-JSON receiver per source
-    # family, HAProxy-fronted (LB to the Cribl Stream pair, mirroring the claude S2S
-    # path). Cribl best practice is a dedicated port per source so routing is by
-    # listener, not payload inspection. The backend flow reuses the existing
-    # cribl_s2s (10300) receiver on Stream; these frontends are opened on the
-    # pipeline (HAProxy) containers by the ai-log-ingest security group. Splunk
-    # index each lands in is noted; new indexes (codex, openbao_audit) are created
-    # in ansible-splunk in a later phase — see the WS3-max tracking issue.
-    ai_log_ports = {
-      claude_code    = 10311 # MacBook claude-code IO logs      -> index=claude
-      codex_cli      = 10312 # MacBook codex CLI logs           -> index=codex (new)
-      agy_cli        = 10313 # MacBook agy/antigravity CLI logs -> index=gemini
-      copilot_cli    = 10314 # MacBook GitHub Copilot logs      -> index=openai
-      vscode         = 10315 # VS Code telemetry                -> index=vscode
-      macstudio_llm  = 10321 # Mac Studio llama-swap + vllm-mlx -> index=llm
-      macstudio_gate = 10322 # Mac Studio caddy LLM-gate access -> index=llm
-      homelab_llm    = 10323 # homelab llama_cpp + llm_router   -> index=llm
-      openbao_audit  = 10331 # OpenBao file audit device        -> index=openbao_audit (new)
-    }
+    # family (defined in constants-ai-log.tf to keep this file under the shared
+    # _file-size 12 KB gate; locals merge across files in the module).
+    ai_log_ports = local.ai_log_ports
     # IaC automation platform (Terrakube + Semaphore UI) on the iac-platform VM
     # (docker compose, mgmt VLAN, pve3). Host ports published by the compose
     # stack; ingress.tf fronts each behind its own <name>.<domain> route. The
