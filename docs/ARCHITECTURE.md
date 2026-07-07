@@ -184,8 +184,8 @@ Summary by pool:
   Agent Chat UI), `agent-exec` (CrewAI + LangChain runtime with OpenLLMetry tracing)
 - **`media`** (v1 pinned to the primary media node — `node_name`,
   `node_storage`, and ansible inventory label all aligned on that node;
-  v2 lives on the secondary media node) — `download-vpn` (qBittorrent +
-  Prowlarr behind Proton WireGuard with an nftables killswitch), `sonarr`,
+  v2 lives on the secondary media node) — `download-vpn` (download clients
+  behind a commercial VPN with an nftables killswitch), `sonarr`,
   `radarr`, `plex`, `seerr`
 
 Notable per-container facts:
@@ -214,15 +214,15 @@ Notable per-container facts:
 - `mailpit` and `ntfy` run Docker-in-LXC (`nesting: true`, `keyctl: true`) for
   internal notifications.
 - `download-vpn` is an unprivileged LXC with `/dev/net/tun` passed through
-  (`device_passthrough`) so WireGuard creates `wg0` inside it. The unified
+  (`device_passthrough`) so the VPN tunnel comes up inside it. The unified
   `bulk/data` dataset is bind-mounted from the media-node host as `/data`
-  (size-less `mount_points`) so torrents and the library hardlink with zero
+  (size-less `mount_points`) so downloads and the library hardlink with zero
   duplication (`ansible-proxmox` `zfs_pools` provisions it; `media_lxc_features`
   applies the mount). Egress is VPN-locked by an in-LXC nftables killswitch
   (`ansible-proxmox-apps` `download_vpn` role); no Proxmox firewall on the media
   pool — the killswitch is the boundary.
-- `sonarr`, `radarr`, `plex` are LAN-only (no VPN); they reach Prowlarr +
-  qBittorrent on `download-vpn` over the LAN and read/write the same unified
+- `sonarr`, `radarr`, `plex` are LAN-only (no VPN); they reach the download
+  services on `download-vpn` over the LAN and read/write the same unified
   `bulk/data` (`/data`) dataset.
 - `traefik` (VMID 101) is the HTTPS reverse-proxy / TLS ingress on the management
   VLAN (VLAN 5), co-located with `haproxy`; other-VLAN backends are reached via
