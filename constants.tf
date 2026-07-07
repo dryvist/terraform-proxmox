@@ -129,6 +129,8 @@ locals {
       blackbox_exporter  = 9115
       atlas_exporter     = 9400
       irtt               = 2112
+      # node_exporter on the Proxmox hosts (host metrics -> siem Cribl Edge scrape)
+      node_exporter = 9100
       # Per-uplink network diagnosis (CT netmon-*, mgmt VLAN, Docker-in-LXC): the
       # satellite gRPC exporter scraped by each prober's Telegraf, alongside DOCSIS
       # modem SNMP and native active probes. Pushes to Cribl -> Splunk

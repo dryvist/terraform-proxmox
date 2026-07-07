@@ -43,6 +43,7 @@ variables {
       blackbox_exporter  = 9115
       atlas_exporter     = 9400
       irtt               = 2112
+      node_exporter      = 9100
       # LLM fabric + agentgateway (referenced by llm_fabric/agentgateway rules)
       llm_fast_api       = 10434
       llm_router_api     = 4000
@@ -574,5 +575,44 @@ run "outbound_https_is_tcp_443_only" {
   assert {
     condition     = local.outbound_https_rules[0].proto == "tcp" && local.outbound_https_rules[0].dport == "443"
     error_message = "outbound_https_rules[0] must be TCP 443, got proto='${local.outbound_https_rules[0].proto}' dport='${local.outbound_https_rules[0].dport}'"
+  }
+}
+
+run "node_exporter_rule_tracks_constant_and_siem_scope" {
+  command = plan
+
+  variables {
+    internal_networks = ["192.168.10.0/24", "192.168.20.0/24"]
+    network_cidrs     = { siem = "192.168.40.0/24" }
+  }
+
+  assert {
+    condition     = length(local.node_exporter_rules) == 1
+    error_message = "node_exporter_rules must be exactly 1 (TCP 9100), got ${length(local.node_exporter_rules)}"
+  }
+
+  assert {
+    condition     = local.node_exporter_rules[0].dport == tostring(var.pipeline_constants.service_ports.node_exporter)
+    error_message = "node_exporter rule must track service_ports.node_exporter, got '${local.node_exporter_rules[0].dport}'"
+  }
+
+  # Scoped to the siem VLAN, NOT internal_src — one consumer for host metrics.
+  assert {
+    condition     = local.node_exporter_rules[0].source == "192.168.40.0/24"
+    error_message = "node_exporter rule source must be the siem CIDR only, got '${local.node_exporter_rules[0].source}'"
+  }
+}
+
+run "node_exporter_rule_inert_without_siem_cidr" {
+  command = plan
+
+  variables {
+    internal_networks = ["192.168.0.0/16"]
+    network_cidrs     = {}
+  }
+
+  assert {
+    condition     = local.node_exporter_rules[0].source == ""
+    error_message = "node_exporter rule must be inert (empty source) when the siem CIDR is absent"
   }
 }

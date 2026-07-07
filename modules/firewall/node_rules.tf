@@ -27,5 +27,27 @@ resource "proxmox_virtual_environment_firewall_rules" "node" {
     comment        = "NTP server (UDP/123, chrony on Proxmox host)"
   }
 
+  rule {
+    security_group = proxmox_virtual_environment_cluster_firewall_security_group.node_exporter.name
+    comment        = "node_exporter host metrics (TCP/9100) scraped by siem-VLAN Cribl Edge"
+  }
+
   depends_on = [proxmox_node_firewall.node]
+}
+
+resource "proxmox_virtual_environment_cluster_firewall_security_group" "node_exporter" {
+  name    = "node-exporter"
+  comment = "Prometheus node_exporter (TCP 9100) on the Proxmox hosts, scraped by the siem-VLAN Cribl Edge prometheus input (paired with the ansible-proxmox node_exporter role)"
+
+  dynamic "rule" {
+    for_each = local.node_exporter_rules
+    content {
+      type    = "in"
+      action  = "ACCEPT"
+      proto   = rule.value.proto
+      dport   = rule.value.dport
+      source  = rule.value.source
+      comment = rule.value.comment
+    }
+  }
 }
