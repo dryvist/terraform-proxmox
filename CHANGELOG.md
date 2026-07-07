@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.63.0](https://github.com/dryvist/terraform-proxmox/compare/v1.62.0...v1.63.0) (2026-07-07)
+
+
+### Features
+
+* **firewall:** dual pipeline+siem zero-trust sources for the VLAN-40 rebuild ([#583](https://github.com/dryvist/terraform-proxmox/issues/583)) ([4ef5fe8](https://github.com/dryvist/terraform-proxmox/commit/4ef5fe8a0dccdf7321109a817063109527f05967))
+* **firewall:** siem-scoped node_exporter scrape rule on the Proxmox hosts ([#585](https://github.com/dryvist/terraform-proxmox/issues/585)) ([2b7c9a4](https://github.com/dryvist/terraform-proxmox/commit/2b7c9a4d416bb417bbafefa7046b6d3d05485eb6))
+
 ## [1.62.0](https://github.com/dryvist/terraform-proxmox/compare/v1.61.1...v1.62.0) (2026-07-07)
 
 
