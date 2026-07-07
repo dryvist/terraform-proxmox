@@ -87,7 +87,10 @@ run "container_ipv4_uses_vlan_cidr" {
   variables {
     containers = {
       "technitium-dns" = { vm_id = 103, hostname = "technitium-dns", vlan = "dns" }
-      "haproxy"        = { vm_id = 175, hostname = "haproxy", vlan = "pipeline" }
+      # Rebuilt pipeline-tier guest: siem VLAN (40), DHCP-first with a positional
+      # VMID (candidate id — final allocation confirmed against the private
+      # allocation table before the rebuild apply).
+      "haproxy" = { vm_id = 421040, hostname = "haproxy", vlan = "siem", dhcp = true, reserved_host = 21 }
     }
   }
 
@@ -101,9 +104,16 @@ run "container_ipv4_uses_vlan_cidr" {
     error_message = "dns-VLAN gateway should be 192.168.2.1, got ${local.container_gateway["technitium-dns"]}"
   }
 
+  # DHCP-first guest short-circuits cidrhost — the positional VMID must never
+  # be interpreted as a /24 host number.
   assert {
-    condition     = local.container_ipv4["haproxy"] == "192.168.25.175/24"
-    error_message = "pipeline-VLAN container 175 should be 192.168.25.175/24, got ${local.container_ipv4["haproxy"]}"
+    condition     = local.container_ipv4["haproxy"] == "dhcp"
+    error_message = "dhcp-first siem-VLAN guest must pass through as 'dhcp', got ${local.container_ipv4["haproxy"]}"
+  }
+
+  assert {
+    condition     = local.container_reserved_ip["haproxy"] == "192.168.40.21"
+    error_message = "siem-VLAN reserved_host 21 must yield 192.168.40.21, got ${local.container_reserved_ip["haproxy"]}"
   }
 }
 
@@ -543,9 +553,9 @@ run "cribl_stream_ids_picks_up_stream_tagged" {
   variables {
     containers = {
       "cribl-stream" = {
-        vm_id    = 182
+        vm_id    = 425040
         hostname = "cribl-stream"
-        vlan     = "pipeline"
+        vlan     = "siem"
         tags     = ["terraform", "cribl", "stream", "container"]
       }
     }
@@ -557,8 +567,8 @@ run "cribl_stream_ids_picks_up_stream_tagged" {
   }
 
   assert {
-    condition     = local.cribl_stream_container_ids["cribl-stream"] == 182
-    error_message = "cribl_stream_container_ids should map 'cribl-stream' to vm_id 182"
+    condition     = local.cribl_stream_container_ids["cribl-stream"] == 425040
+    error_message = "cribl_stream_container_ids should map 'cribl-stream' to vm_id 425040"
   }
 }
 
@@ -652,10 +662,10 @@ run "container_reserved_ip_from_reserved_host" {
         tags          = ["terraform", "container", "monitoring", "docker"]
       }
       # Static guest: no reserved_ip (advertises its derived IP instead).
-      "haproxy" = {
-        vm_id    = 175
-        hostname = "haproxy"
-        vlan     = "pipeline"
+      "apt-cacher-ng" = {
+        vm_id    = 108
+        hostname = "apt-cacher-ng"
+        vlan     = "compute"
       }
     }
   }
@@ -668,13 +678,13 @@ run "container_reserved_ip_from_reserved_host" {
 
   # Static guest has no reservation.
   assert {
-    condition     = local.container_reserved_ip["haproxy"] == null
+    condition     = local.container_reserved_ip["apt-cacher-ng"] == null
     error_message = "static guest must have reserved_ip = null"
   }
 
   # Static guest also carries no DHCP MAC in the inventory export.
   assert {
-    condition     = output.ansible_inventory.containers["haproxy"].mac == null
+    condition     = output.ansible_inventory.containers["apt-cacher-ng"].mac == null
     error_message = "static guest inventory mac must be null"
   }
 

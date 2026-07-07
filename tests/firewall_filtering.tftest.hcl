@@ -84,9 +84,9 @@ run "haproxy_tagged_container_in_pipeline_ids" {
   variables {
     containers = {
       "haproxy" = {
-        vm_id    = 190
+        vm_id    = 421040
         hostname = "haproxy"
-        vlan     = "pipeline"
+        vlan     = "siem"
         tags     = ["terraform", "haproxy", "container"]
       }
     }
@@ -98,8 +98,8 @@ run "haproxy_tagged_container_in_pipeline_ids" {
   }
 
   assert {
-    condition     = local.pipeline_container_ids["haproxy"] == 190
-    error_message = "pipeline_container_ids['haproxy'] should be vm_id 190"
+    condition     = local.pipeline_container_ids["haproxy"] == 421040
+    error_message = "pipeline_container_ids['haproxy'] should be vm_id 421040"
   }
 }
 
@@ -109,9 +109,9 @@ run "cribl_edge_tagged_container_in_pipeline_ids" {
   variables {
     containers = {
       "cribl-edge" = {
-        vm_id    = 181
+        vm_id    = 423040
         hostname = "cribl-edge"
-        vlan     = "pipeline"
+        vlan     = "siem"
         tags     = ["terraform", "cribl", "edge", "container"]
       }
     }
@@ -123,8 +123,8 @@ run "cribl_edge_tagged_container_in_pipeline_ids" {
   }
 
   assert {
-    condition     = local.pipeline_container_ids["cribl-edge"] == 181
-    error_message = "pipeline_container_ids['cribl-edge'] should be vm_id 181"
+    condition     = local.pipeline_container_ids["cribl-edge"] == 423040
+    error_message = "pipeline_container_ids['cribl-edge'] should be vm_id 423040"
   }
 }
 
@@ -207,9 +207,9 @@ run "cribl_without_edge_not_in_pipeline_ids" {
   variables {
     containers = {
       "cribl-stream" = {
-        vm_id    = 171
+        vm_id    = 425040
         hostname = "cribl-stream"
-        vlan     = "pipeline"
+        vlan     = "siem"
         tags     = ["terraform", "cribl", "stream", "container"]
       }
     }
@@ -229,9 +229,9 @@ run "cribl_stream_tagged_container_in_cribl_stream_ids" {
   variables {
     containers = {
       "cribl-stream" = {
-        vm_id    = 171
+        vm_id    = 425040
         hostname = "cribl-stream"
-        vlan     = "pipeline"
+        vlan     = "siem"
         tags     = ["terraform", "cribl", "stream", "pipeline", "container"]
       }
     }
@@ -243,8 +243,8 @@ run "cribl_stream_tagged_container_in_cribl_stream_ids" {
   }
 
   assert {
-    condition     = local.cribl_stream_container_ids["cribl-stream"] == 171
-    error_message = "cribl_stream_container_ids['cribl-stream'] should be vm_id 171"
+    condition     = local.cribl_stream_container_ids["cribl-stream"] == 425040
+    error_message = "cribl_stream_container_ids['cribl-stream'] should be vm_id 425040"
   }
 
   assert {
@@ -259,9 +259,9 @@ run "cribl_edge_not_in_cribl_stream_ids" {
   variables {
     containers = {
       "cribl-edge-01" = {
-        vm_id    = 180
+        vm_id    = 423040
         hostname = "cribl-edge-01"
-        vlan     = "pipeline"
+        vlan     = "siem"
         tags     = ["terraform", "cribl", "edge", "pipeline", "container"]
       }
     }
@@ -360,21 +360,21 @@ run "pipeline_and_stream_containers_mutually_exclusive" {
   variables {
     containers = {
       "haproxy" = {
-        vm_id    = 175
+        vm_id    = 421040
         hostname = "haproxy"
-        vlan     = "pipeline"
+        vlan     = "siem"
         tags     = ["terraform", "haproxy", "pipeline", "container"]
       }
       "cribl-edge-01" = {
-        vm_id    = 180
+        vm_id    = 423040
         hostname = "cribl-edge-01"
-        vlan     = "pipeline"
+        vlan     = "siem"
         tags     = ["terraform", "cribl", "edge", "pipeline", "container"]
       }
       "cribl-stream" = {
-        vm_id    = 171
+        vm_id    = 425040
         hostname = "cribl-stream"
-        vlan     = "pipeline"
+        vlan     = "siem"
         tags     = ["terraform", "cribl", "stream", "pipeline", "container"]
       }
     }

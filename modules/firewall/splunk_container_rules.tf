@@ -56,7 +56,7 @@ resource "proxmox_virtual_environment_firewall_rules" "splunk_container" {
     action  = "ACCEPT"
     proto   = "tcp"
     dport   = tostring(local.svc_ports.splunk_hec)
-    source  = local.zt_src["pipeline"]
+    source  = join(",", compact([local.zt_src["pipeline"], local.zt_src["siem"]]))
     comment = "ZT: Splunk HEC from pipeline"
   }
 
