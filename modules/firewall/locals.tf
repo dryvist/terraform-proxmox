@@ -103,6 +103,14 @@ locals {
     { proto = "udp", dport = tostring(local.svc_ports.ntp), source = local.internal_src, comment = "NTP chrony server (UDP ${local.svc_ports.ntp}) from internal" },
   ]
 
+  # node_exporter scrape on the Proxmox hosts, deliberately scoped to the siem
+  # VLAN (the Cribl Edge scrapers) instead of internal_src — host metrics need
+  # exactly one consumer. Missing CIDR -> "" -> rule is inert, same contract as
+  # the zero-trust sources.
+  node_exporter_rules = [
+    { proto = "tcp", dport = tostring(local.svc_ports.node_exporter), source = local.zt_src["siem"], comment = "node_exporter scrape (TCP ${local.svc_ports.node_exporter}) from siem VLAN Cribl Edge" },
+  ]
+
   notification_services_rules = [
     { proto = "tcp", dport = tostring(local.notification_ports.mailpit_smtp), source = local.internal_src, comment = "Mailpit SMTP from internal" },
     { proto = "tcp", dport = tostring(local.notification_ports.mailpit_web), source = local.internal_src, comment = "Mailpit Web UI from internal" },
