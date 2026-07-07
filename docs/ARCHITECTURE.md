@@ -181,7 +181,7 @@ Summary by pool:
 - **`ai`** — `qdrant`, `llamaindex`,
   `hermes-infer` (Ollama LLM inference on the RX 6800 GPU), `hermes-chat`
   (Open WebUI chat frontend), `n8n` (workflow automation), `dify`, `langflow`
-  (LLM orchestration / flow builders), `langgraph` (self-hosted LangGraph server +
+  (LLM orchestration / flow builders), `langgraph` (self-hosted LangGraph +
   Agent Chat UI), `agent-exec` (CrewAI + LangChain runtime with OpenLLMetry tracing)
 - **`media`** (v1 pinned to the primary media node — `node_name`,
   `node_storage`, and ansible inventory label all aligned on that node;
@@ -204,14 +204,12 @@ Notable per-container facts:
   `hermes-chat` runs Open WebUI (`llm` ingress); `ollama` exposes the raw API.
   Full write-up: [local-llm](https://docs.jacobpevans.com/infrastructure/local-llm).
 - The **AI orchestration tier** — `n8n`, `dify`, `langflow`, `langgraph` (all
-  Traefik-fronted) and `agent-exec` on the `ai` VLAN, plus `langfuse` (Langfuse v3
-  observability on the **siem** VLAN, `infrastructure` pool, OTLP ingest
-  `:3000/api/public/otel`) — emits OpenTelemetry to Cribl Edge, which forks traces
-  to Langfuse + Splunk. Each tool's model endpoint resolves by DNS to the
-  OpenAI-compatible LiteLLM router, so the backend is swappable. `langgraph` is
-  self-hosted **zero-cloud** (`langgraph dev`, in-memory) with a self-hosted Agent
-  Chat UI, so no LangSmith account or cloud egress is required; `n8n` is Community
-  Edition (self-hosted for a personal automation playground).
+  Traefik-fronted) and `agent-exec` on the `ai` VLAN, plus `langfuse` (v3
+  observability on the **siem** VLAN, `infrastructure` pool) — emits
+  OpenTelemetry to Cribl Edge, which forks traces to Langfuse + Splunk. Each
+  tool's model endpoint resolves by DNS to the swappable LiteLLM router.
+  `langgraph` is **zero-cloud** (in-memory `langgraph dev`, no LangSmith);
+  `n8n` is self-hosted CE.
 - `mailpit` and `ntfy` run Docker-in-LXC (`nesting: true`, `keyctl: true`) for
   internal notifications.
 - `download-vpn` is an unprivileged LXC with `/dev/net/tun` passed through
