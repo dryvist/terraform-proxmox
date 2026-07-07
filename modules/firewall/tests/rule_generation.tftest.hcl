@@ -70,6 +70,17 @@ variables {
       qdrant_http = 6333
       qdrant_grpc = 6334
     }
+    ai_log_ports = {
+      claude_code    = 10311
+      codex_cli      = 10312
+      agy_cli        = 10313
+      copilot_cli    = 10314
+      vscode         = 10315
+      macstudio_llm  = 10321
+      macstudio_gate = 10322
+      homelab_llm    = 10323
+      openbao_audit  = 10331
+    }
     honeypot_ports = {
       apprise_api = 8000
       ftp         = 21
@@ -494,6 +505,36 @@ run "honeypot_decoy_rules_track_constants_and_split_proto" {
   assert {
     condition     = length([for r in local.honeypot_services_rules : r if r.proto == "udp"]) == 4
     error_message = "honeypot_services_rules must include exactly 4 UDP decoys (snmp/sip/tftp/ntp), got ${length([for r in local.honeypot_services_rules : r if r.proto == "udp"])}"
+  }
+}
+
+run "ai_log_ingest_rules_track_constants" {
+  command = plan
+
+  variables {
+    internal_networks = ["192.168.10.0/24", "192.168.20.0/24"]
+  }
+
+  # One TCP rule per ai_log_ports entry (9 here), all sourced from the joined nets.
+  assert {
+    condition     = length(local.ai_log_ingest_rules) == length(var.pipeline_constants.ai_log_ports)
+    error_message = "ai_log_ingest_rules must have one rule per ai_log_ports entry, got ${length(local.ai_log_ingest_rules)}"
+  }
+
+  assert {
+    condition     = alltrue([for r in local.ai_log_ingest_rules : r.proto == "tcp"])
+    error_message = "all ai_log_ingest_rules must be TCP"
+  }
+
+  assert {
+    condition     = alltrue([for r in local.ai_log_ingest_rules : r.source == "192.168.10.0/24,192.168.20.0/24"])
+    error_message = "ai_log_ingest_rules source must be the comma-joined internal networks"
+  }
+
+  # dports track the constants map exactly (no literals).
+  assert {
+    condition     = alltrue([for r in local.ai_log_ingest_rules : contains([for p in values(var.pipeline_constants.ai_log_ports) : tostring(p)], r.dport)])
+    error_message = "every ai_log_ingest rule dport must come from pipeline_constants.ai_log_ports"
   }
 }
 

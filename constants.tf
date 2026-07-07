@@ -22,6 +22,26 @@ locals {
     # push (Path A). T-Pot reuses the same frontend with its sourcetype set by
     # the Cribl Edge pipeline. See docs/HONEYPOTS.md + docs/SPLUNK_INDEXES.md.
     honeypot = { standard = 519, high = 1519, index = "honeypot", sourcetype = "honeypot:opencanary" }
+    # UniFi firewall/IPS/threat syslog, split from the admin/system stream above so
+    # security events land in the dedicated `firewall` index instead of being buried
+    # in `unifi`. standard 520 = HAProxy frontend; high 1520 = Cribl Edge backend.
+    # Until the controller can target a second syslog destination, the split is done
+    # Cribl-side by sourcetype routing on the shared 514 receiver; this family gives
+    # the eventual dedicated receiver a stable, pre-allowed port.
+    unifi_fw = { standard = 520, high = 1520, index = "firewall", sourcetype = "ubiquiti:firewall" }
+    # macOS host syslog (MacBook + Mac Studio). Own family so Mac logs stop sharing
+    # the UniFi backend port (1514) they currently point at; lands in `os` alongside
+    # linux/windows, distinguished by sourcetype. standard 521 = HAProxy frontend;
+    # high 1521 = Cribl Edge backend.
+    macos = { standard = 521, high = 1521, index = "os", sourcetype = "syslog:macos" }
+    # Technitium DNS query logs (per-VLAN resolvers). Dedicated family so DNS
+    # visibility for threat-hunting lands in its own `dns` index. standard 522 =
+    # HAProxy frontend; high 1522 = Cribl Edge backend.
+    dns_query = { standard = 522, high = 1522, index = "dns", sourcetype = "technitium:dnsquery" }
+    # L7 proxy access logs (Traefik ingress + HAProxy). Dedicated `proxy` index for
+    # ingress/L7 visibility. standard 523 = HAProxy frontend; high 1523 = Cribl Edge
+    # backend. Traefik and HAProxy are distinguished by sourcetype in the pipeline.
+    proxy = { standard = 523, high = 1523, index = "proxy", sourcetype = "haproxy" }
   }
 
   pipeline_constants = {
@@ -143,6 +163,10 @@ locals {
       qdrant_http = 6333
       qdrant_grpc = 6334
     }
+    # AI / LLM log-ingest ports — one dedicated Cribl TCP-JSON receiver per source
+    # family (defined in constants-ai-log.tf to keep this file under the shared
+    # _file-size 12 KB gate; locals merge across files in the module).
+    ai_log_ports = local.ai_log_ports
     # IaC automation platform (Terrakube + Semaphore UI) on the iac-platform VM
     # (docker compose, mgmt VLAN, pve3). Host ports published by the compose
     # stack; ingress.tf fronts each behind its own <name>.<domain> route. The

@@ -54,6 +54,7 @@ locals {
   vector_db_ports    = var.pipeline_constants.vector_db_ports
   netflow_ports      = var.pipeline_constants.netflow_ports
   honeypot_ports     = var.pipeline_constants.honeypot_ports
+  ai_log_ports       = var.pipeline_constants.ai_log_ports
 
   # Syslog ports — derived from syslog_port_map so that adding a new source
   # family auto-expands the firewall surface. standard = app-facing HAProxy

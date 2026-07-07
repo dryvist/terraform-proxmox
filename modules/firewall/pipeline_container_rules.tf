@@ -45,6 +45,11 @@ resource "proxmox_virtual_environment_firewall_rules" "pipeline_container" {
   }
 
   rule {
+    security_group = proxmox_virtual_environment_cluster_firewall_security_group.ai_log_ingest.name
+    comment        = "AI/LLM log-ingest TCP-JSON frontends (HAProxy -> Cribl Stream)"
+  }
+
+  rule {
     security_group = proxmox_virtual_environment_cluster_firewall_security_group.outbound_internal.name
     comment        = "Outbound to internal only"
   }
