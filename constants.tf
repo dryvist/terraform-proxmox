@@ -75,11 +75,17 @@ locals {
       # management/xDS/metrics port (fronted by Traefik, internal-only).
       agentgateway_proxy = 8080
       agentgateway_admin = 15000
-      # AI orchestration stack web UIs (Traefik-fronted) — Dify, LangFlow, and
-      # Langfuse (LLM trace/cost/eval). ingress.tf references these constants.
+      # AI orchestration stack web UIs (Traefik-fronted) — n8n, Dify, LangFlow,
+      # LangGraph, and Langfuse (LLM trace/cost/eval). ingress.tf references these.
+      n8n_web      = 5678
       dify_web     = 80
       langflow_web = 7860
       langfuse_web = 3000
+      # LangGraph, self-hosted zero-cloud: `langgraph dev` in-memory server API +
+      # its self-hosted Agent Chat UI (Next.js). langgraph_api is deliberately 8124,
+      # NOT the LangGraph default 8123, which collides with homeassistant_web above.
+      langgraph_api     = 8124
+      agent_chat_ui_web = 3000
       # OpenTelemetry ingest on Cribl Edge — native OTLP sources, one port per
       # signal type (gRPC/HTTP) so Cribl routes by type without inspecting payload.
       # AI orchestration apps (OpenLLMetry) emit here; Cribl forks to Langfuse +
