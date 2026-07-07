@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.61.1](https://github.com/dryvist/terraform-proxmox/compare/v1.61.0...v1.61.1) (2026-07-07)
+
+
+### Bug Fixes
+
+* **tests:** repair firewall module test suite and gate it in CI ([#582](https://github.com/dryvist/terraform-proxmox/issues/582)) ([576afe0](https://github.com/dryvist/terraform-proxmox/commit/576afe0725d8b092d7f85ee532fd81f81487a9c8)), closes [#580](https://github.com/dryvist/terraform-proxmox/issues/580)
+
 ## [1.61.0](https://github.com/dryvist/terraform-proxmox/compare/v1.60.0...v1.61.0) (2026-07-07)
 
 
