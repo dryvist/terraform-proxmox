@@ -84,10 +84,12 @@ run "haproxy_tagged_container_in_pipeline_ids" {
   variables {
     containers = {
       "haproxy" = {
-        vm_id    = 421040
-        hostname = "haproxy"
-        vlan     = "siem"
-        tags     = ["terraform", "haproxy", "container"]
+        vm_id         = 421040
+        dhcp          = true
+        reserved_host = 21
+        hostname      = "haproxy"
+        vlan          = "siem"
+        tags          = ["terraform", "haproxy", "container"]
       }
     }
   }
@@ -109,10 +111,12 @@ run "cribl_edge_tagged_container_in_pipeline_ids" {
   variables {
     containers = {
       "cribl-edge" = {
-        vm_id    = 423040
-        hostname = "cribl-edge"
-        vlan     = "siem"
-        tags     = ["terraform", "cribl", "edge", "container"]
+        vm_id         = 423040
+        dhcp          = true
+        reserved_host = 23
+        hostname      = "cribl-edge"
+        vlan          = "siem"
+        tags          = ["terraform", "cribl", "edge", "container"]
       }
     }
   }
@@ -207,10 +211,12 @@ run "cribl_without_edge_not_in_pipeline_ids" {
   variables {
     containers = {
       "cribl-stream" = {
-        vm_id    = 425040
-        hostname = "cribl-stream"
-        vlan     = "siem"
-        tags     = ["terraform", "cribl", "stream", "container"]
+        vm_id         = 425040
+        dhcp          = true
+        reserved_host = 25
+        hostname      = "cribl-stream"
+        vlan          = "siem"
+        tags          = ["terraform", "cribl", "stream", "container"]
       }
     }
   }
@@ -229,10 +235,12 @@ run "cribl_stream_tagged_container_in_cribl_stream_ids" {
   variables {
     containers = {
       "cribl-stream" = {
-        vm_id    = 425040
-        hostname = "cribl-stream"
-        vlan     = "siem"
-        tags     = ["terraform", "cribl", "stream", "pipeline", "container"]
+        vm_id         = 425040
+        dhcp          = true
+        reserved_host = 25
+        hostname      = "cribl-stream"
+        vlan          = "siem"
+        tags          = ["terraform", "cribl", "stream", "pipeline", "container"]
       }
     }
   }
@@ -259,10 +267,12 @@ run "cribl_edge_not_in_cribl_stream_ids" {
   variables {
     containers = {
       "cribl-edge-01" = {
-        vm_id    = 423040
-        hostname = "cribl-edge-01"
-        vlan     = "siem"
-        tags     = ["terraform", "cribl", "edge", "pipeline", "container"]
+        vm_id         = 423040
+        dhcp          = true
+        reserved_host = 23
+        hostname      = "cribl-edge-01"
+        vlan          = "siem"
+        tags          = ["terraform", "cribl", "edge", "pipeline", "container"]
       }
     }
   }
@@ -360,22 +370,28 @@ run "pipeline_and_stream_containers_mutually_exclusive" {
   variables {
     containers = {
       "haproxy" = {
-        vm_id    = 421040
-        hostname = "haproxy"
-        vlan     = "siem"
-        tags     = ["terraform", "haproxy", "pipeline", "container"]
+        vm_id         = 421040
+        dhcp          = true
+        reserved_host = 21
+        hostname      = "haproxy"
+        vlan          = "siem"
+        tags          = ["terraform", "haproxy", "pipeline", "container"]
       }
       "cribl-edge-01" = {
-        vm_id    = 423040
-        hostname = "cribl-edge-01"
-        vlan     = "siem"
-        tags     = ["terraform", "cribl", "edge", "pipeline", "container"]
+        vm_id         = 423040
+        dhcp          = true
+        reserved_host = 23
+        hostname      = "cribl-edge-01"
+        vlan          = "siem"
+        tags          = ["terraform", "cribl", "edge", "pipeline", "container"]
       }
       "cribl-stream" = {
-        vm_id    = 425040
-        hostname = "cribl-stream"
-        vlan     = "siem"
-        tags     = ["terraform", "cribl", "stream", "pipeline", "container"]
+        vm_id         = 425040
+        dhcp          = true
+        reserved_host = 25
+        hostname      = "cribl-stream"
+        vlan          = "siem"
+        tags          = ["terraform", "cribl", "stream", "pipeline", "container"]
       }
     }
   }

@@ -553,10 +553,12 @@ run "cribl_stream_ids_picks_up_stream_tagged" {
   variables {
     containers = {
       "cribl-stream" = {
-        vm_id    = 425040
-        hostname = "cribl-stream"
-        vlan     = "siem"
-        tags     = ["terraform", "cribl", "stream", "container"]
+        vm_id         = 425040
+        dhcp          = true
+        reserved_host = 25
+        hostname      = "cribl-stream"
+        vlan          = "siem"
+        tags          = ["terraform", "cribl", "stream", "container"]
       }
     }
   }
