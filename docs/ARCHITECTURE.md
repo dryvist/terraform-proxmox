@@ -178,9 +178,8 @@ Summary by pool:
   `prometheus`, `traefik` (HTTPS/TLS ingress)
 - **`logging`** — `haproxy`, `cribl-edge-01/02`, `cribl-stream-01/02`,
   `splunk-mgmt` (SH + DS + LM + MC + CM)
-- **`ai`** — `qdrant`, `llamaindex`,
-  `hermes-infer` (Ollama LLM inference on the RX 6800 GPU), `hermes-chat`
-  (Open WebUI chat frontend), `n8n` (workflow automation), `dify`, `langflow`
+- **`ai`** — `qdrant`, `llamaindex`, `llm-fast`, `llm-router`, `open-webui`,
+  `n8n` (workflow automation), `dify`, `langflow`
   (LLM orchestration / flow builders), `langgraph` (self-hosted LangGraph +
   Agent Chat UI), `agent-exec` (CrewAI + LangChain runtime with OpenLLMetry tracing)
 - **`media`** (v1 pinned to the primary media node — `node_name`,
@@ -197,17 +196,19 @@ Notable per-container facts:
   two-tier pipeline.
 - `splunk-mgmt` runs the Splunk management roles (SH/DS/LM/MC/CM); the
   `splunk-aio` VM 200 is the dedicated indexer.
-- `hermes-infer` is a **privileged** LXC with the AMD RX 6800 passed through
+- `llm-fast` is a **privileged** LXC with the AMD RX 6800 passed through
   (`/dev/kfd` + `/dev/dri`, via `ansible-proxmox` `lxc_gpu_features`) running
-  Ollama on ROCm; it serves `hermes4` (NousResearch Hermes-4-14B) on port 11434
-  from a 120 GB `/var/lib/ollama` volume.
-  `hermes-chat` runs Open WebUI (`llm` ingress); `ollama` exposes the raw API.
+  llama-swap over llama.cpp (ROCm); it serves the fast tier (`qwen3-4b` +
+  `embeddings`; >=14B barred). `llm-router` runs the LiteLLM proxy;
+  `open-webui` runs Open WebUI (`llm` ingress).
   Full write-up: [local-llm](https://docs.jacobpevans.com/infrastructure/local-llm).
 - The **AI orchestration tier** — `n8n`, `dify`, `langflow`, `langgraph` (all
   Traefik-fronted) and `agent-exec` on the `ai` VLAN, plus `langfuse` (v3
   observability on the **siem** VLAN, `infrastructure` pool) — emits
-  OpenTelemetry to Cribl Edge, which forks traces to Langfuse + Splunk. Each
-  tool's model endpoint resolves by DNS to the swappable LiteLLM router.
+  OpenTelemetry to the Cribl Edge pipeline (forking to Langfuse + Splunk),
+  though that path is not yet live: the pipeline tier is stranded on a
+  decommissioned VLAN pending rebuild. Each tool's model endpoint resolves
+  by DNS to the swappable LiteLLM router.
   `langgraph` is **zero-cloud** (in-memory `langgraph dev`, no LangSmith);
   `n8n` is self-hosted CE.
 - `mailpit` and `ntfy` run Docker-in-LXC (`nesting: true`, `keyctl: true`) for
