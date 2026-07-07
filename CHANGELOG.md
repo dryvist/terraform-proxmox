@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.60.0](https://github.com/dryvist/terraform-proxmox/compare/v1.59.0...v1.60.0) (2026-07-07)
+
+
+### Features
+
+* **ai:** add n8n + LangGraph to the AI orchestration tier ([#575](https://github.com/dryvist/terraform-proxmox/issues/575)) ([cc7582b](https://github.com/dryvist/terraform-proxmox/commit/cc7582b46f12f19ed698af52caa2f8a53b740f7d))
+
 ## [1.59.0](https://github.com/dryvist/terraform-proxmox/compare/v1.58.0...v1.59.0) (2026-07-06)
 
 
