@@ -689,3 +689,46 @@ run "container_reserved_ip_from_reserved_host" {
     error_message = "dhcp guest inventory mac must be the 02:-prefixed deterministic MAC"
   }
 }
+
+# --- ai_log_routing tests (routing truth derives from ai_log_ports) ---
+
+run "ai_log_routing_ports_track_ai_log_ports" {
+  command = plan
+
+  # Same key set, and every routing port equals its ai_log_ports twin — the
+  # routing map is derived, so a drifted port is impossible by construction;
+  # this asserts the derivation itself stays wired.
+  assert {
+    condition     = keys(local.ai_log_routing) == keys(local.ai_log_ports)
+    error_message = "ai_log_routing must have exactly the ai_log_ports key set"
+  }
+
+  assert {
+    condition     = alltrue([for name, r in local.ai_log_routing : r.port == local.ai_log_ports[name]])
+    error_message = "every ai_log_routing port must equal its ai_log_ports twin"
+  }
+
+  assert {
+    condition     = alltrue([for name, r in local.ai_log_routing : length(r.index) > 0 && length(r.sourcetype) > 0])
+    error_message = "every ai_log_routing entry needs a non-empty index and sourcetype"
+  }
+}
+
+run "ai_log_routing_exported_in_pipeline_constants" {
+  command = plan
+
+  assert {
+    condition     = local.pipeline_constants.ai_log_routing == local.ai_log_routing
+    error_message = "pipeline_constants must surface ai_log_routing for the ansible_inventory consumers"
+  }
+
+  assert {
+    condition     = local.pipeline_constants.ai_log_routing.claude_code.index == "claude"
+    error_message = "claude_code must route to index=claude"
+  }
+
+  assert {
+    condition     = local.pipeline_constants.ai_log_routing.openbao_audit.sourcetype == "openbao:audit"
+    error_message = "openbao_audit must carry sourcetype openbao:audit"
+  }
+}

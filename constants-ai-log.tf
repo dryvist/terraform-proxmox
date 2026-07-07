@@ -22,4 +22,32 @@ locals {
     homelab_llm    = 10323 # homelab llama_cpp + llm_router   -> index=llm
     openbao_audit  = 10331 # OpenBao file audit device        -> index=openbao_audit (new)
   }
+
+  # Splunk landing zone per source, keyed to the SAME names as ai_log_ports so
+  # the two maps cannot drift apart (ai_log_routing derives its port from
+  # ai_log_ports; a name mismatch is a plan-time error). This is the single
+  # routing truth the downstream repos consume via ansible_inventory.constants:
+  # HAProxy renders one frontend per entry, Cribl Stream one tcpjson/syslog
+  # input per entry, and the ai_stamp pipeline stamps index/sourcetype from it.
+  # ai_log_ports itself stays map(number) — the firewall module types it, and
+  # it is already applied — so the routing metadata lives in this additive map.
+  ai_log_index_map = {
+    claude_code    = { index = "claude", sourcetype = "claude:code" }
+    codex_cli      = { index = "codex", sourcetype = "codex:cli" }
+    agy_cli        = { index = "gemini", sourcetype = "antigravity:cli" }
+    copilot_cli    = { index = "openai", sourcetype = "copilot:cli" }
+    vscode         = { index = "vscode", sourcetype = "vscode:telemetry" }
+    macstudio_llm  = { index = "llm", sourcetype = "llamaswap" }
+    macstudio_gate = { index = "llm", sourcetype = "caddy:access" }
+    homelab_llm    = { index = "llm", sourcetype = "llamaswap" }
+    openbao_audit  = { index = "openbao_audit", sourcetype = "openbao:audit" }
+  }
+
+  ai_log_routing = {
+    for name, port in local.ai_log_ports : name => {
+      port       = port
+      index      = local.ai_log_index_map[name].index
+      sourcetype = local.ai_log_index_map[name].sourcetype
+    }
+  }
 }
