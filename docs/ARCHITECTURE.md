@@ -182,10 +182,9 @@ Summary by pool:
   `n8n` (workflow automation), `dify`, `langflow`
   (LLM orchestration / flow builders), `langgraph` (self-hosted LangGraph +
   Agent Chat UI), `agent-exec` (CrewAI + LangChain runtime with OpenLLMetry tracing)
-- **`media`** (pinned to the bulk-storage node, whose `bulk/data` dataset all
-  media guests share) — `download-vpn` (download clients behind a commercial
-  VPN with an nftables killswitch), `sonarr`, `radarr`, `plex`, `seerr`
-  (request UI), `sortarr` (read-only insights dashboard)
+- **`media`** (on the bulk-storage node; all guests share its `bulk/data`
+  dataset) — `download-vpn` (download clients behind a commercial VPN with a
+  killswitch), `sonarr`, `radarr`, `plex`, `seerr` (request UI), `sortarr` (insights dashboard)
 
 Notable per-container facts:
 
@@ -212,30 +211,18 @@ Notable per-container facts:
   `n8n` is self-hosted CE.
 - `mailpit` and `ntfy` run Docker-in-LXC (`nesting: true`, `keyctl: true`) for
   internal notifications.
-- `download-vpn` is an unprivileged LXC with `/dev/net/tun` passed through
-  (`device_passthrough`) so the VPN tunnel comes up inside it. The unified
-  `bulk/data` dataset is bind-mounted from the media-node host as `/data`
-  (size-less `mount_points`) so downloads and the library hardlink with zero
-  duplication (`ansible-proxmox` `zfs_pools` provisions it; `media_lxc_features`
-  applies the mount). Egress is VPN-locked by an in-LXC nftables killswitch
-  (`ansible-proxmox-apps` `download_vpn` role); `download-vpn` itself carries no
-  Proxmox guest firewall — the fail-closed killswitch is its enforced boundary,
-  and stacking a hypervisor DROP policy under the tunnel would add a second
-  failure mode without adding coverage. The other five media guests get the
-  standard DROP/DROP guest-firewall companion (`modules/firewall/media_rules.tf`).
+- `download-vpn` is an unprivileged LXC with `/dev/net/tun` passed through so
+  the VPN tunnel comes up inside it; the unified `bulk/data` dataset is
+  bind-mounted as `/data` so downloads and the library hardlink with zero
+  duplication (`zfs_pools` provisions it, `media_lxc_features` mounts it).
+  Egress is VPN-locked by an in-LXC nftables killswitch (`download_vpn` role);
+  `download-vpn` itself has no Proxmox guest firewall — the killswitch is its
+  boundary; the other five media guests get the standard DROP/DROP companion
+  (`media_rules.tf`).
 - `sonarr`, `radarr`, `plex` are LAN-only (no VPN); they reach the download
-  services on `download-vpn` over the LAN and read/write the same unified
-  `bulk/data` (`/data`) dataset. `seerr` and `sortarr` are config-only
-  Docker-in-LXC guests (no `/data` mount) that talk to the others over HTTP.
-- **Media HA/DR posture** (deliberate, ChaosMonkey-aligned): no cluster HA and
-  no vzdump for media guests — every guest is rebuildable from IaC alone
-  (proven by a live seerr destroy/recreate canary). Each app's state lives on
-  its own `bulk/appdata/<app>` dataset (hourly `sanoid` snapshots, `syncoid`
-  replication to the DR node), bind-mounted over its config dir by
-  `ansible-proxmox` `media_lxc_features`. The `bulk/data` library itself is
-  deliberately unsnapshotted and unreplicated: torrent churn makes snapshots
-  expensive and the payload is re-acquirable, so protection is spent on the
-  irreplaceable per-app state instead.
+  services on `download-vpn` over the LAN and share the same `/data` dataset;
+  `seerr`/`sortarr` are config-only Docker-in-LXC guests (no `/data`). Media
+  HA/DR: see [DR_HA.md](./DR_HA.md#media-tier).
 - `traefik` (VMID 101) is the HTTPS reverse-proxy / TLS ingress on the management
   VLAN (VLAN 5), co-located with `haproxy`; other-VLAN backends are reached via
   inter-VLAN routing (UniFi allow rules per UI port). It fronts every web UI at
