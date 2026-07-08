@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.65.1](https://github.com/dryvist/terraform-proxmox/compare/v1.65.0...v1.65.1) (2026-07-08)
+
+
+### Bug Fixes
+
+* **firewall:** attach ai-log-ingest accepts to the Cribl Stream backends ([#597](https://github.com/dryvist/terraform-proxmox/issues/597)) ([bdb145b](https://github.com/dryvist/terraform-proxmox/commit/bdb145b4ce37ae3313aade62e5f02deb81466b72))
+
 ## [1.65.0](https://github.com/dryvist/terraform-proxmox/compare/v1.64.0...v1.65.0) (2026-07-08)
 
 
