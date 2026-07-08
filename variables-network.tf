@@ -47,7 +47,7 @@ variable "vlan_ids" {
     data      = 30
     ai        = 50
     apps      = 60
-    media_svc = 55
+    media_svc = 70
     homeauto  = 80
     nonprod   = 90
   }

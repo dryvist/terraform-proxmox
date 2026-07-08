@@ -653,7 +653,7 @@ run "container_reserved_ip_from_reserved_host" {
 
   variables {
     containers = {
-      # DHCP-first media-VLAN guest: reserved_host 210 -> 192.168.55.210, decoupled
+      # DHCP-first media-VLAN guest: reserved_host 210 -> 192.168.70.210, decoupled
       # from the 6-digit positional vm_id (which the /24 cidrhost math can't express).
       "netq-probe-media" = {
         vm_id         = 990003
@@ -672,10 +672,10 @@ run "container_reserved_ip_from_reserved_host" {
     }
   }
 
-  # media_svc id 55 -> 192.168.55.0/24; reserved_host 210 -> 192.168.55.210.
+  # media_svc id 70 -> 192.168.70.0/24; reserved_host 210 -> 192.168.70.210.
   assert {
-    condition     = local.container_reserved_ip["netq-probe-media"] == "192.168.55.210"
-    error_message = "dhcp guest reserved_host 210 on media_svc must yield 192.168.55.210, got ${local.container_reserved_ip["netq-probe-media"]}"
+    condition     = local.container_reserved_ip["netq-probe-media"] == "192.168.70.210"
+    error_message = "dhcp guest reserved_host 210 on media_svc must yield 192.168.70.210, got ${local.container_reserved_ip["netq-probe-media"]}"
   }
 
   # Static guest has no reservation.
@@ -692,8 +692,8 @@ run "container_reserved_ip_from_reserved_host" {
 
   # DHCP guest surfaces both mac and reserved_ip in the inventory export.
   assert {
-    condition     = output.ansible_inventory.containers["netq-probe-media"].reserved_ip == "192.168.55.210"
-    error_message = "dhcp guest inventory reserved_ip must be 192.168.55.210, got ${output.ansible_inventory.containers["netq-probe-media"].reserved_ip}"
+    condition     = output.ansible_inventory.containers["netq-probe-media"].reserved_ip == "192.168.70.210"
+    error_message = "dhcp guest inventory reserved_ip must be 192.168.70.210, got ${output.ansible_inventory.containers["netq-probe-media"].reserved_ip}"
   }
 
   assert {
