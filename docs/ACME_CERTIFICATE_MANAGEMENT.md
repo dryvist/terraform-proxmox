@@ -4,7 +4,7 @@ Operational guide for managing Let's Encrypt TLS certificates on Proxmox VE usin
 Terraform and AWS Route53 DNS-01 challenge validation.
 
 For module-level reference (variables, outputs, usage examples), see
-[`modules/acme-certificate/README.md`](modules/acme-certificate/README.md).
+[`modules/acme-certificate/README.md`](../modules/acme-certificate/README.md).
 
 ---
 
@@ -69,6 +69,7 @@ Minimum required IAM policy for Route53:
       "Effect": "Allow",
       "Action": [
         "route53:GetChange",
+        "route53:GetHostedZone",
         "route53:ChangeResourceRecordSets",
         "route53:ListResourceRecordSets"
       ],
@@ -309,12 +310,71 @@ acme_accounts = {
 
 Switch back to production once testing is complete.
 
+### Certificate hostname mismatch
+
+**Symptoms:** Browser shows a certificate error for the wrong hostname (e.g.,
+`CN=proxmox-1.mgmt` when accessing `proxmox-1.example.com`) — the certificate was
+generated with an old hostname configuration.
+
+**Checks:**
+
+1. Verify the hostname configuration:
+
+   ```bash
+   hostname -f     # Should show the FQDN
+   cat /etc/hosts  # Should map the IP to the FQDN
+   ```
+
+2. Regenerate the self-signed cert (if not using ACME):
+
+   ```bash
+   pvecm updatecerts --force
+   systemctl restart pveproxy
+   ```
+
+3. Or order a new ACME cert:
+
+   ```bash
+   pvenode acme cert order --force
+   ```
+
+### Duplicate domain in ACME config
+
+**Symptoms:** `duplicate domain 'example.com' in ACME config properties 'acmedomain0' and 'acme'`.
+
+**Resolution:** Remove the simple `acme:` line and keep only the `acmedomain0:`
+entry that names the DNS plugin:
+
+```ini
+# Wrong — causes a duplicate
+acme: domains=example.com
+acmedomain0: example.com,plugin=AWS
+
+# Correct — single entry with plugin
+acmedomain0: example.com,plugin=AWS
+```
+
+---
+
+## Wildcard Certificates
+
+Proxmox VE does not natively support wildcard certificates (`*.example.com`) as of
+version 9.1 — tracked in [Proxmox Bugzilla #5719](https://bugzilla.proxmox.com/show_bug.cgi?id=5719).
+
+Workarounds:
+
+1. Issue a specific certificate per subdomain.
+2. Use external tooling (`acme.sh`, `certbot`) and install the certificate manually.
+3. Terminate TLS at a reverse proxy that holds a wildcard certificate in front of Proxmox.
+
 ---
 
 ## References
 
-- [`modules/acme-certificate/README.md`](modules/acme-certificate/README.md) — module variables, outputs, and usage examples
+- [`modules/acme-certificate/README.md`](../modules/acme-certificate/README.md) — module variables, outputs, and usage examples
 - [BPG Proxmox Provider — ACME resources](https://registry.terraform.io/providers/bpg/proxmox/latest/docs)
 - [Proxmox Certificate Management](https://pve.proxmox.com/wiki/Certificate_Management)
+- [Let's Encrypt Documentation](https://letsencrypt.org/docs/)
 - [Let's Encrypt Rate Limits](https://letsencrypt.org/docs/rate-limits/)
 - [Route53 DNS-01 Challenge](https://letsencrypt.org/docs/challenge-types/#dns-01-challenge)
+- [Route53 — Working with DNS records](https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/rrsets-working-with.html)

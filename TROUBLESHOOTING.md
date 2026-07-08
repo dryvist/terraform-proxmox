@@ -254,7 +254,7 @@ ssh proxmox-1 "cat /etc/pve/nodes/proxmox-1/config"
 ssh proxmox-1 "pvenode acme cert order --force"
 ```
 
-See [docs/ACME.md](./docs/ACME.md) for detailed ACME configuration.
+See [docs/ACME_CERTIFICATE_MANAGEMENT.md](./docs/ACME_CERTIFICATE_MANAGEMENT.md) for detailed ACME configuration.
 
 ### State vs Infrastructure Mismatch
 
