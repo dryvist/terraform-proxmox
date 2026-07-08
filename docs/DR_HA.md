@@ -114,3 +114,24 @@ exactly the three real voters. Otherwise a converge joins the orphans too.
 means `openbao-03` unseals itself on start, same as the existing peers. The
 recovery shares and root token are unchanged (a join does not re-init). The new
 node inherits the automated raft-snapshot timer on converge.
+
+## Media tier
+
+Deliberately **no cluster HA and no vzdump** for the media guests — every one
+rebuilds from IaC alone, proven by a live `seerr` destroy/recreate canary
+(container replaced, 117-request history intact). The protection budget goes to
+the irreplaceable per-app state instead:
+
+- Each app's config/DB lives on its own `bulk/appdata/<app>` dataset,
+  bind-mounted over the app's config dir by `ansible-proxmox`
+  `media_lxc_features` (seed-before-mount on first cutover).
+- `bulk/appdata` is on the sanoid `critical` template (hourly, recursive) and
+  syncoid-replicated from the bulk-storage node to the DR node.
+- The `bulk/data` library itself is deliberately **unsnapshotted and
+  unreplicated** (`com.sun:auto-snapshot=false`): torrent churn makes snapshots
+  expensive and the payload is re-acquirable, so a loss is a re-download, not a
+  disaster.
+- Rebuild path: OpenTofu recreates the LXC → `media_lxc_features` re-mounts the
+  persisted appdata (seed skipped, dataset non-empty) → the app role reinstalls
+  the runtime. No manual step; vzdump would only duplicate what IaC + appdata
+  already guarantee.
