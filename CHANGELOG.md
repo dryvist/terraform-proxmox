@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.64.0](https://github.com/dryvist/terraform-proxmox/compare/v1.63.0...v1.64.0) (2026-07-08)
+
+
+### Features
+
+* **firewall:** DROP/DROP guest companions for the LAN-only media tier ([#592](https://github.com/dryvist/terraform-proxmox/issues/592)) ([770b075](https://github.com/dryvist/terraform-proxmox/commit/770b075f1c9c1d655fd5657e09f39fc68d8038b4))
+
 ## [1.63.0](https://github.com/dryvist/terraform-proxmox/compare/v1.62.0...v1.63.0) (2026-07-07)
 
 
