@@ -101,7 +101,7 @@ locals {
     { proto = "tcp", dport = tostring(local.svc_ports.cribl_prometheus_rw), source = local.internal_src, comment = "Prometheus remote_write receiver from internal" },
   ]
 
-  object_storage_services_rules = [
+  s3_services_rules = [
     { proto = "tcp", dport = tostring(local.svc_ports.object_storage_s3), source = local.internal_src, comment = "Object storage (RustFS) S3 API from internal" },
     { proto = "tcp", dport = tostring(local.svc_ports.object_storage_console), source = local.internal_src, comment = "Object storage (RustFS) Console from internal" },
   ]

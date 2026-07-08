@@ -162,7 +162,7 @@ locals {
   }
 
   # Object storage containers (object-storage tag) — RustFS.
-  object_storage_container_ids = {
+  s3_container_ids = {
     for k, v in var.containers : k => v.vm_id
     if contains(coalesce(try(v.tags, null), []), "object-storage")
   }

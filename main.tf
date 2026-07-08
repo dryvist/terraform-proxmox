@@ -220,7 +220,7 @@ module "firewall" {
   cribl_edge_container_ids = local.cribl_edge_container_ids
 
   # Object storage (object-storage tag) — RustFS.
-  object_storage_container_ids = local.object_storage_container_ids
+  s3_container_ids = local.s3_container_ids
 
   # OpenBao secrets-management containers (openbao tag)
   openbao_container_ids = local.openbao_container_ids

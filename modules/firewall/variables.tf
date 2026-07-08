@@ -57,7 +57,7 @@ variable "cribl_edge_container_ids" {
   default     = {}
 }
 
-variable "object_storage_container_ids" {
+variable "s3_container_ids" {
   description = "Map of object storage (RustFS) container names to their IDs"
   type        = map(number)
   default     = {}

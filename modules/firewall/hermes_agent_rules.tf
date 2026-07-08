@@ -1,7 +1,7 @@
 # =============================================================================
 # Hermes Agent container firewall configuration
 # =============================================================================
-# Extracted into its own file (like monitoring_rules.tf / object_storage_rules.tf)
+# Extracted into its own file (like monitoring_rules.tf / s3_rules.tf)
 # so container_rules.tf stays under the shared _file-size workflow's 12 KB error
 # threshold.
 #

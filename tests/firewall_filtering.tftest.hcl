@@ -288,14 +288,14 @@ run "cribl_edge_not_in_cribl_stream_ids" {
   }
 }
 
-# --- object_storage_container_ids tests ---
+# --- s3_container_ids tests ---
 
-run "object_storage_tagged_container_in_object_storage_ids" {
+run "object_storage_tagged_container_in_s3_ids" {
   command = plan
 
   variables {
     containers = {
-      "object-storage" = {
+      "s3" = {
         vm_id         = 990004
         hostname      = "object-storage"
         vlan          = "siem"
@@ -307,22 +307,22 @@ run "object_storage_tagged_container_in_object_storage_ids" {
   }
 
   assert {
-    condition     = contains(keys(local.object_storage_container_ids), "object-storage")
-    error_message = "Container with 'object-storage' tag must be in object_storage_container_ids"
+    condition     = contains(keys(local.s3_container_ids), "s3")
+    error_message = "Container with 'object-storage' tag must be in s3_container_ids"
   }
 
   assert {
-    condition     = local.object_storage_container_ids["object-storage"] == 990004
-    error_message = "object_storage_container_ids['object-storage'] should be vm_id 990004"
+    condition     = local.s3_container_ids["s3"] == 990004
+    error_message = "s3_container_ids['s3'] should be vm_id 990004"
   }
 
   assert {
-    condition     = !contains(keys(local.pipeline_container_ids), "object-storage")
+    condition     = !contains(keys(local.pipeline_container_ids), "s3")
     error_message = "Container with 'object-storage' tag must NOT be in pipeline_container_ids"
   }
 
   assert {
-    condition     = !contains(keys(local.notification_container_ids), "object-storage")
+    condition     = !contains(keys(local.notification_container_ids), "s3")
     error_message = "Container with 'object-storage' tag must NOT be in notification_container_ids"
   }
 }
