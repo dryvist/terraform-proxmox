@@ -744,3 +744,51 @@ run "ai_log_routing_exported_in_pipeline_constants" {
     error_message = "openbao_audit must carry sourcetype openbao:audit"
   }
 }
+
+# --- media_container_ids tag-filter tests ---
+# The vpn-tag exclusion is security-critical: the VPN-locked downloader must
+# NOT get a stacked hypervisor DROP/DROP under its in-guest killswitch (and it
+# has no media_web_rules entry, so a stacked firewall would also drop all
+# inbound web traffic). Guard the filter, not just the static port map.
+
+run "media_container_ids_excludes_vpn_tagged_downloader" {
+  command = plan
+
+  variables {
+    containers = {
+      "download-vpn" = {
+        vm_id    = 210
+        hostname = "download-vpn"
+        vlan     = "media_svc"
+        tags     = ["terraform", "container", "media", "vpn"]
+      }
+      "sonarr" = {
+        vm_id    = 211
+        hostname = "sonarr"
+        vlan     = "media_svc"
+        tags     = ["terraform", "container", "media", "sonarr"]
+      }
+      "no-media-tag" = {
+        vm_id    = 212
+        hostname = "no-media-tag"
+        vlan     = "apps"
+        tags     = ["terraform", "container"]
+      }
+    }
+  }
+
+  assert {
+    condition     = !contains(keys(local.media_container_ids), "download-vpn")
+    error_message = "media_container_ids must exclude vpn-tagged guests — the killswitch is their boundary, never a stacked guest firewall"
+  }
+
+  assert {
+    condition     = contains(keys(local.media_container_ids), "sonarr")
+    error_message = "media_container_ids must include media-tagged LAN-only guests"
+  }
+
+  assert {
+    condition     = length(local.media_container_ids) == 1
+    error_message = "media_container_ids must contain exactly the media-minus-vpn set"
+  }
+}
