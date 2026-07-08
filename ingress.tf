@@ -21,8 +21,7 @@ locals {
     phpipam          = { backend = "phpipam", port = local.pipeline_constants.service_ports.phpipam_web }
     "object-storage" = { backend = "object-storage", port = local.pipeline_constants.service_ports.object_storage_console }
     # RustFS S3 API fronted by a valid-TLS hostname. Path-style S3 format.
-    s3        = { backend = "object-storage", port = local.pipeline_constants.service_ports.object_storage_s3 }
-    infisical = { backend = "infisical", port = local.pipeline_constants.service_ports.infisical_api }
+    s3 = { backend = "object-storage", port = local.pipeline_constants.service_ports.object_storage_s3 }
     # openbao is fronted as a load-balanced pool (openbao_backends below).
     mailpit           = { backend = "mailpit", port = local.pipeline_constants.notification_ports.mailpit_web }
     ntfy              = { backend = "ntfy", port = local.pipeline_constants.notification_ports.ntfy_http }

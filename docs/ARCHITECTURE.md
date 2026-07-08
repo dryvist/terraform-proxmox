@@ -309,4 +309,3 @@ nix develop → aws-vault exec → doppler run → terragrunt <command>
 
 - [LOGGING_PIPELINE.md](./LOGGING_PIPELINE.md) - Detailed syslog pipeline
 - [SECRETS_ROADMAP.md](./SECRETS_ROADMAP.md) - Unified secrets strategy
-- [INFISICAL_PLANNING.md](./INFISICAL_PLANNING.md) - Self-hosted secrets manager planning

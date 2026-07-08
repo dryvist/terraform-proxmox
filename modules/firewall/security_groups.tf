@@ -267,23 +267,6 @@ resource "proxmox_virtual_environment_cluster_firewall_security_group" "object_s
   }
 }
 
-resource "proxmox_virtual_environment_cluster_firewall_security_group" "infisical_services" {
-  name    = "infisical-svc"
-  comment = "Infisical API/Web from internal networks (HAProxy front-ends TLS termination on its own ports)"
-
-  dynamic "rule" {
-    for_each = local.infisical_services_rules
-    content {
-      type    = "in"
-      action  = "ACCEPT"
-      proto   = rule.value.proto
-      dport   = rule.value.dport
-      source  = rule.value.source
-      comment = rule.value.comment
-    }
-  }
-}
-
 resource "proxmox_virtual_environment_cluster_firewall_security_group" "openbao_services" {
   name    = "openbao-svc"
   comment = "OpenBao API/UI (8200) and Raft cluster (8201) from internal networks (Traefik front-ends TLS termination on its own ports)"

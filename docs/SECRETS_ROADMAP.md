@@ -16,7 +16,7 @@ machine/AI runtime, cloud secret-zero, or a human-only vault:
 This supersedes the earlier design in two ways, detailed under
 [Superseded designs](#superseded-designs): the **OpenBao / Infisical
 domain-split is dead** (OpenBao is the single machine/IaC/runtime engine;
-Infisical migrates in and is decommissioned), and **Proton Pass is out of the
+Infisical was decommissioned and its LXC destroyed 2026-07-08), and **Proton Pass is out of the
 machine architecture** (a personal human-only tool holding no machine secret-zero;
 Bitwarden (T4) is the human tier of record).
 
@@ -179,9 +179,8 @@ core engine is up — see [Migration sequence](#migration-sequence).
 Two earlier directions are **superseded** and must not be reintroduced:
 
 - **OpenBao / Infisical domain-split — DEAD.** Running OpenBao and Infisical as
-  two un-synced domain-split systems does not ship; OpenBao is the single engine
-  and Infisical's contents migrate in before it is decommissioned. See
-  [INFISICAL_PLANNING.md](./INFISICAL_PLANNING.md) (superseded banner).
+  two un-synced domain-split systems never shipped; OpenBao is the single engine.
+  Infisical was decommissioned and its LXC destroyed 2026-07-08.
 - **Proton Pass as tier-0 root-of-trust / AI keychain — SUPERSEDED.** Out of the
   machine architecture: a personal human-only tool holding no machine secret-zero.
   Human tier of record is Bitwarden (T4); machine secret-zero is Doppler (T3). See
@@ -204,8 +203,9 @@ Two earlier directions are **superseded** and must not be reintroduced:
                          Remaining strict runtime keys renamed BREAKGLASS_*.
                          Retire secrets-sync once CI reads OpenBao via JWT/OIDC.
 
-5. Infisical migration    Migrate any Infisical contents into OpenBao, then
-   + decommission         DECOMMISSION Infisical. The domain-split never ships.
+5. Infisical             Infisical contents migrated into OpenBao; Infisical was
+   decommissioned         decommissioned and its LXC destroyed 2026-07-08. The
+                          domain-split never shipped.
 
 6. SSH-CA                Enable the OpenBao SSH engine; automation identities
                          (ai-agent/ansible/ci) get short-TTL signed certs.

@@ -63,12 +63,6 @@ variable "object_storage_container_ids" {
   default     = {}
 }
 
-variable "infisical_container_ids" {
-  description = "Map of Infisical secrets-management container names to their IDs"
-  type        = map(number)
-  default     = {}
-}
-
 variable "openbao_container_ids" {
   description = "Map of OpenBao secrets-management container names to their IDs"
   type        = map(number)
