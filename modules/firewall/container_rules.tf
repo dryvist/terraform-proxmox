@@ -1,7 +1,7 @@
 # Splunk container firewall resources live in modules/firewall/splunk_container_rules.tf
 # Pipeline container firewall resources live in modules/firewall/pipeline_container_rules.tf
 # (both extracted so container_rules.tf stays under the shared _file-size
-# workflow's 12 KB error threshold — same reason infisical_rules.tf was split out).
+# workflow's 12 KB error threshold — same reason object_storage_rules.tf was split out).
 
 # Cribl Stream containers (receives from Edge, routes to Splunk HEC)
 
@@ -230,7 +230,3 @@ resource "proxmox_virtual_environment_firewall_rules" "rag_container" {
 }
 
 # Object storage container firewall resources: modules/firewall/object_storage_rules.tf
-
-# Infisical container firewall resources live in modules/firewall/infisical_rules.tf
-# (extracted so container_rules.tf stays under the shared _file-size workflow's 12 KB error
-# threshold).

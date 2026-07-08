@@ -5,7 +5,8 @@ access — including least-privilege groups for AI agents. In the four-tier secr
 model OpenBao (T2) is the **single** machine/IaC/dynamic-secrets engine and the
 primary runtime interface for AI agents and automation. There is no second,
 domain-split engine: the earlier OpenBao/Infisical split is dead, Infisical's
-contents migrate into OpenBao, and Infisical is decommissioned. See
+contents migrated into OpenBao, and Infisical was decommissioned and its LXC
+destroyed 2026-07-08. See
 [SECRETS_ROADMAP.md](./SECRETS_ROADMAP.md) for the full four-tier design.
 
 ## KV v2 hierarchy (mount `secret/`)

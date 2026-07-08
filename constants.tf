@@ -60,7 +60,6 @@ locals {
       apt_cacher_ng          = 3142
       object_storage_s3      = 9000
       object_storage_console = 9001
-      infisical_api          = 8080
       openbao_api            = 8200
       openbao_cluster        = 8201
       postgres_default       = 5432

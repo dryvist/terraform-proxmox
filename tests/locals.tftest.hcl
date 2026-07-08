@@ -397,13 +397,8 @@ run "pipeline_constants_vector_db_ports" {
   }
 }
 
-run "pipeline_constants_infisical_ports" {
+run "pipeline_constants_db_ports" {
   command = plan
-
-  assert {
-    condition     = local.pipeline_constants.service_ports.infisical_api == 8080
-    error_message = "infisical_api port should be 8080"
-  }
 
   assert {
     condition     = local.pipeline_constants.service_ports.postgres_default == 5432
@@ -417,19 +412,6 @@ run "pipeline_constants_infisical_ports" {
 }
 
 # --- tag-filtering locals isolation ---
-
-run "infisical_ids_empty_by_default" {
-  command = plan
-
-  variables {
-    containers = {}
-  }
-
-  assert {
-    condition     = length(local.infisical_container_ids) == 0
-    error_message = "infisical_container_ids should be empty when containers is empty"
-  }
-}
 
 run "cribl_stream_ids_empty_by_default" {
   command = plan

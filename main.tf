@@ -222,9 +222,6 @@ module "firewall" {
   # Object storage (object-storage tag) — RustFS.
   object_storage_container_ids = local.object_storage_container_ids
 
-  # Infisical secrets-management containers (infisical tag)
-  infisical_container_ids = local.infisical_container_ids
-
   # OpenBao secrets-management containers (openbao tag)
   openbao_container_ids = local.openbao_container_ids
 

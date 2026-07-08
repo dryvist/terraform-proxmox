@@ -28,7 +28,6 @@ variables {
       # Object storage (RustFS) — referenced by object_storage_services_rules
       object_storage_s3      = 9000
       object_storage_console = 9001
-      infisical_api          = 8080
       openbao_api            = 8200
       openbao_cluster        = 8201
       postgres_default       = 5432
@@ -294,53 +293,6 @@ run "notification_rules_track_constants_ports" {
   assert {
     condition     = local.notification_services_rules[2].dport == tostring(var.pipeline_constants.notification_ports.ntfy_http)
     error_message = "notification rule 2 must track ntfy_http constant, got '${local.notification_services_rules[2].dport}'"
-  }
-}
-
-# --- Infisical security group ---
-
-run "infisical_rules_always_one" {
-  command = plan
-
-  variables {
-    internal_networks = ["192.168.10.0/24", "192.168.20.0/24", "192.168.30.0/24"]
-  }
-
-  # TCP infisical_api
-  assert {
-    condition     = length(local.infisical_services_rules) == 1
-    error_message = "infisical_services_rules must be exactly 1 (TCP infisical_api), got ${length(local.infisical_services_rules)}"
-  }
-}
-
-run "infisical_rule_dport_matches_constant" {
-  command = plan
-
-  variables {
-    internal_networks = ["192.168.0.0/16"]
-  }
-
-  assert {
-    condition     = local.infisical_services_rules[0].dport == tostring(var.pipeline_constants.service_ports.infisical_api)
-    error_message = "infisical_services_rules[0].dport must equal tostring(service_ports.infisical_api), got '${local.infisical_services_rules[0].dport}'"
-  }
-
-  assert {
-    condition     = local.infisical_services_rules[0].proto == "tcp"
-    error_message = "infisical service port must be TCP, got '${local.infisical_services_rules[0].proto}'"
-  }
-}
-
-run "infisical_rule_source_matches_joined_networks" {
-  command = plan
-
-  variables {
-    internal_networks = ["192.168.10.0/24", "192.168.20.0/24"]
-  }
-
-  assert {
-    condition     = local.infisical_services_rules[0].source == "192.168.10.0/24,192.168.20.0/24"
-    error_message = "infisical_services_rules source must be comma-joined networks, got '${local.infisical_services_rules[0].source}'"
   }
 }
 

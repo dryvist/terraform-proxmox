@@ -106,10 +106,6 @@ locals {
     { proto = "tcp", dport = tostring(local.svc_ports.object_storage_console), source = local.internal_src, comment = "Object storage (RustFS) Console from internal" },
   ]
 
-  infisical_services_rules = [
-    { proto = "tcp", dport = tostring(local.svc_ports.infisical_api), source = local.internal_src, comment = "Infisical API/Web from internal" },
-  ]
-
   # OpenBao API/UI (8200) is reached via Traefik (internal RFC1918). The Raft
   # cluster port (8201) is peer-to-peer and remains internal-only.
   openbao_services_rules = [

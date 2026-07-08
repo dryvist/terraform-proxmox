@@ -1,6 +1,6 @@
 # Object storage (RustFS) container firewall resources. Extracted from
 # container_rules.tf so that file stays under the shared _file-size workflow's
-# 12 KB error threshold (same pattern as infisical_rules.tf). S3 API on 9000,
+# 12 KB error threshold (same pattern as idrac_rules.tf). S3 API on 9000,
 # Console on 9001 — both internal-only via the object-storage-svc group.
 
 resource "proxmox_virtual_environment_firewall_options" "object_storage_container" {

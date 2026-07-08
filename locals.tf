@@ -167,12 +167,6 @@ locals {
     if contains(coalesce(try(v.tags, null), []), "object-storage")
   }
 
-  # Infisical secrets-management containers (infisical tag)
-  infisical_container_ids = {
-    for k, v in var.containers : k => v.vm_id
-    if contains(coalesce(try(v.tags, null), []), "infisical")
-  }
-
   # OpenBao secrets-management containers (openbao tag)
   openbao_container_ids = {
     for k, v in var.containers : k => v.vm_id
