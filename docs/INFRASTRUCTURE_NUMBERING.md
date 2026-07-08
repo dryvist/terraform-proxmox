@@ -49,7 +49,6 @@ env 0 (prod), and lives on VLAN 70 — identity and network are one number.
 Special-purpose VLANs sit **outside** the tier numbering: `1` Default, `5` Management,
 `53` DNS (named for port 53).
 
-
 ---
 
 ## Addressing: DHCP / DNS-first, with a static exception
