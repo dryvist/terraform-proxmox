@@ -45,6 +45,16 @@ resource "proxmox_virtual_environment_firewall_rules" "cribl_stream_container" {
     comment        = "NetFlow/IPFIX ingestion (UDP 2055)"
   }
 
+  # HAProxy balances every ai_log_routing frontend PORT-TO-PORT onto this
+  # pair (backend ai_backend_<port> -> stream:<port>), so the per-source
+  # in_ai_* listeners need the same accepts the HAProxy frontends carry.
+  # Without this every AI family except the 10300 S2S path is dropped here
+  # while HAProxy's tcp-check marks the backend down and resets senders.
+  rule {
+    security_group = proxmox_virtual_environment_cluster_firewall_security_group.ai_log_ingest.name
+    comment        = "AI/LLM log-ingest backends (HAProxy -> per-port in_ai_* listeners)"
+  }
+
   rule {
     security_group = proxmox_virtual_environment_cluster_firewall_security_group.outbound_internal.name
     comment        = "Outbound to internal only (reaches Splunk HEC 8088)"

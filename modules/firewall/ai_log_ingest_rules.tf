@@ -2,11 +2,13 @@
 #
 # One dedicated Cribl TCP-JSON receiver per AI-log source family (MacBook AI
 # tools, Mac Studio LLM stack, homelab LLM fabric, OpenBao audit). All are
-# HAProxy-fronted TCP frontends the sources dial; HAProxy load-balances to the
-# Cribl Stream pair over the existing cribl_s2s (10300) backend (already opened
-# by cribl_stream_services_rules). This group only opens the per-source
-# frontends on the pipeline (HAProxy) containers — see the attachment in
-# pipeline_container_rules.tf.
+# HAProxy-fronted TCP frontends the sources dial; HAProxy load-balances each
+# frontend PORT-TO-PORT onto the Cribl Stream pair's matching in_ai_* listener
+# (backend ai_backend_<port>, NOT the shared 10300 S2S backend — Stream keys
+# index/sourcetype stamping off the port). The group is therefore attached
+# twice: the HAProxy containers get the frontends (pipeline_container_rules.tf)
+# and the Stream containers get the same accepts for their backend listeners
+# (container_rules.tf).
 #
 # Rule data lives here (not in locals.tf) so that file stays under the shared
 # _file-size 12 KB error threshold. local.svc_ports / local.internal_src are
