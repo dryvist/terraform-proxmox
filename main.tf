@@ -238,6 +238,10 @@ module "firewall" {
   # Network-quality monitoring LXC: tagged "monitoring" (SmokePing + speedtest-exporter)
   monitoring_container_ids = local.monitoring_container_ids
 
+  # LAN-only media LXCs: media tag minus the VPN-locked downloader (its in-guest
+  # killswitch is the boundary; see locals-media.tf)
+  media_container_ids = local.media_container_ids
+
   # Hermes Agent LXC: tagged "hermes-agent" (autonomous agent, broad HTTPS egress)
   hermes_agent_container_ids = local.hermes_agent_container_ids
 

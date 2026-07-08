@@ -99,6 +99,12 @@ variable "hermes_agent_container_ids" {
   default     = {}
 }
 
+variable "media_container_ids" {
+  description = "Map of LAN-only media LXC names to IDs (tag-driven: media tag minus the VPN-locked downloader). DROP/DROP companion: per-guest web port from internal + outbound internal/HTTPS (metadata providers, image pulls)."
+  type        = map(number)
+  default     = {}
+}
+
 variable "ai_orchestration_container_ids" {
   description = "Map of AI orchestration LXC names to IDs (tag-driven: n8n, Dify, LangFlow, LangGraph, agent-exec). Inbound UI ports from internal + outbound internal/HTTPS (model endpoints, external APIs)."
   type        = map(number)
@@ -179,6 +185,7 @@ variable "pipeline_constants" {
     vector_db_ports    = map(number)
     honeypot_ports     = map(number)
     ai_log_ports       = map(number)
+    media_ports        = map(number)
   })
 }
 
