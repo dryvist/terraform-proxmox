@@ -51,13 +51,6 @@ variable "proxmox_iso_debian" {
   default     = "debian-13.2.0-amd64-netinst.iso"
 }
 
-variable "proxmox_iso_pbs" {
-  description = "Proxmox Backup Server ISO filename (upload to datastore_iso; reference it as <datastore_iso>:iso/<filename> in a VM's cdrom_file_id)."
-  type        = string
-  # renovate: datasource=custom.proxmox-iso depName=proxmox-backup-server
-  default = "proxmox-backup-server_4.2-1.iso"
-}
-
 variable "template_id" {
   description = "VM ID of the Packer-built Splunk Docker template to clone from (default: splunk-docker-template ID 9201)"
   type        = number
