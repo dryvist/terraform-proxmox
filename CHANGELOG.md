@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.65.0](https://github.com/dryvist/terraform-proxmox/compare/v1.64.0...v1.65.0) (2026-07-08)
+
+
+### Features
+
+* **network:** media tier to VLAN 70 — complete the VMID/VLAN tier alignment ([#595](https://github.com/dryvist/terraform-proxmox/issues/595)) ([a3a5e19](https://github.com/dryvist/terraform-proxmox/commit/a3a5e194b0460293593578e3fa7961e3671090d1))
+
 ## [1.64.0](https://github.com/dryvist/terraform-proxmox/compare/v1.63.0...v1.64.0) (2026-07-08)
 
 
