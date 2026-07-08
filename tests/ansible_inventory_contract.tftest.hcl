@@ -314,22 +314,22 @@ run "ansible_inventory_ingress_route_table" {
     domain = "example.com"
   }
 
-  # plex: backend "plex" (192.168.55.210) on media_ports.plex_web (32400).
+  # plex: backend "plex" (192.168.70.210) on media_ports.plex_web (32400).
   assert {
     condition = length([
       for r in output.ansible_inventory.ingress :
-      r if r.name == "plex" && r.ip == "192.168.55.210" && r.port == 32400
+      r if r.name == "plex" && r.ip == "192.168.70.210" && r.port == 32400
     ]) == 1
-    error_message = "ingress must front plex at 192.168.55.210:32400 (derived IP + constant port)"
+    error_message = "ingress must front plex at 192.168.70.210:32400 (derived IP + constant port)"
   }
 
-  # seerr: backend "seerr" (192.168.55.211) on media_ports.seerr_web (5055).
+  # seerr: backend "seerr" (192.168.70.211) on media_ports.seerr_web (5055).
   assert {
     condition = length([
       for r in output.ansible_inventory.ingress :
-      r if r.name == "seerr" && r.ip == "192.168.55.211" && r.port == 5055
+      r if r.name == "seerr" && r.ip == "192.168.70.211" && r.port == 5055
     ]) == 1
-    error_message = "ingress must front seerr at 192.168.55.211:5055"
+    error_message = "ingress must front seerr at 192.168.70.211:5055"
   }
 
   # Services whose backend container is absent are skipped (sonarr not deployed).
