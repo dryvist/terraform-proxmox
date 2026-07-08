@@ -101,6 +101,16 @@ variables {
       homelab_llm    = 10323
       openbao_audit  = 10331
     }
+    # Media stack web UIs (referenced by media_rules.tf per-guest inbound rules)
+    media_ports = {
+      qbittorrent_web = 8080
+      prowlarr_web    = 9696
+      sonarr_web      = 8989
+      radarr_web      = 7878
+      plex_web        = 32400
+      seerr_web       = 5055
+      sortarr_web     = 8787
+    }
     honeypot_ports = {
       apprise_api = 8000
       ftp         = 21
@@ -614,5 +624,35 @@ run "node_exporter_rule_inert_without_siem_cidr" {
   assert {
     condition     = local.node_exporter_rules[0].source == ""
     error_message = "node_exporter rule must be inert (empty source) when the siem CIDR is absent"
+  }
+}
+
+# --- media per-guest web rules ---
+
+run "media_web_rules_track_constants" {
+  command = plan
+
+  assert {
+    condition     = toset(keys(local.media_web_rules)) == toset(["plex", "radarr", "seerr", "sonarr", "sortarr"])
+    error_message = "media_web_rules must cover exactly the five LAN-only media guests (never the VPN-locked downloader)"
+  }
+
+  assert {
+    condition = alltrue([
+      local.media_web_rules.sonarr.dport == tostring(var.pipeline_constants.media_ports.sonarr_web),
+      local.media_web_rules.radarr.dport == tostring(var.pipeline_constants.media_ports.radarr_web),
+      local.media_web_rules.plex.dport == tostring(var.pipeline_constants.media_ports.plex_web),
+      local.media_web_rules.seerr.dport == tostring(var.pipeline_constants.media_ports.seerr_web),
+      local.media_web_rules.sortarr.dport == tostring(var.pipeline_constants.media_ports.sortarr_web),
+    ])
+    error_message = "media per-guest web dports drifted from pipeline_constants.media_ports"
+  }
+
+  assert {
+    condition = !anytrue([
+      contains(values(local.media_web_rules)[*].dport, tostring(var.pipeline_constants.media_ports.qbittorrent_web)),
+      contains(values(local.media_web_rules)[*].dport, tostring(var.pipeline_constants.media_ports.prowlarr_web)),
+    ])
+    error_message = "downloader-resident ports (qBittorrent/Prowlarr) must never appear on the LAN-only media guests"
   }
 }
