@@ -30,7 +30,8 @@ A VMID is six digits, each position carrying meaning (read coarsest → finest):
 
 A plain numeric sort groups guests by tier → sub-tier → criticality, for free. Example:
 Plex (`702000`) = tier 7 (media) · sub 0 (user-facing) · crit 2 · OS 0 (LXC) · instance 0 ·
-env 0 (prod), and lives on VLAN 70 — identity and network are one number.
+env 0 (prod), and lives on VLAN 70 — identity and network are one number. (As-built
+exception: the media tier still runs on VLAN 55 — see the accepted deviation below.)
 
 ### Trust tiers → VLANs (tier × 10)
 
@@ -48,6 +49,14 @@ env 0 (prod), and lives on VLAN 70 — identity and network are one number.
 
 Special-purpose VLANs sit **outside** the tier numbering: `1` Default, `5` Management,
 `53` DNS (named for port 53).
+
+**Accepted deviation — media tier (tier 7):** the media guests carry tier-7 VMIDs
+(`7xxxxx`) but run on the pre-tier `media_svc` VLAN **55**, not 70. The VMIDs already
+encode the target end-state; the VLAN renumber is a supervised maintenance event
+(cross-system: network controller VLAN, DHCP reservations, DNS, firewall sources —
+every media guest changes address mid-transition) tracked in issue #526, and is
+deliberately not folded into routine changes. Until it lands, tier 7 is the one
+tier where "identity and network are one number" does not hold.
 
 ---
 

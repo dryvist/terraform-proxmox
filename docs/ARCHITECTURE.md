@@ -182,11 +182,10 @@ Summary by pool:
   `n8n` (workflow automation), `dify`, `langflow`
   (LLM orchestration / flow builders), `langgraph` (self-hosted LangGraph +
   Agent Chat UI), `agent-exec` (CrewAI + LangChain runtime with OpenLLMetry tracing)
-- **`media`** (v1 pinned to the primary media node — `node_name`,
-  `node_storage`, and ansible inventory label all aligned on that node;
-  v2 lives on the secondary media node) — `download-vpn` (download clients
-  behind a commercial VPN with an nftables killswitch), `sonarr`,
-  `radarr`, `plex`, `seerr`
+- **`media`** (pinned to the bulk-storage node, whose `bulk/data` dataset all
+  media guests share) — `download-vpn` (download clients behind a commercial
+  VPN with an nftables killswitch), `sonarr`, `radarr`, `plex`, `seerr`
+  (request UI), `sortarr` (read-only insights dashboard)
 
 Notable per-container facts:
 
@@ -219,11 +218,24 @@ Notable per-container facts:
   (size-less `mount_points`) so downloads and the library hardlink with zero
   duplication (`ansible-proxmox` `zfs_pools` provisions it; `media_lxc_features`
   applies the mount). Egress is VPN-locked by an in-LXC nftables killswitch
-  (`ansible-proxmox-apps` `download_vpn` role); no Proxmox firewall on the media
-  pool — the killswitch is the boundary.
+  (`ansible-proxmox-apps` `download_vpn` role); `download-vpn` itself carries no
+  Proxmox guest firewall — the fail-closed killswitch is its enforced boundary,
+  and stacking a hypervisor DROP policy under the tunnel would add a second
+  failure mode without adding coverage. The other five media guests get the
+  standard DROP/DROP guest-firewall companion (`modules/firewall/media_rules.tf`).
 - `sonarr`, `radarr`, `plex` are LAN-only (no VPN); they reach the download
   services on `download-vpn` over the LAN and read/write the same unified
-  `bulk/data` (`/data`) dataset.
+  `bulk/data` (`/data`) dataset. `seerr` and `sortarr` are config-only
+  Docker-in-LXC guests (no `/data` mount) that talk to the others over HTTP.
+- **Media HA/DR posture** (deliberate, ChaosMonkey-aligned): no cluster HA and
+  no vzdump for media guests — every guest is rebuildable from IaC alone
+  (proven by a live seerr destroy/recreate canary). Each app's state lives on
+  its own `bulk/appdata/<app>` dataset (hourly `sanoid` snapshots, `syncoid`
+  replication to the DR node), bind-mounted over its config dir by
+  `ansible-proxmox` `media_lxc_features`. The `bulk/data` library itself is
+  deliberately unsnapshotted and unreplicated: torrent churn makes snapshots
+  expensive and the payload is re-acquirable, so protection is spent on the
+  irreplaceable per-app state instead.
 - `traefik` (VMID 101) is the HTTPS reverse-proxy / TLS ingress on the management
   VLAN (VLAN 5), co-located with `haproxy`; other-VLAN backends are reached via
   inter-VLAN routing (UniFi allow rules per UI port). It fronts every web UI at
