@@ -1,7 +1,7 @@
 # AI orchestration tier firewall resources. The orchestration UIs (n8n, Dify,
 # LangFlow, LangGraph) and the agent-exec runtime live on the ai VLAN; Langfuse
 # lives on the siem VLAN. All are DHCP-first guests behind DROP in/out policies, so each gets
-# `dhcp = true` (same reason as object_storage_rules.tf). The Cribl Edge OTLP
+# `dhcp = true` (same reason as s3_rules.tf). The Cribl Edge OTLP
 # ingest rule (from the ai VLAN) is attached to the pipeline containers in
 # container_rules.tf; this file owns the app-side guests.
 #

@@ -3,8 +3,8 @@
 # 12 KB error threshold (same pattern as idrac_rules.tf). S3 API on 9000,
 # Console on 9001 — both internal-only via the object-storage-svc group.
 
-resource "proxmox_virtual_environment_firewall_options" "object_storage_container" {
-  for_each = var.object_storage_container_ids
+resource "proxmox_virtual_environment_firewall_options" "s3_container" {
+  for_each = var.s3_container_ids
 
   node_name     = var.node_name
   container_id  = each.value
@@ -23,8 +23,8 @@ resource "proxmox_virtual_environment_firewall_options" "object_storage_containe
   depends_on = [proxmox_virtual_environment_cluster_firewall.main]
 }
 
-resource "proxmox_virtual_environment_firewall_rules" "object_storage_container" {
-  for_each = var.object_storage_container_ids
+resource "proxmox_virtual_environment_firewall_rules" "s3_container" {
+  for_each = var.s3_container_ids
 
   node_name    = var.node_name
   container_id = each.value
@@ -35,7 +35,7 @@ resource "proxmox_virtual_environment_firewall_rules" "object_storage_container"
   }
 
   rule {
-    security_group = proxmox_virtual_environment_cluster_firewall_security_group.object_storage_services.name
+    security_group = proxmox_virtual_environment_cluster_firewall_security_group.s3_services.name
     comment        = "Object storage services (TCP/${local.svc_ports.object_storage_s3} S3 API, TCP/${local.svc_ports.object_storage_console} Console)"
   }
 
@@ -44,5 +44,5 @@ resource "proxmox_virtual_environment_firewall_rules" "object_storage_container"
     comment        = "Outbound to internal only"
   }
 
-  depends_on = [proxmox_virtual_environment_firewall_options.object_storage_container]
+  depends_on = [proxmox_virtual_environment_firewall_options.s3_container]
 }

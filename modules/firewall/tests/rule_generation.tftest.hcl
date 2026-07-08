@@ -25,7 +25,7 @@ variables {
       cribl_s2s           = 10300
       cribl_prometheus_rw = 9201
       apt_cacher_ng       = 3142
-      # Object storage (RustFS) — referenced by object_storage_services_rules
+      # Object storage (RustFS) — referenced by s3_services_rules
       object_storage_s3      = 9000
       object_storage_console = 9001
       openbao_api            = 8200
@@ -268,13 +268,13 @@ run "object_storage_rules_track_constants_port" {
   }
 
   assert {
-    condition     = local.object_storage_services_rules[0].dport == tostring(var.pipeline_constants.service_ports.object_storage_s3)
-    error_message = "object_storage_services_rules[0].dport must be tostring(pipeline_constants.service_ports.object_storage_s3), got '${local.object_storage_services_rules[0].dport}'"
+    condition     = local.s3_services_rules[0].dport == tostring(var.pipeline_constants.service_ports.object_storage_s3)
+    error_message = "s3_services_rules[0].dport must be tostring(pipeline_constants.service_ports.object_storage_s3), got '${local.s3_services_rules[0].dport}'"
   }
 
   assert {
-    condition     = local.object_storage_services_rules[1].dport == tostring(var.pipeline_constants.service_ports.object_storage_console)
-    error_message = "object_storage_services_rules[1].dport must be tostring(pipeline_constants.service_ports.object_storage_console), got '${local.object_storage_services_rules[1].dport}'"
+    condition     = local.s3_services_rules[1].dport == tostring(var.pipeline_constants.service_ports.object_storage_console)
+    error_message = "s3_services_rules[1].dport must be tostring(pipeline_constants.service_ports.object_storage_console), got '${local.s3_services_rules[1].dport}'"
   }
 }
 

@@ -19,9 +19,9 @@ locals {
     prowlarr         = { backend = "download-vpn", port = local.pipeline_constants.media_ports.prowlarr_web }
     technitium       = { backend = "technitium-dns", port = local.pipeline_constants.service_ports.technitium_web }
     phpipam          = { backend = "phpipam", port = local.pipeline_constants.service_ports.phpipam_web }
-    "object-storage" = { backend = "object-storage", port = local.pipeline_constants.service_ports.object_storage_console }
+    "object-storage" = { backend = "s3", port = local.pipeline_constants.service_ports.object_storage_console }
     # RustFS S3 API fronted by a valid-TLS hostname. Path-style S3 format.
-    s3 = { backend = "object-storage", port = local.pipeline_constants.service_ports.object_storage_s3 }
+    s3 = { backend = "s3", port = local.pipeline_constants.service_ports.object_storage_s3 }
     # openbao is fronted as a load-balanced pool (openbao_backends below).
     mailpit           = { backend = "mailpit", port = local.pipeline_constants.notification_ports.mailpit_web }
     ntfy              = { backend = "ntfy", port = local.pipeline_constants.notification_ports.ntfy_http }

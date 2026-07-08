@@ -1,7 +1,7 @@
 # =============================================================================
 # iDRAC KVM container firewall configuration
 # =============================================================================
-# Extracted into its own file (like object_storage_rules.tf) so container_rules.tf
+# Extracted into its own file (like s3_rules.tf) so container_rules.tf
 # stays under the shared _file-size workflow's 12 KB error threshold.
 # The idrac-kvm host is a Docker-in-LXC (vm_id 251, tag "idrac"); it exposes the
 # HTML5 noVNC viewers on host ports 5410 (R410) / 5710 (R710) via the
