@@ -3,7 +3,7 @@ terraform {
   required_providers {
     proxmox = {
       source  = "bpg/proxmox"
-      version = "~> 0.106"
+      version = "~> 0.111"
     }
     # Publishes the ansible_inventory output to S3 (inventory_publish.tf), using
     # the same ambient credential chain as the S3 state backend.
