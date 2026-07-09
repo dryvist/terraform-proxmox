@@ -6,7 +6,7 @@ config {
 plugin "terraform" {
   enabled = true
   preset  = "recommended"
-  version = "0.14.1"
+  version = "0.15.0"
   source  = "github.com/terraform-linters/tflint-ruleset-terraform"
 }
 
