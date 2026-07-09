@@ -1,13 +1,12 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:recommended",
     "local>dryvist/.github"
   ],
   "customManagers": [
     {
       "customType": "regex",
-      "fileMatch": ["variables-storage\\.tf$"],
+      "managerFilePatterns": ["/variables-storage\\.tf$/"],
       "matchStrings": [
         "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)\\s+default\\s*=\\s*\"(?<currentValue>[^\"]+)\""
       ],
