@@ -8,7 +8,7 @@ jobs:
     name: Copilot Setup Steps
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
       - uses: opentofu/setup-opentofu@v2
       - name: OpenTofu Init
         run: tofu init -backend=false
