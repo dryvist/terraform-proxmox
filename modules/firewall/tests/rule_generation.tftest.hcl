@@ -33,6 +33,7 @@ variables {
       postgres_default       = 5432
       redis_default          = 6379
       nautobot_web           = 8080
+      vikunja_web            = 3456
       ntp                    = 123
       idrac_kvm_r410         = 5410
       idrac_kvm_r710         = 5710
@@ -652,5 +653,31 @@ run "nautobot_rule_tracks_constant_and_internal_scope" {
   assert {
     condition     = local.nautobot_services_rules[0].proto == "tcp" && local.nautobot_services_rules[0].dport == tostring(var.pipeline_constants.service_ports.nautobot_web)
     error_message = "nautobot rule must be TCP tracking service_ports.nautobot_web, got proto='${local.nautobot_services_rules[0].proto}' dport='${local.nautobot_services_rules[0].dport}'"
+  }
+}
+
+# --- vikunja service rules (issue #141) ---
+
+run "vikunja_rule_tracks_constant_and_internal_scope" {
+  command = plan
+
+  variables {
+    internal_networks = ["192.168.10.0/24", "192.168.20.0/24"]
+  }
+
+  # Exactly one live rule: TCP vikunja_web (3456) from the internal networks.
+  assert {
+    condition     = length(local.vikunja_services_rules) == 1
+    error_message = "vikunja_services_rules must be exactly 1 (TCP vikunja_web), got ${length(local.vikunja_services_rules)}"
+  }
+
+  assert {
+    condition     = local.vikunja_services_rules[0].proto == "tcp" && local.vikunja_services_rules[0].dport == tostring(var.pipeline_constants.service_ports.vikunja_web)
+    error_message = "vikunja rule must be TCP tracking service_ports.vikunja_web, got proto='${local.vikunja_services_rules[0].proto}' dport='${local.vikunja_services_rules[0].dport}'"
+  }
+
+  assert {
+    condition     = local.vikunja_services_rules[0].source == "192.168.10.0/24,192.168.20.0/24"
+    error_message = "vikunja rule source must be the comma-joined internal networks, got '${local.vikunja_services_rules[0].source}'"
   }
 }

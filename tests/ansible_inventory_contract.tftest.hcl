@@ -97,6 +97,15 @@ run "ansible_inventory_nautobot_web_constant" {
   }
 }
 
+run "ansible_inventory_vikunja_web_constant" {
+  command = plan
+
+  assert {
+    condition     = output.ansible_inventory.constants.service_ports.vikunja_web == 3456
+    error_message = "constants.service_ports.vikunja_web must be 3456 (Vikunja web/API)"
+  }
+}
+
 run "ansible_inventory_constants_exists" {
   command = plan
 
@@ -418,6 +427,34 @@ run "ansible_inventory_ingress_nautobot_not_postgres" {
   assert {
     condition     = length([for r in output.ansible_inventory.ingress : r if r.name == "postgres"]) == 0
     error_message = "postgres must never appear in the ingress table (in-cluster 5432 only, no Traefik front)"
+  }
+}
+
+# --- ingress: vikunja fronted (issue #141) ---
+run "ansible_inventory_ingress_vikunja_fronted" {
+  command = plan
+
+  variables {
+    domain = "example.com"
+    containers = {
+      "vikunja" = {
+        vm_id         = 605010
+        hostname      = "vikunja"
+        vlan          = "apps"
+        dhcp          = true
+        reserved_host = 53
+        tags          = ["terraform", "container", "vikunja"]
+      }
+    }
+  }
+
+  # vikunja: DHCP-first backend fronted by FQDN on vikunja_web (3456).
+  assert {
+    condition = length([
+      for r in output.ansible_inventory.ingress :
+      r if r.name == "vikunja" && r.ip == "vikunja.example.com" && r.port == 3456
+    ]) == 1
+    error_message = "ingress must front vikunja at vikunja.example.com:3456 (FQDN backend + vikunja_web constant)"
   }
 }
 

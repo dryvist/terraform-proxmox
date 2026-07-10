@@ -73,6 +73,7 @@ locals {
       technitium_web    = 5380
       phpipam_web       = 80
       nautobot_web      = 8080
+      vikunja_web       = 3456
       homeassistant_web = 8123
       openproject_web   = 80
       prometheus_web    = 9090
