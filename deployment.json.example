@@ -196,7 +196,7 @@
       "description": "Shared native Postgres — inventory/apps datastore (Nautobot now; Vikunja/EspoCRM later). Persistent data mount + pgdump backups.",
       "cpu_cores": 2,
       "memory_dedicated": 2048,
-      "tags": ["terraform", "container", "postgres", "database"],
+      "tags": ["terraform", "container", "postgres"],
       "pool_id": "infrastructure",
       "node_name": "proxmox-1",
       "unprivileged": true,

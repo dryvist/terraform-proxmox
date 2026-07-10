@@ -400,7 +400,7 @@ run "ansible_inventory_ingress_nautobot_not_postgres" {
         vlan          = "data"
         dhcp          = true
         reserved_host = 51
-        tags          = ["terraform", "container", "postgres", "database"]
+        tags          = ["terraform", "container", "postgres"]
       }
     }
   }
