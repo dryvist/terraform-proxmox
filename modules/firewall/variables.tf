@@ -87,6 +87,12 @@ variable "vikunja_container_ids" {
   default     = {}
 }
 
+variable "zammad_container_ids" {
+  description = "Map of Zammad container names to their IDs (zammad tag). Native ITSM/ticketing app (Rails + colocated Elasticsearch + Redis) — inbound zammad_web (8080) from internal; egress outbound-internal only (Postgres/Redis/DNS/Mailpit internal; apt via the internal apt-cacher-ng proxy, no direct package-manager egress)."
+  type        = map(number)
+  default     = {}
+}
+
 variable "ingress_container_ids" {
   description = "Map of ingress (Traefik HA) container names to their IDs (ingress tag). Firewall is DEFINE-DISABLED (see ingress_rules.tf): it pre-allows keepalived VRRP + 80/443 so enabling enforcement later never breaks the floating VIP."
   type        = map(number)

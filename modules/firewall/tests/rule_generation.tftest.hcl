@@ -34,6 +34,7 @@ variables {
       redis_default          = 6379
       nautobot_web           = 8080
       vikunja_web            = 3456
+      zammad_web             = 8080
       ntp                    = 123
       idrac_kvm_r410         = 5410
       idrac_kvm_r710         = 5710

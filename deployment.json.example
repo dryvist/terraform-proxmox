@@ -241,6 +241,24 @@
         { "volume": "local-zfs", "size": "10G", "path": "/var/lib/vikunja" }
       ]
     },
+    "zammad": {
+      "vm_id": 605020,
+      "dhcp": true,
+      "reserved_host": 54,
+      "vlan": "apps",
+      "hostname": "zammad",
+      "description": "Zammad ITSM/ticketing + knowledge base — the incident-management system of record. Native DEB (Rails web/worker/websocket + colocated Elasticsearch for full-text incident search + colocated Redis); nginx/API on zammad_web (8080) fronted by Traefik; state in the shared Postgres; persistent /opt/zammad holds app state + attachments. The ES index is derived/rebuildable and stays on the ephemeral rootfs (rake zammad:searchindex:rebuild).",
+      "cpu_cores": 4,
+      "memory_dedicated": 8192,
+      "tags": ["terraform", "container", "zammad"],
+      "pool_id": "infrastructure",
+      "node_name": "proxmox-1",
+      "unprivileged": true,
+      "root_disk": { "size": 24 },
+      "mount_points": [
+        { "volume": "local-zfs", "size": "40G", "path": "/opt/zammad" }
+      ]
+    },
     "_ingress_ha_comment": "Ingress is HA: identical Traefik LXCs on DIFFERENT nodes carry the `ingress` tag; keepalived floats one VRRP virtual IP across them (ingress.tf derives ingress_vip/ingress_hosts from the `ingress` tag + network_cidrs). A VIP is synthesized only with at least two ingress nodes; add another by copying the block and bumping vm_id/node_name — no code change. DNS points every fronted service at the VIP, so a node loss migrates the VIP automatically.",
     "traefik": {
       "vm_id": 101,
