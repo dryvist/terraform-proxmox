@@ -92,10 +92,13 @@ locals {
       # agentgateway — Rust-written AI-first data plane that unifies MCP
       # (Model Context Protocol), LLM, and A2A (agent-to-agent) traffic into a
       # single proxy. agentgateway_proxy = the MCP/LLM/A2A traffic port callers
-      # dial (OpenAI-compatible + native MCP); agentgateway_admin = the
-      # management/xDS/metrics port (fronted by Traefik, internal-only).
-      agentgateway_proxy = 8080
-      agentgateway_admin = 15000
+      # dial (OpenAI-compatible + native MCP); agentgateway_admin = the admin
+      # UI / xDS config-dump port (fronted by Traefik, internal-only);
+      # agentgateway_metrics = the stats server's Prometheus /metrics port
+      # (upstream serves metrics on a separate statsAddr, not the admin port).
+      agentgateway_proxy   = 8080
+      agentgateway_admin   = 15000
+      agentgateway_metrics = 15020
       # AI orchestration stack web UIs (Traefik-fronted) — n8n, Dify, LangFlow,
       # LangGraph, and Langfuse (LLM trace/cost/eval). ingress.tf references these.
       n8n_web      = 5678
