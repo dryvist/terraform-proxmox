@@ -69,6 +69,18 @@ variable "openbao_container_ids" {
   default     = {}
 }
 
+variable "postgres_container_ids" {
+  description = "Map of Postgres container names to their IDs (postgres tag). Shared native Postgres — inbound 5432 from internal; egress outbound-internal only."
+  type        = map(number)
+  default     = {}
+}
+
+variable "nautobot_container_ids" {
+  description = "Map of Nautobot container names to their IDs (nautobot tag). Native IPAM/DCIM — inbound nautobot_web (8080) from internal; egress outbound-internal + outbound-HTTPS (PyPI installs during converge)."
+  type        = map(number)
+  default     = {}
+}
+
 variable "ingress_container_ids" {
   description = "Map of ingress (Traefik HA) container names to their IDs (ingress tag). Firewall is DEFINE-DISABLED (see ingress_rules.tf): it pre-allows keepalived VRRP + 80/443 so enabling enforcement later never breaks the floating VIP."
   type        = map(number)

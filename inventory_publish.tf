@@ -12,6 +12,10 @@ locals {
   # The inventory value, shared by output.ansible_inventory and the publish
   # resource below (a resource cannot reference an output, so this lives here).
   ansible_inventory = {
+    # Contract version of this published artifact. Consumers (and the
+    # homelab-contracts JSON schema that gates the publish) read this to confirm
+    # they understand the emitted shape. Bump only on a breaking key-set change.
+    schema_version = "2.0.0"
     # LXC Containers - using proxmox_pct_remote connection
     containers = {
       for k, v in(length(var.containers) > 0 ? module.containers[0].container_details : {}) : k => {

@@ -225,6 +225,10 @@ module "firewall" {
   # OpenBao secrets-management containers (openbao tag)
   openbao_container_ids = local.openbao_container_ids
 
+  # Postgres (postgres tag) + Nautobot (nautobot tag) containers — 5432 / 8080 from internal
+  postgres_container_ids = local.postgres_container_ids
+  nautobot_container_ids = local.nautobot_container_ids
+
   # Ingress (Traefik HA) containers (ingress tag) — define-disabled guest firewall
   # that pre-allows keepalived VRRP + 80/443 so a later enforcement flip is safe.
   ingress_container_ids = local.ingress_container_ids
