@@ -229,6 +229,7 @@ module "firewall" {
   postgres_container_ids = local.postgres_container_ids
   nautobot_container_ids = local.nautobot_container_ids
   vikunja_container_ids  = local.vikunja_container_ids
+  zammad_container_ids   = local.zammad_container_ids
 
   # Ingress (Traefik HA) containers (ingress tag) — define-disabled guest firewall
   # that pre-allows keepalived VRRP + 80/443 so a later enforcement flip is safe.
