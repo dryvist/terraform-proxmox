@@ -21,6 +21,9 @@ terraform {
 # address / role_id / secret_id come from Doppler env vars (see terragrunt.hcl).
 provider "vault" {
   address = var.vault_addr
+  # The Terraform AppRole is least-privilege for this module and cannot mint
+  # child tokens; use the login token directly.
+  skip_child_token = true
 
   auth_login {
     path = "auth/approle/login"
