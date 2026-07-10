@@ -1,0 +1,44 @@
+{
+  "_comment": "EXAMPLE FILE for the DEVELOP environment — copy to deployment.develop.json for live use (gitignored, same rules as deployment.json). This is a SEPARATE private desired-state input: select it by exporting S3_INVENTORY_KEY=deployment.develop.json before terragrunt. Its `environment: develop` makes terragrunt derive a develop-scoped tfstate key, input-mirror path, and published-inventory key, so it applies REAL guests independently of production without ever touching prod state. KEEP IT MINIMAL — only the guests under test, not a clone of the fleet (a second live env shares one physical cluster). Guests live on the `nonprod` VLAN and carry the env digit `1` in the last VMID position ([Tier][Sub][Crit][OS][Inst][Env]; prod uses env 0). See docs/SOPS_SETUP.md and the deployment-state contract.",
+
+  "proxmox_node": "proxmox-1",
+  "environment": "develop",
+
+  "nodes": {
+    "proxmox-1": { "role": "node-1", "hardware": "amd-desktop" }
+  },
+
+  "pools": {
+    "nonprod": { "comment": "Develop-environment workloads (isolated from production)" }
+  },
+
+  "datastores": {},
+  "node_storage": {},
+  "host_services": {},
+
+  "_containers_comment": "Representative develop guests on the nonprod VLAN. VMIDs end in `1` (env=develop) to stay distinct from their prod siblings on the shared cluster. Add only what you are actively testing.",
+  "containers": {
+    "dev-app": {
+      "vm_id": 900001,
+      "vlan": "nonprod",
+      "hostname": "dev-app",
+      "description": "Example develop app container — replace with the guest under test",
+      "cpu_cores": 1,
+      "memory_dedicated": 512,
+      "tags": ["terraform", "container", "develop"],
+      "pool_id": "nonprod",
+      "root_disk": { "size": 8 }
+    },
+    "dev-db": {
+      "vm_id": 900011,
+      "vlan": "nonprod",
+      "hostname": "dev-db",
+      "description": "Example develop datastore container — replace or delete",
+      "cpu_cores": 1,
+      "memory_dedicated": 1024,
+      "tags": ["terraform", "container", "develop"],
+      "pool_id": "nonprod",
+      "root_disk": { "size": 16 }
+    }
+  }
+}

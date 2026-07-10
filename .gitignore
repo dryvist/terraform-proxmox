@@ -128,7 +128,10 @@ scripts/timing-results.txt
 # Live deployment config — contains real node names, VM inventory, and ZFS pool names.
 # Private desired-state input — lives in the on-prem `s3` store, fetched by terragrunt
 # (see agentsmd/rules/infra/deployment-json-source-of-truth.md). Repo keeps only the example.
+# The develop-environment input is a second private object, same rules. Repo keeps only its
+# example (deployment.develop.json.example).
 deployment.json
+deployment.develop.json
 
 # ---------------------------------------------------------------------
 # dryvist org-default: secrets, credentials & AI-assistant local state

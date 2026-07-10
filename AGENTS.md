@@ -66,6 +66,15 @@ locals.tf derivations    (computed)             — management_network, splunk_n
 - `deployment.json` — resource definitions (containers, VMs, pools, sizing).
   Private, not committed; fetched from the on-prem `s3` store at plan/apply. See
   [`deployment-json-source-of-truth`](agentsmd/rules/infra/deployment-json-source-of-truth.md).
+- **Two environments (git-flow).** Prod is `deployment.json` (`environment:
+  homelab`); develop is a second private object `deployment.develop.json`
+  (`environment: develop`), selected by explicitly exporting
+  `S3_INVENTORY_KEY=deployment.develop.json`. The `environment` field derives a
+  develop-scoped tfstate key, input-mirror path, and published-inventory key, so
+  develop applies REAL guests on the `nonprod` VLAN independently of prod without
+  touching prod state. **Prod paths are pinned unchanged** — see the rule doc
+  above for the derived-key table and invariants. Repo keeps
+  `deployment.develop.json.example`.
 - `terraform.sops.json` — five env-specific values: `network_prefix`,
   `domain`, `vm_ssh_public_key_path`, `vm_ssh_private_key_path`,
   `proxmox_ssh_username`. Decrypted automatically by Terragrunt.

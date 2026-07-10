@@ -58,7 +58,8 @@
     },
     "environment": {
       "type": "string",
-      "minLength": 1
+      "description": "Selects which environment this input drives. Terragrunt derives the tfstate key, the AWS input-mirror path, and the published-inventory key from it; `homelab` pins to production's exact current literals, `develop` nests under its own prefixes. An unknown value fails loud before any plan.",
+      "enum": ["homelab", "develop"]
     }
   },
   "definitions": {

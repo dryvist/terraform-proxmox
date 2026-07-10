@@ -113,8 +113,13 @@ data "aws_caller_identity" "current" {}
 # only when this resource is in scope — a `-target` apply that excludes it does
 # not republish a partial inventory.
 resource "aws_s3_object" "ansible_inventory" {
-  bucket       = "terraform-proxmox-state-useast2-${data.aws_caller_identity.current.account_id}"
-  key          = "terraform-proxmox/inventory/ansible_inventory.json"
+  bucket = "terraform-proxmox-state-useast2-${data.aws_caller_identity.current.account_id}"
+  # Env-scoped so a develop apply never overwrites the prod inventory that Ansible reads.
+  # Production ("homelab") keeps the exact current literal; every other env nests under its
+  # own prefix — symmetric with the state key in terragrunt.hcl (which passes `environment`
+  # in as var.environment). The terragrunt env allowlist already fails loud before Terraform
+  # sees a bad value, so no separate guard is needed here.
+  key          = var.environment == "homelab" ? "terraform-proxmox/inventory/ansible_inventory.json" : "terraform-proxmox/inventory/${var.environment}/ansible_inventory.json"
   content      = jsonencode(local.ansible_inventory)
   content_type = "application/json"
 

@@ -17,6 +17,20 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 cd "$REPO_ROOT"
 
+# Environment scoping: a develop apply must never overwrite the prod artifacts that the
+# Ansible consumers read. Derive the env from the selected input (S3_INVENTORY_KEY), the
+# same signal as the mirror path — ONLY the develop object nests its data-repo mirror under
+# a develop/ prefix and its own sync branch, and skips warming the prod offline-fallback
+# cache entirely; every other key (prod default or a staging candidate) keeps the literals.
+SRC_KEY="${S3_INVENTORY_KEY:-deployment.json}"
+if [[ "$SRC_KEY" == "deployment.develop.json" ]]; then
+  ENV_DEST_PREFIX="develop/"
+  SYNC_BRANCH_SUFFIX="-develop"
+else
+  ENV_DEST_PREFIX=""
+  SYNC_BRANCH_SUFFIX=""
+fi
+
 GIT_HOME="${GIT_HOME:?GIT_HOME must be set}"
 # The contract schema. Defaults to the interim schema; Phase 2 points this at the
 # homelab-schemas repo via TOFU_INVENTORY_SCHEMA.
@@ -47,9 +61,9 @@ nix run nixpkgs#check-jsonschema -- --schemafile "$SCHEMA" "$tmp"
 #     the commit lands on a sync branch in a throwaway worktree (the clone's
 #     checked-out branch is never touched) and a PR is opened with gh, which
 #     infers everything it needs from the clone's origin.
-dest="tofu/terraform-proxmox/ansible_inventory.json"
+dest="tofu/terraform-proxmox/${ENV_DEST_PREFIX}ansible_inventory.json"
 if [[ -n "$DATA_REPO_DIR" ]]; then
-  sync_branch="chore/inventory-sync"
+  sync_branch="chore/inventory-sync${SYNC_BRANCH_SUFFIX}"
   sync_wt="$(mktemp -d)"
   git -C "$DATA_REPO_DIR" fetch -q origin
   git -C "$DATA_REPO_DIR" worktree add -q --force -B "$sync_branch" "$sync_wt" origin/main
@@ -74,7 +88,12 @@ fi
 
 # Cache-warming: the gitignored copy each consumer's resolver uses as its
 # offline fallback (resolution priority 3, after TOFU_INVENTORY_PATH and the
-# S3 artifact).
+# S3 artifact). This is the PROD fallback — a develop apply must not overwrite it, so
+# skip warming entirely for any non-prod environment (develop consumers pin explicitly).
+if [[ -n "$ENV_DEST_PREFIX" ]]; then
+  echo "sync-inventory: develop env — skipped prod offline-cache warming" >&2
+  exit 0
+fi
 for repo in ansible-proxmox ansible-proxmox-apps ansible-splunk; do
   for root in "${GIT_HOME_PUBLIC:-}" "$GIT_HOME"; do
     if [[ -n "$root" && -d "$root/$repo/main/inventory" ]]; then

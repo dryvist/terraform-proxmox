@@ -38,6 +38,28 @@ only. The repo keeps only `deployment.json.example`. Read/edit recipe:
   triggers destroy + recreate. Verify against `terragrunt state list` first.
   (Authoring details: see the contract page above.)
 
+**Two environments (git-flow):** there are two independent inputs — the prod
+object (`deployment.json`, `environment: homelab`) and the develop object
+(`deployment.develop.json`, `environment: develop`). Select which one a run uses
+by **explicitly** exporting `S3_INVENTORY_KEY` (`deployment.json` is the default;
+`deployment.develop.json` for develop) — there is no git-branch inference. The
+`environment` field inside the fetched object then drives three derived keys:
+
+| Key | `homelab` (prod, UNCHANGED) | `develop` |
+| --- | --- | --- |
+| tfstate | `terraform-proxmox/terraform.tfstate` | `terraform-proxmox/develop/terraform.tfstate` |
+| input mirror | `terraform-proxmox/input/deployment.json` | `terraform-proxmox/input/develop/deployment.json` |
+| published inventory | `terraform-proxmox/inventory/ansible_inventory.json` | `terraform-proxmox/inventory/develop/ansible_inventory.json` |
+
+Invariants: **prod paths never change** (the `homelab` branch pins today's exact
+literals — drift makes a prod apply init an empty state and plan a full destroy);
+**never point the develop input at prod state**; separate tfstate keys mean
+separate locks, but both envs share one physical cluster, so the global flow
+lease still serializes applies across them. Keep the develop object **minimal**
+(only guests under test) on the `nonprod` VLAN with the env digit `1` in the last
+VMID position. An unknown `environment` fails loud (allowlist `["homelab","develop"]`).
+The repo keeps only `deployment.develop.json.example`.
+
 **Repo-specific layer split (not on the public page — installation-specific):**
 
 - SOPS (`terraform.sops.json`) holds installation-specific values (not

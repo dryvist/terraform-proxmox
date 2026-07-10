@@ -29,7 +29,14 @@ fi
 SRC_BUCKET="${S3_INVENTORY_BUCKET:-iac-inventory}"
 SRC_KEY="${S3_INVENTORY_KEY:-deployment.json}"
 SRC_REGION="${S3_INVENTORY_REGION:-us-east-1}"
-MIRROR_KEY="terraform-proxmox/input/deployment.json"
+# Mirror path tracks the selected input, matching terragrunt.hcl's fetch fallback: ONLY the
+# develop object nests under input/develop/; every other key (prod default or a staging
+# candidate) keeps the current prod literal.
+if [[ "$SRC_KEY" == "deployment.develop.json" ]]; then
+  MIRROR_KEY="terraform-proxmox/input/develop/deployment.json"
+else
+  MIRROR_KEY="terraform-proxmox/input/deployment.json"
+fi
 
 for var in S3_ENDPOINT S3_ACCESS_KEY S3_SECRET_KEY; do
   if [[ -z "${!var:-}" ]]; then

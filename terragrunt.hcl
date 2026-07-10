@@ -29,7 +29,13 @@ locals {
   #            fail (or return empty) does the command exit non-zero and run_cmd
   #            raise — never a silent {} that would plan a full destroy.
   s3_mirror_bucket = "terraform-proxmox-state-useast2-${get_aws_account_id()}"
-  s3_mirror_key    = "terraform-proxmox/input/deployment.json"
+  # The AWS mirror path tracks the EXPLICITLY-selected input (S3_INVENTORY_KEY), not the
+  # object's `environment` field: the fallback runs mid-fetch, before the object (and its
+  # environment) can be read, so deriving from the decoded env would be a dependency cycle.
+  # ONLY the develop object nests under input/develop/; every other key (prod default, or a
+  # staging candidate) keeps the current prod literal so its mirror never moves.
+  # ponytail: two-env branch; generalize to a stem-map when a third input appears.
+  s3_mirror_key = local.s3_inventory_key == "deployment.develop.json" ? "terraform-proxmox/input/develop/deployment.json" : "terraform-proxmox/input/deployment.json"
   deployment_json = (
     get_env("DEPLOYMENT_JSON_PATH", "") != ""
     ? file(get_env("DEPLOYMENT_JSON_PATH"))
@@ -58,6 +64,33 @@ locals {
     )
   )
   deployment_config = jsondecode(trimspace(local.deployment_json))
+
+  # Environment selector: the fetched input declares its own identity in `environment`,
+  # and the state key derives from THAT field (the authority that travels with the data),
+  # so staging a prod candidate under a temp key still targets prod state.
+  deployment_env_raw = local.deployment_config.environment
+
+  # Safety cross-check (the load-bearing invariant): the explicitly-selected input
+  # (S3_INVENTORY_KEY) and the object's declared `environment` MUST agree, or a mislabeled
+  # object could point develop guests at PRODUCTION state. `deployment.develop.json` must
+  # carry `environment: develop`; any other key (prod default or a staging candidate) must
+  # carry `environment: homelab`. This one-key map — keyed by the filename's EXPECTED env,
+  # indexed by the object's ACTUAL env — raises (no try(), same fail-loud contract as the
+  # fetch) on ANY mismatch, which also enforces the {homelab,develop} allowlist.
+  input_expected_env = local.s3_inventory_key == "deployment.develop.json" ? "develop" : "homelab"
+  deployment_env = {
+    (local.input_expected_env) = local.deployment_env_raw
+  }[local.deployment_env_raw]
+
+  # Production ("homelab") pins the state key to today's EXACT literal so a prod plan never
+  # migrates state; develop nests under its own prefix (separate key => separate S3/DynamoDB
+  # lock, so envs never collide). The published inventory key derives symmetrically from
+  # var.environment in inventory_publish.tf.
+  # ponytail: two-env map; add the env + its state prefix here when a third one appears.
+  s3_state_key = {
+    homelab = "terraform-proxmox/terraform.tfstate"
+    develop = "terraform-proxmox/develop/terraform.tfstate"
+  }[local.deployment_env]
 
   # Layer 2: Network topology + SSH paths (committed, SOPS-encrypted — edit with `sops terraform.sops.json`).
   # Values: domain, vm_ssh_public_key_path, vm_ssh_private_key_path, proxmox_ssh_username.
@@ -218,7 +251,7 @@ remote_state {
   }
   config = {
     bucket         = "terraform-proxmox-state-useast2-${get_aws_account_id()}"
-    key            = "terraform-proxmox/terraform.tfstate"
+    key            = local.s3_state_key
     region         = "us-east-2"
     encrypt        = true
     use_lockfile   = true
