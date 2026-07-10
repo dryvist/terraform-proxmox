@@ -81,6 +81,12 @@ variable "nautobot_container_ids" {
   default     = {}
 }
 
+variable "vikunja_container_ids" {
+  description = "Map of Vikunja container names to their IDs (vikunja tag). Native task-management app — inbound vikunja_web (3456) from internal; egress outbound-internal only (no package-manager egress, binary is controller-staged)."
+  type        = map(number)
+  default     = {}
+}
+
 variable "ingress_container_ids" {
   description = "Map of ingress (Traefik HA) container names to their IDs (ingress tag). Firewall is DEFINE-DISABLED (see ingress_rules.tf): it pre-allows keepalived VRRP + 80/443 so enabling enforcement later never breaks the floating VIP."
   type        = map(number)
