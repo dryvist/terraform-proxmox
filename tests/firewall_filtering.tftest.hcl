@@ -505,7 +505,7 @@ run "postgres_and_nautobot_tags_filter_correctly" {
         vlan          = "data"
         dhcp          = true
         reserved_host = 51
-        tags          = ["terraform", "container", "postgres", "database"]
+        tags          = ["terraform", "container", "postgres"]
       }
       "nautobot" = {
         vm_id         = 605000
