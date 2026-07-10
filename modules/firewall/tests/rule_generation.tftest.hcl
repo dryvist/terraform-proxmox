@@ -46,10 +46,11 @@ variables {
       irtt               = 2112
       node_exporter      = 9100
       # LLM fabric + agentgateway (referenced by llm_fabric/agentgateway rules)
-      llm_fast_api       = 10434
-      llm_router_api     = 4000
-      agentgateway_proxy = 8080
-      agentgateway_admin = 15000
+      llm_fast_api         = 10434
+      llm_router_api       = 4000
+      agentgateway_proxy   = 8080
+      agentgateway_admin   = 15000
+      agentgateway_metrics = 15020
       # AI orchestration + observability (referenced by ai_orchestration rules)
       n8n_web           = 5678
       dify_web          = 80

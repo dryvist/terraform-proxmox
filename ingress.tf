@@ -40,6 +40,10 @@ locals {
     langflow     = { backend = "langflow", port = local.pipeline_constants.service_ports.langflow_web }
     langfuse     = { backend = "langfuse", port = local.pipeline_constants.service_ports.langfuse_web }
     agentgateway = { backend = "agentgateway", port = local.pipeline_constants.service_ports.agentgateway_admin }
+    # The MCP tool-plane front door (TLS via Traefik, same pattern as `llm` for
+    # models): clients dial https://mcp.<domain>/<target>/mcp; Traefik forwards
+    # to the agentgateway proxy port. `agentgateway` above stays the admin UI.
+    mcp = { backend = "agentgateway", port = local.pipeline_constants.service_ports.agentgateway_proxy }
     # LangGraph (self-hosted): the `langgraph dev` server API + its Agent Chat UI,
     # both backed by the one `langgraph` guest. Chat UI is the primary play surface;
     # the API host also lets browser Studio point its ?baseUrl at it.

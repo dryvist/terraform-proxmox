@@ -13,9 +13,12 @@
 #                                OpenAI-compatible callers, and MCP clients
 #                                dial this port; agentgateway routes to backend
 #                                MCP servers, llm-router, and llm-fast.
-#   agentgateway_admin (15000) — Admin UI / xDS config dump / Prometheus
-#                                metrics. Fronted by Traefik at
-#                                agentgateway.<domain>. Internal-only.
+#   agentgateway_admin (15000)   — Admin UI / xDS config dump. Fronted by
+#                                  Traefik at agentgateway.<domain>.
+#                                  Internal-only.
+#   agentgateway_metrics (15020) — Stats server (Prometheus /metrics);
+#                                  scraped directly by Prometheus.
+#                                  Internal-only.
 #
 # Firewall profile:
 #   inbound  : internal_access (SSH + ICMP) + agentgateway_svc (8080 + 15000)
@@ -44,7 +47,13 @@ locals {
       proto   = "tcp"
       dport   = tostring(local.svc_ports.agentgateway_admin)
       source  = local.internal_src
-      comment = "agentgateway admin UI + xDS + metrics (TCP ${local.svc_ports.agentgateway_admin}) from internal"
+      comment = "agentgateway admin UI + xDS (TCP ${local.svc_ports.agentgateway_admin}) from internal"
+    },
+    {
+      proto   = "tcp"
+      dport   = tostring(local.svc_ports.agentgateway_metrics)
+      source  = local.internal_src
+      comment = "agentgateway stats server Prometheus /metrics (TCP ${local.svc_ports.agentgateway_metrics}) from internal"
     },
   ]
 }

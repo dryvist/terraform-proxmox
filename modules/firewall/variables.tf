@@ -142,7 +142,7 @@ variable "llm_fast_container_ids" {
 }
 
 variable "agentgateway_container_ids" {
-  description = "Map of agentgateway MCP/LLM/A2A proxy LXC names to IDs (tag-driven: agentgateway). AI-first data plane — inbound proxy (8080) from internal + admin UI (15000) from internal; outbound internal (local LLM fabric) + HTTPS (external MCP servers, upstream LLM APIs)."
+  description = "Map of agentgateway MCP/LLM/A2A proxy LXC names to IDs (tag-driven: agentgateway). AI-first data plane — inbound proxy (8080) + admin UI (15000) + metrics (15020) from internal; outbound internal (local LLM fabric) + HTTPS (external MCP servers, upstream LLM APIs)."
   type        = map(number)
   default     = {}
 }
