@@ -88,6 +88,10 @@ locals {
       llm_fast_api   = 10434
       llm_router_api = 4000
       ollama_api     = 11434
+      # llm_night_api = the serving host's gated night-cluster endpoint (the
+      # overnight two-Mac distributed brain); mirrors the loopback night port
+      # the same way ollama_api mirrors the day proxy.
+      llm_night_api  = 11440
       open_webui_web = 8080
       # agentgateway — Rust-written AI-first data plane that unifies MCP
       # (Model Context Protocol), LLM, and A2A (agent-to-agent) traffic into a
