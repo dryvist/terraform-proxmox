@@ -84,7 +84,7 @@ resource "vault_kv_secret_v2" "demo" {
 # shared DB. It is promoted to a shared path only when a second consumer
 # (Vikunja/EspoCRM) actually needs it, per the source-tier secrets rule.
 resource "random_password" "nautobot_db_password" {
-  length  = 32
+  length  = var.credential_length
   special = false # Postgres connection strings/URLs choke on some specials; alnum is safe
 
   lifecycle {
@@ -93,8 +93,10 @@ resource "random_password" "nautobot_db_password" {
 }
 
 resource "random_password" "nautobot_secret_key" {
+  # A Django/Nautobot SECRET_KEY needs more entropy than a login credential, so
+  # it deliberately keeps its own length rather than var.credential_length.
   length  = 64
-  special = false # Django/Nautobot SECRET_KEY: alnum avoids env-file quoting hazards downstream
+  special = false # alnum avoids env-file quoting hazards downstream
 
   lifecycle {
     ignore_changes = [length, special, override_special]
@@ -102,7 +104,7 @@ resource "random_password" "nautobot_secret_key" {
 }
 
 resource "random_password" "nautobot_superuser_password" {
-  length  = 24
+  length  = var.credential_length
   special = false
 
   lifecycle {
@@ -133,7 +135,7 @@ resource "vault_kv_secret_v2" "nautobot" {
 # hermes_api_token (via one narrow cross-consumer read grant) to call the Zammad
 # API. One home, generated at the source — no secret is ever committed.
 resource "random_password" "zammad_db_password" {
-  length  = 32
+  length  = var.credential_length
   special = false # Postgres connection strings/URLs choke on some specials; alnum is safe
 
   lifecycle {
@@ -142,7 +144,7 @@ resource "random_password" "zammad_db_password" {
 }
 
 resource "random_password" "zammad_admin_password" {
-  length  = 24
+  length  = var.credential_length
   special = false # alnum keeps upper+lower+digit for Zammad's policy, no rails-runner quoting hazards
 
   lifecycle {
@@ -151,7 +153,7 @@ resource "random_password" "zammad_admin_password" {
 }
 
 resource "random_password" "zammad_hermes_api_token" {
-  length  = 48
+  length  = var.credential_length
   special = false # Zammad API tokens are alnum; keeps the Authorization header clean
 
   lifecycle {
