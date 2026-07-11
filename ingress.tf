@@ -49,7 +49,11 @@ locals {
     # the API host also lets browser Studio point its ?baseUrl at it.
     langgraph        = { backend = "langgraph", port = local.pipeline_constants.service_ports.langgraph_api }
     "langgraph-chat" = { backend = "langgraph", port = local.pipeline_constants.service_ports.agent_chat_ui_web }
-    smokeping        = { backend = "smokeping", port = local.pipeline_constants.service_ports.smokeping_web }
-    "haproxy-stats"  = { backend = "haproxy", port = local.pipeline_constants.service_ports.haproxy_stats }
+    # Hermes agent inbound webhook front door: https://hermes.<domain>/webhooks/<name>
+    # -> hermes-agent container : hermes_webhook (HMAC-signed, event-driven trigger
+    # for the one non-A2A agent). Guest firewall opens the port from internal.
+    hermes          = { backend = "hermes-agent", port = local.pipeline_constants.service_ports.hermes_webhook }
+    smokeping       = { backend = "smokeping", port = local.pipeline_constants.service_ports.smokeping_web }
+    "haproxy-stats" = { backend = "haproxy", port = local.pipeline_constants.service_ports.haproxy_stats }
   }
 }
