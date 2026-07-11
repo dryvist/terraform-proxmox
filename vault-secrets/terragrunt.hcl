@@ -33,6 +33,9 @@ inputs = {
   vault_addr      = get_env("VAULT_ADDR", "")
   vault_role_id   = get_env("VAULT_ROLE_ID", "")
   vault_secret_id = get_env("VAULT_SECRET_ID", "")
+  # apps-seed writer (secret/apps/* only), Doppler-published like the main role.
+  apps_seed_role_id   = get_env("APPS_SEED_VAULT_ROLE_ID", "")
+  apps_seed_secret_id = get_env("APPS_SEED_VAULT_SECRET_ID", "")
 }
 
 # Terragrunt will generate provider_override.tf with the Vault provider settings
