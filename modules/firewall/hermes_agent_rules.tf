@@ -15,6 +15,9 @@
 #                        for arbitrary tool-calling).
 #   - hermes_webhook   : inbound webhook receiver (Traefik-fronted hermes.<domain>),
 #                        from internal only — event-driven agent trigger.
+#   - hermes_api       : inbound job-submission API (Traefik-fronted
+#                        hermes-api.<domain>), from internal only — bearer-authed
+#                        `api_server` platform (POST /v1/runs, /api/jobs).
 #
 # Hardening follow-up (not this PR): route egress through an audited Squid
 # forward-proxy and replace outbound_internal with a microsegmented allowlist so
@@ -27,12 +30,13 @@
 locals {
   hermes_webhook_services_rules = [
     { proto = "tcp", dport = tostring(local.svc_ports.hermes_webhook), source = local.internal_src, comment = "Hermes webhook receiver (TCP ${local.svc_ports.hermes_webhook}) from internal" },
+    { proto = "tcp", dport = tostring(local.svc_ports.hermes_api), source = local.internal_src, comment = "Hermes job-submission API (TCP ${local.svc_ports.hermes_api}) from internal" },
   ]
 }
 
 resource "proxmox_virtual_environment_cluster_firewall_security_group" "hermes_webhook_services" {
   name    = "hermes-webhook-svc"
-  comment = "Hermes agent inbound webhook receiver (${local.svc_ports.hermes_webhook}) from internal networks — event-driven agent trigger, Traefik-fronted"
+  comment = "Hermes agent inbound receivers (webhook ${local.svc_ports.hermes_webhook}, job API ${local.svc_ports.hermes_api}) from internal networks — Traefik-fronted"
 
   dynamic "rule" {
     for_each = local.hermes_webhook_services_rules

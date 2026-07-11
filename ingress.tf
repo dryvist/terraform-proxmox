@@ -52,7 +52,11 @@ locals {
     # Hermes agent inbound webhook front door: https://hermes.<domain>/webhooks/<name>
     # -> hermes-agent container : hermes_webhook (HMAC-signed, event-driven trigger
     # for the one non-A2A agent). Guest firewall opens the port from internal.
-    hermes          = { backend = "hermes-agent", port = local.pipeline_constants.service_ports.hermes_webhook }
+    hermes = { backend = "hermes-agent", port = local.pipeline_constants.service_ports.hermes_webhook }
+    # Hermes agent inbound job-submission API: https://hermes-api.<domain>/v1/runs
+    # -> hermes-agent container : hermes_api (`hermes gateway` api_server platform,
+    # bearer-authenticated). The sanctioned non-exec job path; internal-only firewall.
+    "hermes-api"    = { backend = "hermes-agent", port = local.pipeline_constants.service_ports.hermes_api }
     smokeping       = { backend = "smokeping", port = local.pipeline_constants.service_ports.smokeping_web }
     "haproxy-stats" = { backend = "haproxy", port = local.pipeline_constants.service_ports.haproxy_stats }
   }
