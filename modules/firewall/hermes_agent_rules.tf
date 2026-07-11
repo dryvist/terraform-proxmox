@@ -13,10 +13,39 @@
 #   - outbound_https   : TCP 443 to anywhere, for the agent's web/search/browser
 #                        tools (Agy review: a 443/53/123-only egress is too tight
 #                        for arbitrary tool-calling).
+#   - hermes_webhook   : inbound webhook receiver (Traefik-fronted hermes.<domain>),
+#                        from internal only — event-driven agent trigger.
 #
 # Hardening follow-up (not this PR): route egress through an audited Squid
 # forward-proxy and replace outbound_internal with a microsegmented allowlist so
 # the agent cannot reach arbitrary internal hosts. Tracked in the deployment plan.
+
+# Inbound webhook ACCEPT for the `hermes gateway` webhook receiver
+# (/webhooks/<name>, HMAC-signed) so other agents/systems can trigger the agent.
+# Scoped to internal so only in-cluster callers reach it; port DRY from
+# pipeline_constants (svc_ports = var.pipeline_constants.service_ports).
+locals {
+  hermes_webhook_services_rules = [
+    { proto = "tcp", dport = tostring(local.svc_ports.hermes_webhook), source = local.internal_src, comment = "Hermes webhook receiver (TCP ${local.svc_ports.hermes_webhook}) from internal" },
+  ]
+}
+
+resource "proxmox_virtual_environment_cluster_firewall_security_group" "hermes_webhook_services" {
+  name    = "hermes-webhook-svc"
+  comment = "Hermes agent inbound webhook receiver (${local.svc_ports.hermes_webhook}) from internal networks — event-driven agent trigger, Traefik-fronted"
+
+  dynamic "rule" {
+    for_each = local.hermes_webhook_services_rules
+    content {
+      type    = "in"
+      action  = "ACCEPT"
+      proto   = rule.value.proto
+      dport   = rule.value.dport
+      source  = rule.value.source
+      comment = rule.value.comment
+    }
+  }
+}
 
 resource "proxmox_virtual_environment_firewall_options" "hermes_agent_container" {
   for_each = var.hermes_agent_container_ids
@@ -58,6 +87,11 @@ resource "proxmox_virtual_environment_firewall_rules" "hermes_agent_container" {
   rule {
     security_group = proxmox_virtual_environment_cluster_firewall_security_group.outbound_https.name
     comment        = "Outbound HTTPS (TCP 443) for agent web/search/browser tools"
+  }
+
+  rule {
+    security_group = proxmox_virtual_environment_cluster_firewall_security_group.hermes_webhook_services.name
+    comment        = "Inbound webhook receiver (Traefik-fronted) from internal"
   }
 
   depends_on = [proxmox_virtual_environment_firewall_options.hermes_agent_container]

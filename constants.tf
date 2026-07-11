@@ -61,6 +61,11 @@ locals {
       agentgateway_proxy   = 8080
       agentgateway_admin   = 15000
       agentgateway_metrics = 15020
+      # hermes_webhook — the Hermes agent's inbound webhook receiver
+      # (`hermes gateway` platform, routes /webhooks/<name>, HMAC-signed).
+      # Traefik-fronted as https://hermes.<sub>/webhooks/<name>; gives the one
+      # non-A2A agent an event-driven trigger channel on the agent plane.
+      hermes_webhook = 8644
       # AI orchestration stack web UIs (Traefik-fronted) — n8n, Dify, LangFlow,
       # LangGraph, and Langfuse (LLM trace/cost/eval). ingress.tf references these.
       n8n_web      = 5678

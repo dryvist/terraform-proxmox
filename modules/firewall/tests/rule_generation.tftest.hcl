@@ -52,6 +52,8 @@ variables {
       agentgateway_proxy   = 8080
       agentgateway_admin   = 15000
       agentgateway_metrics = 15020
+      # Hermes inbound webhook receiver (referenced by hermes_webhook_services_rules)
+      hermes_webhook = 8644
       # AI orchestration + observability (referenced by ai_orchestration rules)
       n8n_web           = 5678
       dify_web          = 80
