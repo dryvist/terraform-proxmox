@@ -1,5 +1,30 @@
 # Changelog
 
+## [1.66.0](https://github.com/dryvist/tofu-proxmox/compare/v1.65.1...v1.66.0) (2026-07-12)
+
+
+### Features
+
+* add zammad ITSM LXC shell (605020) with firewall + ingress ([5d88f2f](https://github.com/dryvist/tofu-proxmox/commit/5d88f2f3083fe2550da1f77427f6b4314aff95a3))
+* add zammad ITSM LXC shell (605020) with firewall + ingress ([c53a3e5](https://github.com/dryvist/tofu-proxmox/commit/c53a3e5b0d0e963e03b828d7e5d8e54e46960950))
+* **agentgateway:** split metrics port (15020) + mcp ingress front door ([#620](https://github.com/dryvist/tofu-proxmox/issues/620)) ([536d582](https://github.com/dryvist/tofu-proxmox/commit/536d582ad0682e596d206fe9fbb6cf6bf900e085))
+* **constants:** llm_night_api port for the night-cluster endpoint ([24b8d45](https://github.com/dryvist/tofu-proxmox/commit/24b8d457b2b93c6d46055e0581aeeb96f19efaa7))
+* enable entire session capture (local-only) ([#616](https://github.com/dryvist/tofu-proxmox/issues/616)) ([ca01ba3](https://github.com/dryvist/tofu-proxmox/commit/ca01ba377fc0f48b2f4851448fc1d0c9dfd83ce7))
+* **hermes:** inbound webhook port, firewall SG, and Traefik ingress ([#626](https://github.com/dryvist/tofu-proxmox/issues/626)) ([1e4640f](https://github.com/dryvist/tofu-proxmox/commit/1e4640f1fb1889da49bbfe758ca2a7f2aec8f077))
+* **hermes:** job-submission API port, firewall rule, and Traefik ingress ([#627](https://github.com/dryvist/tofu-proxmox/issues/627)) ([76729f0](https://github.com/dryvist/tofu-proxmox/commit/76729f0d4c080d57c57e1c8ec590019739078f05))
+* **nautobot:** wire Nautobot + shared Postgres guests and stamp inventory schema_version ([#617](https://github.com/dryvist/tofu-proxmox/issues/617)) ([5d2d6c0](https://github.com/dryvist/tofu-proxmox/commit/5d2d6c05162d062bb5361b65541c9253b1ba8442))
+* **vault-secrets:** seed secret/apps/zammad via apps-seed AppRole ([9a2988a](https://github.com/dryvist/tofu-proxmox/commit/9a2988a44bcd4f0ce6d308c2bbc806e658f85dab))
+* **vault-secrets:** seed secret/apps/zammad via apps-seed AppRole ([36be890](https://github.com/dryvist/tofu-proxmox/commit/36be89089d6e9fd92c80e1bc6965e7c05f2e2ea6))
+* **vikunja:** wire vikunja LXC firewall, ingress, and service port ([#619](https://github.com/dryvist/tofu-proxmox/issues/619)) ([2b8141e](https://github.com/dryvist/tofu-proxmox/commit/2b8141eb434fdfa474e6e66eb8da9c76eb4a0639))
+
+
+### Bug Fixes
+
+* keep firewall test + main.tf green for zammad addition ([0eb3981](https://github.com/dryvist/tofu-proxmox/commit/0eb398120895dd19ae83d88aeb54f4a0d9dd9bb0))
+* **vault-secrets:** skip child token for least-privilege AppRole ([408d17a](https://github.com/dryvist/tofu-proxmox/commit/408d17a7699837153161548e0e06358d289ea3c5))
+* **vault-secrets:** skip child token for least-privilege AppRole ([02d1b2e](https://github.com/dryvist/tofu-proxmox/commit/02d1b2e7b1ccf95306e70adaa59c268dc739aefb)), closes [#138](https://github.com/dryvist/tofu-proxmox/issues/138)
+* **vault-secrets:** vault provider 5.10 compat and postgres tag scope ([b23b7cd](https://github.com/dryvist/tofu-proxmox/commit/b23b7cd72b1693f1228bfd62b4679dc03a50ab8f))
+
 ## [1.65.1](https://github.com/dryvist/terraform-proxmox/compare/v1.65.0...v1.65.1) (2026-07-08)
 
 
