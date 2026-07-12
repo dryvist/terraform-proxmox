@@ -40,6 +40,11 @@ resource "proxmox_virtual_environment_firewall_rules" "openbao_container" {
     comment        = "Outbound to internal only"
   }
 
+  rule {
+    security_group = proxmox_virtual_environment_cluster_firewall_security_group.outbound_https.name
+    comment        = "Outbound HTTPS for secrets engines"
+  }
+
   # --- zero-trust (staged disabled): narrows the "from internal" ACCEPT
   # above to the specific source VLANs the service-flow matrix permits.
   # ponytail: disabled-only for now — enable per-rule once observed against
