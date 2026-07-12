@@ -7,6 +7,7 @@ set -euo pipefail
 echo 'Validating Splunk file ownership...'
 
 # Count files not owned by splunk:splunk
+# shellcheck disable=SC2154
 NON_SPLUNK_FILES=$(sudo find "${SPLUNK_HOME}" \
   \( ! -user "${SPLUNK_USER}" -o ! -group "${SPLUNK_GROUP}" \) \
   2>/dev/null | wc -l)
