@@ -15,7 +15,6 @@ sudo apt-get install -y wget
 TMPDIR=${TMPDIR:-/tmp}
 cd "$TMPDIR"
 
-# shellcheck disable=SC2154
 wget -O "splunk-${SPLUNK_VERSION}-${SPLUNK_BUILD}-linux-${SPLUNK_ARCHITECTURE}.deb" \
   "https://download.splunk.com/products/splunk/releases/${SPLUNK_VERSION}/linux/splunk-${SPLUNK_VERSION}-${SPLUNK_BUILD}-linux-${SPLUNK_ARCHITECTURE}.deb"
 
@@ -26,7 +25,6 @@ echo "${SPLUNK_DOWNLOAD_SHA512}  splunk-${SPLUNK_VERSION}-${SPLUNK_BUILD}-linux-
 sudo dpkg -i "splunk-${SPLUNK_VERSION}-${SPLUNK_BUILD}-linux-${SPLUNK_ARCHITECTURE}.deb"
 
 # Enable Splunk at boot
-# shellcheck disable=SC2154
 sudo "${SPLUNK_HOME}/bin/splunk" enable boot-start \
   -user "${SPLUNK_USER}" \
   --accept-license \
