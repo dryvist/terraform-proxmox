@@ -491,3 +491,102 @@ run "non_honeypot_container_not_in_honeypot_ids" {
     error_message = "honeypot maps must be empty when no containers carry the 'honeypot' tag"
   }
 }
+
+# --- postgres_container_ids / nautobot_container_ids tests (issue #138) ---
+
+run "postgres_and_nautobot_tags_filter_correctly" {
+  command = plan
+
+  variables {
+    containers = {
+      "postgres" = {
+        vm_id         = 303000
+        hostname      = "postgres"
+        vlan          = "data"
+        dhcp          = true
+        reserved_host = 51
+        tags          = ["terraform", "container", "postgres"]
+      }
+      "nautobot" = {
+        vm_id         = 605000
+        hostname      = "nautobot"
+        vlan          = "apps"
+        dhcp          = true
+        reserved_host = 52
+        tags          = ["terraform", "container", "nautobot"]
+      }
+    }
+  }
+
+  assert {
+    condition     = local.postgres_container_ids["postgres"] == 303000 && length(local.postgres_container_ids) == 1
+    error_message = "postgres-tagged container must be the sole member of postgres_container_ids"
+  }
+
+  assert {
+    condition     = local.nautobot_container_ids["nautobot"] == 605000 && length(local.nautobot_container_ids) == 1
+    error_message = "nautobot-tagged container must be the sole member of nautobot_container_ids"
+  }
+
+  # The two maps must not cross-claim, and neither belongs in the pipeline set.
+  assert {
+    condition     = !contains(keys(local.nautobot_container_ids), "postgres") && !contains(keys(local.postgres_container_ids), "nautobot")
+    error_message = "postgres_container_ids and nautobot_container_ids must not cross-claim guests"
+  }
+
+  assert {
+    condition     = !contains(keys(local.pipeline_container_ids), "postgres") && !contains(keys(local.pipeline_container_ids), "nautobot")
+    error_message = "neither postgres nor nautobot may land in pipeline_container_ids"
+  }
+}
+
+# --- vikunja_container_ids test (issue #141) ---
+
+run "vikunja_tag_filters_correctly" {
+  command = plan
+
+  variables {
+    containers = {
+      "vikunja" = {
+        vm_id         = 605010
+        hostname      = "vikunja"
+        vlan          = "apps"
+        dhcp          = true
+        reserved_host = 53
+        tags          = ["terraform", "container", "vikunja"]
+      }
+    }
+  }
+
+  assert {
+    condition     = local.vikunja_container_ids["vikunja"] == 605010 && length(local.vikunja_container_ids) == 1
+    error_message = "vikunja-tagged container must be the sole member of vikunja_container_ids"
+  }
+
+  assert {
+    condition     = !contains(keys(local.pipeline_container_ids), "vikunja")
+    error_message = "vikunja must not land in pipeline_container_ids"
+  }
+}
+
+# A generic 'database'-tagged guest (e.g. mssql) must NOT be pulled into
+# postgres_container_ids — only the specific 'postgres' tag opens the 5432 rule.
+run "generic_database_tag_not_in_postgres_ids" {
+  command = plan
+
+  variables {
+    containers = {
+      "mssql" = {
+        vm_id    = 130
+        hostname = "mssql"
+        vlan     = "data"
+        tags     = ["terraform", "container", "database"]
+      }
+    }
+  }
+
+  assert {
+    condition     = length(local.postgres_container_ids) == 0
+    error_message = "a container tagged only 'database' (not 'postgres') must NOT be in postgres_container_ids"
+  }
+}

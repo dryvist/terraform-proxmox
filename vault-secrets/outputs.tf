@@ -7,5 +7,5 @@ output "demo_secret_path" {
 
 output "demo_secret_version" {
   description = "Version number of the demo secret written to OpenBao"
-  value       = vault_kv_secret_v2.demo.version
+  value       = tonumber(vault_kv_secret_v2.demo.metadata["version"])
 }

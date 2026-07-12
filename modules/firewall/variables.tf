@@ -69,6 +69,30 @@ variable "openbao_container_ids" {
   default     = {}
 }
 
+variable "postgres_container_ids" {
+  description = "Map of Postgres container names to their IDs (postgres tag). Shared native Postgres — inbound 5432 from internal; egress outbound-internal only."
+  type        = map(number)
+  default     = {}
+}
+
+variable "nautobot_container_ids" {
+  description = "Map of Nautobot container names to their IDs (nautobot tag). Native IPAM/DCIM — inbound nautobot_web (8080) from internal; egress outbound-internal + outbound-HTTPS (PyPI installs during converge)."
+  type        = map(number)
+  default     = {}
+}
+
+variable "vikunja_container_ids" {
+  description = "Map of Vikunja container names to their IDs (vikunja tag). Native task-management app — inbound vikunja_web (3456) from internal; egress outbound-internal only (no package-manager egress, binary is controller-staged)."
+  type        = map(number)
+  default     = {}
+}
+
+variable "zammad_container_ids" {
+  description = "Map of Zammad container names to their IDs (zammad tag). Native ITSM/ticketing app (Rails + colocated Elasticsearch + Redis) — inbound zammad_web (8080) from internal; egress outbound-internal only (Postgres/Redis/DNS/Mailpit internal; apt via the internal apt-cacher-ng proxy, no direct package-manager egress)."
+  type        = map(number)
+  default     = {}
+}
+
 variable "ingress_container_ids" {
   description = "Map of ingress (Traefik HA) container names to their IDs (ingress tag). Firewall is DEFINE-DISABLED (see ingress_rules.tf): it pre-allows keepalived VRRP + 80/443 so enabling enforcement later never breaks the floating VIP."
   type        = map(number)
@@ -124,7 +148,7 @@ variable "llm_fast_container_ids" {
 }
 
 variable "agentgateway_container_ids" {
-  description = "Map of agentgateway MCP/LLM/A2A proxy LXC names to IDs (tag-driven: agentgateway). AI-first data plane — inbound proxy (8080) from internal + admin UI (15000) from internal; outbound internal (local LLM fabric) + HTTPS (external MCP servers, upstream LLM APIs)."
+  description = "Map of agentgateway MCP/LLM/A2A proxy LXC names to IDs (tag-driven: agentgateway). AI-first data plane — inbound proxy (8080) + admin UI (15000) + metrics (15020) from internal; outbound internal (local LLM fabric) + HTTPS (external MCP servers, upstream LLM APIs)."
   type        = map(number)
   default     = {}
 }

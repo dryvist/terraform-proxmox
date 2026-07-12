@@ -1,49 +1,6 @@
 # Pipeline constants - single source of truth for service, syslog, NetFlow, notification, and vector DB ports
 # Referenced by ansible_inventory output for downstream consumption
 locals {
-  # Syslog source-family routing map — the single source of truth for the
-  # syslog pipeline. standard = app-facing HAProxy frontend port; high =
-  # backend port HAProxy forwards to (the Cribl Edge listener); index/
-  # sourcetype = Splunk routing stamped by the Cribl Edge syslog pipeline.
-  # Consumed by modules/firewall and exported through
-  # ansible_inventory.constants for the HAProxy/Cribl roles, the
-  # validate-pipeline playbook, and the pytest E2E fixtures in
-  # ansible-proxmox-apps.
-  syslog_port_map = {
-    unifi     = { standard = 514, high = 1514, index = "unifi", sourcetype = "ubiquiti:unifi" }
-    palo_alto = { standard = 515, high = 1515, index = "firewall", sourcetype = "pan:firewall" }
-    cisco_asa = { standard = 516, high = 1516, index = "firewall", sourcetype = "cisco:asa" }
-    linux     = { standard = 517, high = 1517, index = "os", sourcetype = "syslog" }
-    windows   = { standard = 518, high = 1518, index = "os", sourcetype = "syslog" }
-    # Honeypot deception events (OpenCanary tripwires per VLAN + T-Pot deep
-    # sensor). standard 519 = the HAProxy frontend honeypots ship to; high 1519
-    # = the Cribl Edge backend. Lands in the dedicated `honeypot` Splunk index
-    # (Path B — forensics/correlation) in parallel with the real-time apprise
-    # push (Path A). T-Pot reuses the same frontend with its sourcetype set by
-    # the Cribl Edge pipeline. See docs/HONEYPOTS.md + docs/SPLUNK_INDEXES.md.
-    honeypot = { standard = 519, high = 1519, index = "honeypot", sourcetype = "honeypot:opencanary" }
-    # UniFi firewall/IPS/threat syslog, split from the admin/system stream above so
-    # security events land in the dedicated `firewall` index instead of being buried
-    # in `unifi`. standard 520 = HAProxy frontend; high 1520 = Cribl Edge backend.
-    # Until the controller can target a second syslog destination, the split is done
-    # Cribl-side by sourcetype routing on the shared 514 receiver; this family gives
-    # the eventual dedicated receiver a stable, pre-allowed port.
-    unifi_fw = { standard = 520, high = 1520, index = "firewall", sourcetype = "ubiquiti:firewall" }
-    # macOS host syslog (MacBook + Mac Studio). Own family so Mac logs stop sharing
-    # the UniFi backend port (1514) they currently point at; lands in `os` alongside
-    # linux/windows, distinguished by sourcetype. standard 521 = HAProxy frontend;
-    # high 1521 = Cribl Edge backend.
-    macos = { standard = 521, high = 1521, index = "os", sourcetype = "syslog:macos" }
-    # Technitium DNS query logs (per-VLAN resolvers). Dedicated family so DNS
-    # visibility for threat-hunting lands in its own `dns` index. standard 522 =
-    # HAProxy frontend; high 1522 = Cribl Edge backend.
-    dns_query = { standard = 522, high = 1522, index = "dns", sourcetype = "technitium:dnsquery" }
-    # L7 proxy access logs (Traefik ingress + HAProxy). Dedicated `proxy` index for
-    # ingress/L7 visibility. standard 523 = HAProxy frontend; high 1523 = Cribl Edge
-    # backend. Traefik and HAProxy are distinguished by sourcetype in the pipeline.
-    proxy = { standard = 523, high = 1523, index = "proxy", sourcetype = "haproxy" }
-  }
-
   pipeline_constants = {
     service_ports = {
       haproxy_stats     = 8404
@@ -72,6 +29,9 @@ locals {
       # constants, never literals.
       technitium_web    = 5380
       phpipam_web       = 80
+      nautobot_web      = 8080
+      vikunja_web       = 3456
+      zammad_web        = 8080 # nginx in-guest, own container IP (independent of nautobot's 8080); Traefik-fronted
       homeassistant_web = 8123
       openproject_web   = 80
       prometheus_web    = 9090
@@ -86,14 +46,31 @@ locals {
       llm_fast_api   = 10434
       llm_router_api = 4000
       ollama_api     = 11434
+      # llm_night_api = the serving host's gated night-cluster endpoint (the
+      # overnight two-Mac distributed brain); mirrors the loopback night port
+      # the same way ollama_api mirrors the day proxy.
+      llm_night_api  = 11440
       open_webui_web = 8080
       # agentgateway — Rust-written AI-first data plane that unifies MCP
       # (Model Context Protocol), LLM, and A2A (agent-to-agent) traffic into a
       # single proxy. agentgateway_proxy = the MCP/LLM/A2A traffic port callers
-      # dial (OpenAI-compatible + native MCP); agentgateway_admin = the
-      # management/xDS/metrics port (fronted by Traefik, internal-only).
-      agentgateway_proxy = 8080
-      agentgateway_admin = 15000
+      # dial (OpenAI-compatible + native MCP); agentgateway_admin = the admin
+      # UI / xDS config-dump port (fronted by Traefik, internal-only);
+      # agentgateway_metrics = the stats server's Prometheus /metrics port
+      # (upstream serves metrics on a separate statsAddr, not the admin port).
+      agentgateway_proxy   = 8080
+      agentgateway_admin   = 15000
+      agentgateway_metrics = 15020
+      # hermes_webhook — the Hermes agent's inbound webhook receiver
+      # (`hermes gateway` platform, routes /webhooks/<name>, HMAC-signed).
+      # Traefik-fronted as https://hermes.<sub>/webhooks/<name>; gives the one
+      # non-A2A agent an event-driven trigger channel on the agent plane.
+      hermes_webhook = 8644
+      # hermes_api — the Hermes agent's inbound job-submission API (`hermes
+      # gateway` api_server platform: POST /v1/runs, /api/jobs cron CRUD,
+      # bearer-authenticated). Traefik-fronted as https://hermes-api.<sub>;
+      # the sanctioned non-exec path to submit work to the agent.
+      hermes_api = 8642
       # AI orchestration stack web UIs (Traefik-fronted) — n8n, Dify, LangFlow,
       # LangGraph, and Langfuse (LLM trace/cost/eval). ingress.tf references these.
       n8n_web      = 5678

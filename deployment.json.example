@@ -186,6 +186,79 @@
       "pool_id": "infrastructure",
       "root_disk": { "size": 8 }
     },
+    "_ipam_dcim_comment": "Shared Postgres (data VLAN) + native Nautobot IPAM/DCIM (apps VLAN). Both DHCP/DNS-first with a reserved_host octet; VMIDs follow the tier-positional scheme (3=data, 6=apps). Native installs — no `features.nesting` (not Docker-in-LXC). Postgres carries a persistent /var/lib/postgresql data mount (survives rebuilds); Nautobot a /opt/nautobot mount and colocated Redis. Postgres has NO Traefik ingress (in-cluster 5432 only); Nautobot's web UI (8080) is fronted by Traefik. Illustrative placeholders only — the live values live in the gitignored deployment.json.",
+    "postgres": {
+      "vm_id": 303000,
+      "dhcp": true,
+      "reserved_host": 51,
+      "vlan": "data",
+      "hostname": "postgres",
+      "description": "Shared native Postgres — inventory/apps datastore (Nautobot now; Vikunja/EspoCRM later). Persistent data mount + pgdump backups.",
+      "cpu_cores": 2,
+      "memory_dedicated": 2048,
+      "tags": ["terraform", "container", "postgres"],
+      "pool_id": "infrastructure",
+      "node_name": "proxmox-1",
+      "unprivileged": true,
+      "root_disk": { "size": 16 },
+      "mount_points": [
+        { "volume": "local-zfs", "size": "60G", "path": "/var/lib/postgresql" }
+      ]
+    },
+    "nautobot": {
+      "vm_id": 605000,
+      "dhcp": true,
+      "reserved_host": 52,
+      "vlan": "apps",
+      "hostname": "nautobot",
+      "description": "Native Nautobot IPAM/DCIM source of truth (venv + uwsgi + worker + scheduler; Redis colocated). Web UI on 8080, fronted by Traefik.",
+      "cpu_cores": 4,
+      "memory_dedicated": 4096,
+      "tags": ["terraform", "container", "nautobot"],
+      "pool_id": "infrastructure",
+      "node_name": "proxmox-1",
+      "unprivileged": true,
+      "root_disk": { "size": 24 },
+      "mount_points": [
+        { "volume": "local-zfs", "size": "40G", "path": "/opt/nautobot" }
+      ]
+    },
+    "vikunja": {
+      "vm_id": 605010,
+      "dhcp": true,
+      "reserved_host": 53,
+      "vlan": "apps",
+      "hostname": "vikunja",
+      "description": "Vikunja task management — native Go binary, web/API on 3456 fronted by Traefik; state in the shared Postgres; persistent /var/lib/vikunja for file attachments.",
+      "cpu_cores": 2,
+      "memory_dedicated": 1024,
+      "tags": ["terraform", "container", "vikunja"],
+      "pool_id": "infrastructure",
+      "node_name": "proxmox-1",
+      "unprivileged": true,
+      "root_disk": { "size": 8 },
+      "mount_points": [
+        { "volume": "local-zfs", "size": "10G", "path": "/var/lib/vikunja" }
+      ]
+    },
+    "zammad": {
+      "vm_id": 605020,
+      "dhcp": true,
+      "reserved_host": 54,
+      "vlan": "apps",
+      "hostname": "zammad",
+      "description": "Zammad ITSM/ticketing + knowledge base — the incident-management system of record. Native DEB (Rails web/worker/websocket + colocated Elasticsearch for full-text incident search + colocated Redis); nginx/API on zammad_web (8080) fronted by Traefik; state in the shared Postgres; persistent /opt/zammad holds app state + attachments. The ES index is derived/rebuildable and stays on the ephemeral rootfs (rake zammad:searchindex:rebuild).",
+      "cpu_cores": 4,
+      "memory_dedicated": 8192,
+      "tags": ["terraform", "container", "zammad"],
+      "pool_id": "infrastructure",
+      "node_name": "proxmox-1",
+      "unprivileged": true,
+      "root_disk": { "size": 24 },
+      "mount_points": [
+        { "volume": "local-zfs", "size": "40G", "path": "/opt/zammad" }
+      ]
+    },
     "_ingress_ha_comment": "Ingress is HA: identical Traefik LXCs on DIFFERENT nodes carry the `ingress` tag; keepalived floats one VRRP virtual IP across them (ingress.tf derives ingress_vip/ingress_hosts from the `ingress` tag + network_cidrs). A VIP is synthesized only with at least two ingress nodes; add another by copying the block and bumping vm_id/node_name — no code change. DNS points every fronted service at the VIP, so a node loss migrates the VIP automatically.",
     "traefik": {
       "vm_id": 101,

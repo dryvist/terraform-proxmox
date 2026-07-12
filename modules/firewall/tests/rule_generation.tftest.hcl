@@ -32,6 +32,9 @@ variables {
       openbao_cluster        = 8201
       postgres_default       = 5432
       redis_default          = 6379
+      nautobot_web           = 8080
+      vikunja_web            = 3456
+      zammad_web             = 8080
       ntp                    = 123
       idrac_kvm_r410         = 5410
       idrac_kvm_r710         = 5710
@@ -44,10 +47,14 @@ variables {
       irtt               = 2112
       node_exporter      = 9100
       # LLM fabric + agentgateway (referenced by llm_fabric/agentgateway rules)
-      llm_fast_api       = 10434
-      llm_router_api     = 4000
-      agentgateway_proxy = 8080
-      agentgateway_admin = 15000
+      llm_fast_api         = 10434
+      llm_router_api       = 4000
+      agentgateway_proxy   = 8080
+      agentgateway_admin   = 15000
+      agentgateway_metrics = 15020
+      # Hermes inbound webhook receiver + job API (referenced by hermes_webhook_services_rules)
+      hermes_webhook = 8644
+      hermes_api     = 8642
       # AI orchestration + observability (referenced by ai_orchestration rules)
       n8n_web           = 5678
       dify_web          = 80
@@ -606,5 +613,76 @@ run "media_web_rules_track_constants" {
       contains(values(local.media_web_rules)[*].dport, tostring(var.pipeline_constants.media_ports.prowlarr_web)),
     ])
     error_message = "downloader-resident ports (qBittorrent/Prowlarr) must never appear on the LAN-only media guests"
+  }
+}
+
+# --- postgres + nautobot service rules (issue #138) ---
+
+run "postgres_rule_tracks_constant_and_internal_scope" {
+  command = plan
+
+  variables {
+    internal_networks = ["192.168.10.0/24", "192.168.20.0/24"]
+  }
+
+  # Exactly one live rule: TCP 5432 from the comma-joined internal networks.
+  assert {
+    condition     = length(local.postgres_services_rules) == 1
+    error_message = "postgres_services_rules must be exactly 1 (TCP 5432), got ${length(local.postgres_services_rules)}"
+  }
+
+  assert {
+    condition     = local.postgres_services_rules[0].proto == "tcp" && local.postgres_services_rules[0].dport == tostring(var.pipeline_constants.service_ports.postgres_default)
+    error_message = "postgres rule must be TCP tracking service_ports.postgres_default, got proto='${local.postgres_services_rules[0].proto}' dport='${local.postgres_services_rules[0].dport}'"
+  }
+
+  assert {
+    condition     = local.postgres_services_rules[0].source == "192.168.10.0/24,192.168.20.0/24"
+    error_message = "postgres rule source must be the comma-joined internal networks, got '${local.postgres_services_rules[0].source}'"
+  }
+}
+
+run "nautobot_rule_tracks_constant_and_internal_scope" {
+  command = plan
+
+  variables {
+    internal_networks = ["192.168.10.0/24", "192.168.20.0/24"]
+  }
+
+  # Exactly one live rule: TCP nautobot_web (8080) from the internal networks.
+  assert {
+    condition     = length(local.nautobot_services_rules) == 1
+    error_message = "nautobot_services_rules must be exactly 1 (TCP nautobot_web), got ${length(local.nautobot_services_rules)}"
+  }
+
+  assert {
+    condition     = local.nautobot_services_rules[0].proto == "tcp" && local.nautobot_services_rules[0].dport == tostring(var.pipeline_constants.service_ports.nautobot_web)
+    error_message = "nautobot rule must be TCP tracking service_ports.nautobot_web, got proto='${local.nautobot_services_rules[0].proto}' dport='${local.nautobot_services_rules[0].dport}'"
+  }
+}
+
+# --- vikunja service rules (issue #141) ---
+
+run "vikunja_rule_tracks_constant_and_internal_scope" {
+  command = plan
+
+  variables {
+    internal_networks = ["192.168.10.0/24", "192.168.20.0/24"]
+  }
+
+  # Exactly one live rule: TCP vikunja_web (3456) from the internal networks.
+  assert {
+    condition     = length(local.vikunja_services_rules) == 1
+    error_message = "vikunja_services_rules must be exactly 1 (TCP vikunja_web), got ${length(local.vikunja_services_rules)}"
+  }
+
+  assert {
+    condition     = local.vikunja_services_rules[0].proto == "tcp" && local.vikunja_services_rules[0].dport == tostring(var.pipeline_constants.service_ports.vikunja_web)
+    error_message = "vikunja rule must be TCP tracking service_ports.vikunja_web, got proto='${local.vikunja_services_rules[0].proto}' dport='${local.vikunja_services_rules[0].dport}'"
+  }
+
+  assert {
+    condition     = local.vikunja_services_rules[0].source == "192.168.10.0/24,192.168.20.0/24"
+    error_message = "vikunja rule source must be the comma-joined internal networks, got '${local.vikunja_services_rules[0].source}'"
   }
 }

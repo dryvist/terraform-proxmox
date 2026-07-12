@@ -75,7 +75,36 @@ variables {
   network_cidrs = { for name, id in var.vlan_ids : name => "192.168.${id}.0/24" }
 }
 
+# --- schema version (issue #134 producer contract) ---
+
+run "ansible_inventory_schema_version" {
+  command = plan
+
+  assert {
+    condition     = output.ansible_inventory.schema_version == "2.0.0"
+    error_message = "ansible_inventory must carry schema_version \"2.0.0\" so the homelab-contracts schema gate can confirm the emitted shape"
+  }
+}
+
 # --- constants structure tests ---
+
+run "ansible_inventory_nautobot_web_constant" {
+  command = plan
+
+  assert {
+    condition     = output.ansible_inventory.constants.service_ports.nautobot_web == 8080
+    error_message = "constants.service_ports.nautobot_web must be 8080 (Nautobot web UI)"
+  }
+}
+
+run "ansible_inventory_vikunja_web_constant" {
+  command = plan
+
+  assert {
+    condition     = output.ansible_inventory.constants.service_ports.vikunja_web == 3456
+    error_message = "constants.service_ports.vikunja_web must be 3456 (Vikunja web/API)"
+  }
+}
 
 run "ansible_inventory_constants_exists" {
   command = plan
@@ -353,6 +382,79 @@ run "ansible_inventory_ingress_route_table" {
   assert {
     condition     = length([for r in output.ansible_inventory.ingress : r if r.name == "proxmox"]) == 0
     error_message = "ingress must omit the proxmox apex route when no node is commissioned"
+  }
+}
+
+# --- ingress: nautobot fronted, postgres never fronted (issue #138) ---
+#
+# Nautobot's web UI (8080) is a Traefik-fronted route; Postgres is reached only
+# in-cluster on 5432 and must NEVER appear in the ingress table.
+run "ansible_inventory_ingress_nautobot_not_postgres" {
+  command = plan
+
+  variables {
+    domain = "example.com"
+    containers = {
+      "nautobot" = {
+        vm_id         = 605000
+        hostname      = "nautobot"
+        vlan          = "apps"
+        dhcp          = true
+        reserved_host = 52
+        tags          = ["terraform", "container", "nautobot"]
+      }
+      "postgres" = {
+        vm_id         = 303000
+        hostname      = "postgres"
+        vlan          = "data"
+        dhcp          = true
+        reserved_host = 51
+        tags          = ["terraform", "container", "postgres"]
+      }
+    }
+  }
+
+  # nautobot: DHCP-first backend fronted by FQDN on nautobot_web (8080).
+  assert {
+    condition = length([
+      for r in output.ansible_inventory.ingress :
+      r if r.name == "nautobot" && r.ip == "nautobot.example.com" && r.port == 8080
+    ]) == 1
+    error_message = "ingress must front nautobot at nautobot.example.com:8080 (FQDN backend + nautobot_web constant)"
+  }
+
+  # postgres has no ingress_services row -> it must never surface as a route.
+  assert {
+    condition     = length([for r in output.ansible_inventory.ingress : r if r.name == "postgres"]) == 0
+    error_message = "postgres must never appear in the ingress table (in-cluster 5432 only, no Traefik front)"
+  }
+}
+
+# --- ingress: vikunja fronted (issue #141) ---
+run "ansible_inventory_ingress_vikunja_fronted" {
+  command = plan
+
+  variables {
+    domain = "example.com"
+    containers = {
+      "vikunja" = {
+        vm_id         = 605010
+        hostname      = "vikunja"
+        vlan          = "apps"
+        dhcp          = true
+        reserved_host = 53
+        tags          = ["terraform", "container", "vikunja"]
+      }
+    }
+  }
+
+  # vikunja: DHCP-first backend fronted by FQDN on vikunja_web (3456).
+  assert {
+    condition = length([
+      for r in output.ansible_inventory.ingress :
+      r if r.name == "vikunja" && r.ip == "vikunja.example.com" && r.port == 3456
+    ]) == 1
+    error_message = "ingress must front vikunja at vikunja.example.com:3456 (FQDN backend + vikunja_web constant)"
   }
 }
 
