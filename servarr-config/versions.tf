@@ -1,9 +1,10 @@
 terraform {
   required_version = ">= 1.11"
 
+  # organization and hostname are intentionally omitted: OpenTofu reads them
+  # from TF_CLOUD_ORGANIZATION / TF_CLOUD_HOSTNAME so this file carries no
+  # environment-specific value.
   cloud {
-    organization = "dryvist"
-
     workspaces {
       name = "tofu-proxmox-servarr-config"
     }
