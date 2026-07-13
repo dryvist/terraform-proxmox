@@ -35,7 +35,8 @@ keywords = ["arn:aws:iam"]
 [allowlist]
 description = "Paths exempt from structural scanning"
 paths = [
-  '''\.gitleaks\.toml''',      # this config (contains the patterns themselves)
-  '''(^|/)CHANGELOG\.md$''',   # release-please generated
-  '''\.direnv/''',             # gitignored nix-direnv cache (not in CI checkout)
+  '''\.gitleaks\.toml''',                            # this config (contains the patterns themselves)
+  '''(^|/)CHANGELOG\.md$''',                         # release-please generated
+  '''\.direnv/''',                                   # gitignored nix-direnv cache (not in CI checkout)
+  '''modules/proxmox-stack/tests/.*\.tftest\.hcl$''', # test fixtures — placeholder PEM keys, validated by variable constraints
 ]
