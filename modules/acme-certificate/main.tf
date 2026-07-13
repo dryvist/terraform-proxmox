@@ -29,7 +29,7 @@ resource "proxmox_acme_account" "accounts" {
 }
 
 # DNS Challenge Plugin - configures the DNS-01 challenge provider.
-# `data` carries provider credentials and MUST come from SOPS or Doppler.
+# `data` carries provider credentials and MUST come from private RustFS or OpenBao.
 # Never write plaintext credentials to the repo.
 resource "proxmox_acme_dns_plugin" "dns_plugins" {
   for_each = var.dns_plugins

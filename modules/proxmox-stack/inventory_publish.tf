@@ -1,12 +1,12 @@
-# Native publish of the Ansible inventory to the terragrunt S3 backend.
+# Native publish of the Ansible inventory to the homelab RustFS service.
 #
-# `terragrunt apply` is the publish boundary: the aws_s3_object below uploads the
+# `tofu apply` is the publish boundary: the aws_s3_object below uploads the
 # inventory whenever its content changes — no shell script, no `aws` CLI. Any
 # consumer (CI via OIDC, cloud agents, ansible) fetches this object with scoped
 # read creds, with no checkout and no terraform toolchain.
 #
 # The AWS provider uses the same ambient credential chain as the S3 *state*
-# backend (terragrunt.hcl) — no static keys here.
+# backend (native root configuration) — no static keys here.
 
 locals {
   # The inventory value, shared by output.ansible_inventory and the publish
@@ -101,37 +101,32 @@ locals {
   }
 }
 
-# Same ambient credential chain as the S3 state backend (aws-vault locally, OIDC
-# in CI). Region matches the state bucket in terragrunt.hcl.
-provider "aws" {
-  region = "us-east-2"
-}
-
-data "aws_caller_identity" "current" {}
-
+# The inherited AWS provider targets homelab RustFS with ephemeral OpenBao
+# credentials configured by the Terrakube root workspace.
 # Publish point. The object updates only when the inventory content changes, and
 # only when this resource is in scope — a `-target` apply that excludes it does
 # not republish a partial inventory.
 resource "aws_s3_object" "ansible_inventory" {
-  bucket       = "terraform-proxmox-state-useast2-${data.aws_caller_identity.current.account_id}"
-  key          = "terraform-proxmox/inventory/ansible_inventory.json"
+  bucket       = var.inventory_bucket
+  key          = var.inventory_key
   content      = jsonencode(local.ansible_inventory)
   content_type = "application/json"
 
   # Publish gate: a malformed inventory must fail the apply BEFORE this object is
-  # written. The after-hook (scripts/sync-inventory.sh) runs check-jsonschema
-  # only AFTER this resource has already updated S3, so a schema break there
-  # leaves S3 fresh-but-wrong while the cache silently stays stale — exactly the
-  # half-publish hole behind the ingress outage. These preconditions encode the
-  # critical "do not publish garbage" invariants in HCL so they're evaluated at
-  # plan/apply time, before any S3 write; the full JSON-schema check stays in the
-  # hook as defense-in-depth for the cache copy.
+  # written. There is no after-hook schema check anymore (scripts/sync-inventory.sh
+  # was retired with Terragrunt); these preconditions are the only gate, encoding
+  # the same required-key contract as the ansible-proxmox-apps JSON schema
+  # (tests/inventory_load/tofu_inventory.schema.json) directly in HCL so they run
+  # at plan/apply time, before any S3 write.
   #
   # NOTE: `domain` is deliberately NOT asserted here. An empty domain is a
   # supported state in this module — locals.tf falls back to a bare hostname when
   # var.domain == "" (and `tofu test` exercises that default). The downstream
   # requirement that domain be set for the Ansible per-node ansible_host lives in
   # the ansible-proxmox-apps loader (load_tofu.yml), which fails loud there.
+  # `nodes` and `node_storage` need no shape precondition beyond their HCL type
+  # (map(object(...))) — the schema only requires the key exist, with no
+  # minimum-size or format constraint, and both variables default to `{}`.
   lifecycle {
     precondition {
       condition = alltrue([
@@ -142,6 +137,51 @@ resource "aws_s3_object" "ansible_inventory" {
         c.vmid != null
       ])
       error_message = "One or more containers have an empty ip/node/hostname/vmid in the inventory — the Ansible connection target and DNS A-records derive from these. Inspect module.containers output and deployment.json."
+    }
+    precondition {
+      condition = alltrue([
+        for k, v in local.ansible_inventory.vms :
+        v.ip != null && v.ip != "" &&
+        v.node != null && v.node != "" &&
+        v.hostname != null && v.hostname != "" &&
+        v.vmid != null &&
+        v.ansible_connection == "ssh"
+      ])
+      error_message = "One or more VMs have an empty ip/node/hostname/vmid or a wrong ansible_connection in the inventory. Inspect module.vms output and deployment.json."
+    }
+    precondition {
+      condition = alltrue([
+        for k, v in local.ansible_inventory.docker_vms :
+        v.ip != null && v.ip != "" &&
+        v.node != null && v.node != "" &&
+        v.hostname != null && v.hostname != "" &&
+        v.vmid != null
+      ])
+      error_message = "One or more docker VMs have an empty ip/node/hostname/vmid in the inventory. Inspect module.vms output and the docker-tag filter."
+    }
+    precondition {
+      condition = (
+        length(local.ansible_inventory.splunk_vm) > 0 &&
+        alltrue([
+          for k, v in local.ansible_inventory.splunk_vm :
+          v.ip != null && v.ip != "" &&
+          v.node != null && v.node != "" &&
+          v.hostname != null && v.hostname != "" &&
+          v.vmid != null &&
+          v.ansible_connection == "ssh"
+        ])
+      )
+      error_message = "splunk_vm is empty or malformed — the schema requires at least one entry with ip/node/hostname/vmid set and ansible_connection = \"ssh\". Inspect module.splunk_vm output."
+    }
+    precondition {
+      condition = alltrue([
+        for k in [
+          "service_ports", "syslog_ports", "syslog_port_map", "netflow_ports",
+          "notification_ports", "vector_db_ports", "media_ports",
+          "ai_log_ports", "ai_log_routing",
+        ] : can(local.ansible_inventory.constants[k])
+      ])
+      error_message = "pipeline_constants is missing one or more required keys (service_ports, syslog_ports, syslog_port_map, netflow_ports, notification_ports, vector_db_ports, media_ports, ai_log_ports, ai_log_routing). Inspect constants.tf."
     }
     precondition {
       condition = alltrue([

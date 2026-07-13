@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Test Splunk VM protection guarantees
-# Run: aws-vault exec tf-proxmox -- doppler run -- ./scripts/test-splunk-protection.sh [--live]
+# Run only from an approved OpenBao-authenticated operator session: ./scripts/test-splunk-protection.sh [--live]
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -53,9 +53,9 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# Section 2: Terragrunt plan - no destroy/replace
+# Section 2: OpenTofu plan - no destroy/replace
 # ---------------------------------------------------------------------------
-section "Terragrunt Plan Safety"
+section "OpenTofu Plan Safety"
 
 cd "${PROJECT_ROOT}"
 
@@ -63,10 +63,10 @@ PLAN_OUTPUT=$(mktemp)
 trap 'rm -f "${PLAN_OUTPUT}"' EXIT
 
 PLAN_EXIT=0
-terragrunt plan -no-color -detailed-exitcode > "${PLAN_OUTPUT}" 2>&1 || PLAN_EXIT=$?
+tofu plan -no-color -detailed-exitcode > "${PLAN_OUTPUT}" 2>&1 || PLAN_EXIT=$?
 
 if [[ ${PLAN_EXIT} -eq 1 ]]; then
-  fail "terragrunt plan returned an error"
+  fail "tofu plan returned an error"
   # Show last 20 lines for debugging
   tail -20 "${PLAN_OUTPUT}" | while IFS= read -r line; do echo "    ${line}"; done
 else
@@ -85,7 +85,7 @@ section "Output Structure Validation"
 
 cd "${PROJECT_ROOT}"
 
-INVENTORY_JSON=$(terragrunt output -json ansible_inventory 2>/dev/null) || {
+INVENTORY_JSON=$(tofu output -json ansible_inventory 2>/dev/null) || {
   fail "could not retrieve ansible_inventory output"
   INVENTORY_JSON=""
 }
@@ -130,7 +130,7 @@ if [[ "${LIVE}" == "true" ]]; then
 
   # Derive IP from terraform output if not already set
   if [[ -z "${SPLUNK_IP:-}" ]]; then
-    SPLUNK_IP=$(terragrunt output -json ansible_inventory 2>/dev/null \
+    SPLUNK_IP=$(tofu output -json ansible_inventory 2>/dev/null \
       | jq -r '.splunk_vm.splunk.ip // empty')
   fi
 

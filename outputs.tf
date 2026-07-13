@@ -1,99 +1,20 @@
-# SSH key outputs
-output "vm_ssh_public_key" {
-  description = "SSH public key used for VMs and containers"
-  value       = trimspace(data.local_file.vm_ssh_public_key.content)
-}
-
-output "vm_ssh_key_file" {
-  description = "Path to the SSH public key file"
-  value       = data.local_file.vm_ssh_public_key.filename
-}
-
-# Pool outputs
-output "pools" {
-  description = "Created resource pools"
-  value       = module.pools.pools
-}
-
-# Storage outputs
-output "cloud_init_file_id" {
-  description = "Cloud-init configuration file ID"
-  value       = module.storage.cloud_init_file_id
-}
-
-output "storage_validated" {
-  description = "Confirms storage data sources are loaded"
-  value       = module.storage.storage_validated
-}
-
-# VM outputs
-output "vms" {
-  description = "Created VMs information"
-  value       = module.vms.vm_details
-}
-
-output "vm_network_info" {
-  description = "VM network interface information"
-  value       = module.vms.vm_network_interfaces
-}
-
-# Container outputs (when enabled)
-output "containers" {
-  description = "Created containers information"
-  value       = length(var.containers) > 0 ? module.containers[0].container_details : {}
-}
-
-output "container_network_info" {
-  description = "Container network interface information"
-  value       = length(var.containers) > 0 ? module.containers[0].container_network_interfaces : {}
-}
-
-# NOTE: Route53 DNS outputs are now in aws-infra/outputs.tf
-
-# ACME Certificate outputs
-output "acme_certificates" {
-  description = "ACME certificates information"
-  value       = try(module.acme_certificates[0].certificates, {})
-}
-
-output "acme_accounts" {
-  description = "ACME accounts information"
-  value       = try(module.acme_certificates[0].acme_accounts, {})
-}
-
+output "vm_ssh_public_key" { value = module.homelab.vm_ssh_public_key }
+output "vm_ssh_key_file" { value = module.homelab.vm_ssh_key_file }
+output "pools" { value = module.homelab.pools }
+output "cloud_init_file_id" { value = module.homelab.cloud_init_file_id }
+output "storage_validated" { value = module.homelab.storage_validated }
+output "vms" { value = module.homelab.vms }
+output "vm_network_info" { value = module.homelab.vm_network_info }
+output "containers" { value = module.homelab.containers }
+output "container_network_info" { value = module.homelab.container_network_info }
+output "acme_certificates" { value = module.homelab.acme_certificates }
+output "acme_accounts" { value = module.homelab.acme_accounts }
 output "acme_dns_plugins" {
-  description = "DNS plugins for ACME validation"
-  value       = try(module.acme_certificates[0].dns_plugins, {})
-  sensitive   = true
+  value     = module.homelab.acme_dns_plugins
+  sensitive = true
 }
-
-# Ansible Inventory Output - Single Source of Truth
-# This output structures all infrastructure data for dynamic Ansible inventory
-# generation, eliminating hardcoded VM IDs and IPs from Ansible configuration.
-output "ansible_inventory" {
-  description = "Structured inventory for Ansible consumption - includes all VMs, containers, and Splunk infrastructure"
-  # The value lives in local.ansible_inventory (inventory_publish.tf) so the
-  # native aws_s3_object publish resource can reference the same data — a
-  # resource cannot reference an output.
-  value = local.ansible_inventory
-}
-
-# Rack-server cluster inventory - NO consumer yet. When one materializes, it
-# should fetch a published S3 artifact (the ansible_inventory pattern in
-# inventory_publish.tf), not terraform_remote_state — consumers must not need
-# the toolchain or full state read access.
-# Sensitive: BMC IPs/MACs and host mgmt IPs are operational secrets. A consumer
-# must use nonsensitive() when constructing inventory strings from these.
+output "ansible_inventory" { value = module.homelab.ansible_inventory }
 output "rack_servers" {
-  description = "Rack-server identity (names, BMC IPs/MACs, mgmt IPs, service tags, by-chassis grouping, ansible inventory shape). Real values come from terraform.sops.json; when var.rack_servers defaults to an empty map, this output is an object whose collections are all empty."
-  value = {
-    names             = module.rack_server_cluster.node_names
-    bmc_ips           = module.rack_server_cluster.bmc_ips
-    bmc_macs          = module.rack_server_cluster.bmc_macs
-    mgmt_ips          = module.rack_server_cluster.mgmt_ips
-    service_tags      = module.rack_server_cluster.service_tags
-    by_chassis        = module.rack_server_cluster.by_chassis
-    ansible_inventory = module.rack_server_cluster.ansible_inventory
-  }
+  value     = module.homelab.rack_servers
   sensitive = true
 }

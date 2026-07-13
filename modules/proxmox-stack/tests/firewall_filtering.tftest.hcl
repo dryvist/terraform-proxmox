@@ -18,20 +18,12 @@ mock_provider "proxmox" {
 }
 mock_provider "tls" {}
 mock_provider "random" {}
-mock_provider "local" {}
 # aws is only used by the S3 inventory publish (inventory_publish.tf);
 # mock it so tests need no AWS credentials in CI or locally.
 mock_provider "aws" {}
 mock_provider "null" {}
 
 # Override data sources and modules that require real provider connections
-override_data {
-  target = data.local_file.vm_ssh_public_key
-  values = {
-    content = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAITestKeyData test@test"
-  }
-}
-
 override_module {
   target = module.storage
   outputs = {
@@ -46,8 +38,8 @@ override_module {
   outputs = {
     vm_id       = 200
     name        = "splunk-vm"
-    ip_address  = null
-    mac_address = null
+    ip_address  = "192.168.40.200"
+    mac_address = "BC:24:11:00:00:C8"
   }
 }
 
@@ -71,6 +63,9 @@ override_module {
 }
 
 variables {
+  vm_ssh_public_key       = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAITestKeyData test@test"
+  vm_ssh_private_key      = "-----BEGIN OPENSSH PRIVATE KEY-----\ntest\n-----END OPENSSH PRIVATE KEY-----"
+  proxmox_ssh_private_key = "-----BEGIN OPENSSH PRIVATE KEY-----\ntest\n-----END OPENSSH PRIVATE KEY-----"
   # vlan_ids uses its variable default (single source of truth); network_cidrs is
   # derived from it as 192.168.<vlan_id>.0/24 — no duplicated VLAN/CIDR list.
   network_cidrs = { for name, id in var.vlan_ids : name => "192.168.${id}.0/24" }

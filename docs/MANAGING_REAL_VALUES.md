@@ -96,13 +96,13 @@ terraform.tfvars.dev  # Gitignored via *.tfvars
 terraform.tfvars.prod # Gitignored via *.tfvars
 
 # Use with:
-terragrunt plan -var-file=terraform.tfvars.dev
-terragrunt apply -var-file=terraform.tfvars.prod
+tofu plan -var-file=terraform.tfvars.dev
+tofu apply -var-file=terraform.tfvars.prod
 ```
 
 ### Method 2: Worktree-Based Configuration (Recommended)
 
-**As of v2.1**, Terragrunt automatically loads environment-specific variables from `.env/terraform.tfvars`:
+**As of v2.1**, OpenTofu automatically loads environment-specific variables from `.env/terraform.tfvars`:
 
 ```bash
 # Repository structure with worktrees
@@ -145,17 +145,17 @@ cp terraform.tfvars.example .env/terraform.tfvars
 cd ~/git/terraform-proxmox/feat/your-branch
 ln -s ../../.env .env
 
-# Terragrunt now automatically loads .env/terraform.tfvars
-terragrunt plan  # No -var-file needed!
+# OpenTofu now automatically loads .env/terraform.tfvars
+tofu plan  # No -var-file needed!
 ```
 
-## Doppler Integration (Optional)
+## OpenBao Integration (Optional)
 
-For secret values (API tokens, passwords), use Doppler:
+For secret values (API tokens, passwords), use OpenBao:
 
 ```bash
-# Secrets via Doppler (never in tfvars)
-doppler run -- terragrunt plan
+# Secrets via OpenBao (never in tfvars)
+tofu plan # run in Terrakube
 
 # TF_VAR_* environment variables automatically injected:
 # - TF_VAR_proxmox_api_token
@@ -265,7 +265,7 @@ git commit -m "your message"
 ✅ Committed:     terraform.tfvars.example (192.168.1.x placeholders)
 ❌ Never commit:  terraform.tfvars (your real IP addresses)
 ✅ Gitignored:    *.tfvars, terraform.tfvars
-✅ Secret values: Via Doppler (TF_VAR_* environment variables)
+✅ Secret values: Via OpenBao (TF_VAR_* environment variables)
 ```
 
 This pattern ensures your public repository reveals no sensitive infrastructure details

@@ -115,11 +115,14 @@ variable "proxmox_ssh_username" {
   description = "The SSH username for connecting to the Proxmox node"
   type        = string
   default     = "root@pam"
+  ephemeral   = true
 }
 
 variable "proxmox_ssh_private_key" {
-  description = "The path to the SSH private key for connecting to the Proxmox node"
+  description = "Ephemeral SSH private key content for connecting to the Proxmox node"
   type        = string
+  sensitive   = true
+  ephemeral   = true
 }
 
 variable "startup_delay" {

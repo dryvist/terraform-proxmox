@@ -11,14 +11,14 @@ variable "bridge" {
 }
 
 # Per-VLAN network CIDRs (SENSITIVE — real subnets are not committed).
-# Canonical source is Doppler `NETWORK_CIDR_<KEY>` (network-form CIDRs such as
-# 192.168.20.0/24), injected by terragrunt.hcl and shared one-way with
-# terraform-unifi. No default: a missing key fails loudly instead of silently
+# Canonical source is OpenBao `NETWORK_CIDR_<KEY>` (network-form CIDRs such as
+# 192.168.20.0/24), injected by native root configuration and shared one-way with
+# tofu-unifi. No default: a missing key fails loudly instead of silently
 # selecting the wrong subnet. Each guest's IP is derived as
 # cidrhost(network_cidrs[guest.vlan], guest.vm_id) and its gateway as
 # cidrhost(network_cidrs[guest.vlan], 1) — zero literal IP octets in this repo.
 variable "network_cidrs" {
-  description = "Map of VLAN name => network-form CIDR (e.g. siem => 192.168.20.0/24). Sourced from Doppler NETWORK_CIDR_* (sensitive). IPs are derived via cidrhost(cidr, vm_id); masks are taken from the CIDR itself."
+  description = "Map of VLAN name => network-form CIDR (e.g. siem => 192.168.20.0/24). Sourced from OpenBao NETWORK_CIDR_* (sensitive). IPs are derived via cidrhost(cidr, vm_id); masks are taken from the CIDR itself."
   type        = map(string)
   sensitive   = true
 

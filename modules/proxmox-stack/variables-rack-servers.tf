@@ -1,15 +1,15 @@
 # Rack-server variables: cluster identity for 1U/2U servers joining the
 # Proxmox cluster (Dell PowerEdge, HPE ProLiant, Supermicro, etc.).
 #
-# DRY: real values supplied via SOPS-encrypted terraform.sops.json — see
-# terraform.sops.json.example for the placeholder shape. Public repo never
+# DRY: real values supplied via private RustFS private RustFS deployment object — see
+# private RustFS deployment object.example for the placeholder shape. Public repo never
 # contains real IPs, MACs, service tags, or hostnames.
 
 variable "rack_servers" {
   description = <<-EOT
     Map of rack servers joining the Proxmox cluster. Keyed by node name
     (chosen by the operator — e.g. "node-a", "node-b"). Real values supplied
-    via SOPS-encrypted terraform.sops.json; default is an empty map so plans
+    via private RustFS private RustFS deployment object; default is an empty map so plans
     succeed cleanly before any nodes are populated.
 
     Fields:
@@ -34,7 +34,7 @@ variable "rack_servers" {
 
   validation {
     # cidrhost("${ip}/32", 0) returns the same string iff `ip` is a valid IPv4.
-    # Catches SOPS typos cheaply. Error message intentionally omits the value
+    # Catches private RustFS typos cheaply. Error message intentionally omits the value
     # because the variable is sensitive.
     condition = alltrue([
       for k, v in var.rack_servers :

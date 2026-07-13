@@ -158,7 +158,7 @@ Two-node cluster for high availability and horizontal scaling.
 ```bash
 # Deploy all components via Ansible
 cd ~/git/ansible-proxmox-apps
-doppler run -- ansible-playbook playbooks/site.yml
+ansible-playbook playbooks/site.yml # native OpenBao lookups resolve secrets
 ```
 
 ## Validation

@@ -5,7 +5,7 @@ Supermicro, etc.) joining the Proxmox cluster.
 
 ## Usage
 
-Set `rack_servers` via the SOPS-encrypted `terraform.sops.json` at the repo
+Set `rack_servers` via the private RustFS `private deployment object` at the repo
 root (real values supplied this way; the example file shows the shape with
 `192.168.0.x` placeholders):
 
@@ -29,14 +29,14 @@ string (no vendor whitelist).
 
 The module emits outputs that `ansible-proxmox` reads via
 `terraform_remote_state` so IP / MAC / service-tag values stay in one
-SOPS-encrypted source.
+private RustFS source.
 
 ## Requirements
 
 - OpenTofu >= 1.10 (Terraform >= 1.10 also compatible — repo standardizes on OpenTofu)
 - bpg/proxmox provider ~> 0.106 (only needed once cluster-membership
   verification is enabled — see "Current scope" below)
-- SOPS for editing `terraform.sops.json`
+- private RustFS for editing `private deployment object`
 
 ## Outputs
 
@@ -53,7 +53,7 @@ SOPS-encrypted source.
 ## Current scope
 
 Inventory-only. No resources are created — this module exists so that nodes
-can be declared once (in SOPS) and consumed everywhere without duplication.
+can be declared once (in private RustFS) and consumed everywhere without duplication.
 
 When nodes are physically online and joined to the cluster, uncomment the
 `proxmox_virtual_environment_nodes` data source + `check` block in `main.tf`
@@ -63,6 +63,6 @@ to verify the declared inventory matches the live cluster.
 
 `terraform-proxmox` is the org's source of truth for cluster identity, but
 this repo is public. Real values (IPs, MACs, service tags, hostnames) must
-be supplied via SOPS or environment, never committed. The
-`terraform.sops.json.example` at the repo root shows the placeholder shape
+be supplied via private RustFS or environment, never committed. The
+`private deployment object.example` at the repo root shows the placeholder shape
 using the `192.168.0.x` sample prefix.

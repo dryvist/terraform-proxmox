@@ -1,5 +1,5 @@
 # Route53 DNS outputs
-# These can be consumed by the Proxmox configuration via remote state or data files
+# These are exposed as Terrakube workspace outputs for approved consumers.
 
 output "proxmox_domain_fqdn" {
   description = "Fully qualified domain name for Proxmox VE UI"
