@@ -11,16 +11,22 @@ variable "aws_region" {
   }
 }
 
-variable "aws_access_key" {
-  description = "AWS IAM access key for API access"
+variable "openbao_aws_mount" {
+  description = "OpenBao AWS secrets-engine mount used by Terrakube jobs"
   type        = string
-  sensitive   = true
+  default     = "aws"
 }
 
-variable "aws_secret_key" {
-  description = "AWS IAM secret key for API access"
+variable "openbao_aws_role" {
+  description = "OpenBao AWS role that mints the least-privilege Route53 session"
   type        = string
-  sensitive   = true
+  default     = "tf-proxmox"
+}
+
+variable "openbao_aws_ttl" {
+  description = "Lifetime requested for the per-run AWS STS session"
+  type        = string
+  default     = "1h"
 }
 
 # Route53 Configuration
@@ -41,7 +47,7 @@ variable "route53_zone_id" {
   }
 }
 
-# Proxmox Integration (values passed from Proxmox config or Doppler)
+# Proxmox integration values are non-secret Terrakube workspace inputs.
 
 variable "proxmox_domain" {
   description = "Fully qualified domain name for Proxmox VE UI (e.g., pve.example.com)"
@@ -93,8 +99,8 @@ variable "dns_ttl" {
 }
 
 # Service-alias CNAMEs at the public zone apex (name label -> target FQDN).
-# Values come from the ROUTE53_CNAMES environment variable via terragrunt —
-# no hostname literal is ever committed here.
+# Values are supplied as a typed Terrakube workspace input; no hostname literal
+# is committed here.
 variable "route53_cnames" {
   description = "Map of service-alias CNAME records: record label (relative to the zone) -> target FQDN"
   type        = map(string)
@@ -111,7 +117,7 @@ variable "route53_cnames" {
 }
 
 # Host A records at the public zone apex (name label -> IPv4 address). Values
-# come from the ROUTE53_A_RECORDS environment variable via terragrunt — no
+# come from a typed Terrakube workspace input — no
 # hostname or IP literal is ever committed here. This is the terminal record a
 # service_cnames entry (e.g. llm-large) resolves to, and the only DNS source
 # both internal (Technitium-forwarded) and external resolvers agree on.

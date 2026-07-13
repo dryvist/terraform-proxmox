@@ -167,7 +167,7 @@ resource "proxmox_virtual_environment_cluster_firewall_security_group" "outbound
 
 resource "proxmox_virtual_environment_cluster_firewall_security_group" "outbound_https" {
   name    = "outbound-https"
-  comment = "Allow outbound HTTPS (TCP 443) to any destination — Cribl license telemetry (see locals.outbound_https_rules)"
+  comment = "Allow outbound HTTPS (TCP 443) to any destination for explicitly attached workloads (see locals.outbound_https_rules)"
 
   dynamic "rule" {
     for_each = local.outbound_https_rules

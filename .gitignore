@@ -15,12 +15,6 @@ override.tf.json
 .terraformrc
 terraform.rc
 
-# Terragrunt files
-.terragrunt-cache/
-backend.tf
-provider_override.tf
-terragrunt-debug.tfvars.json
-
 # Terraform lock file - include this for consistency
 # Uncomment to exclude if needed for different provider versions across environments
 # .terraform.lock.hcl
@@ -50,21 +44,7 @@ aws-credentials
 .env.*
 !.env.example
 
-# Doppler configuration (contains project/config names)
-.doppler.yaml
 SECRETS_SETUP.md
-
-# SOPS age private keys (never commit)
-*.age
-keys.txt
-
-# SOPS plaintext/decrypted files (NEVER commit - these contain unencrypted secrets)
-secrets.plain.yaml
-secrets.dec.yaml
-
-# Note: SOPS-encrypted files ARE safe to commit (values are ciphertext):
-#   secrets.enc.yaml     - SOPS-encrypted YAML (committed when used)
-#   terraform.sops.json  - SOPS-encrypted JSON (committed after: sops --encrypt --in-place)
 
 # Environment-specific documentation (contains sensitive setup info)
 docs/DOPPLER.md

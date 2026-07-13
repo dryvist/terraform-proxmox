@@ -1,92 +1,54 @@
-# Terraform Proxmox Infrastructure
+# OpenTofu Proxmox Infrastructure
 
-Terraform/Terragrunt IaC for the Proxmox VE homelab. Provisions VMs, LXC
-containers, resource pools, firewall rules, and ACME certificates. State is
-stored in S3 with DynamoDB locking.
+OpenTofu infrastructure for the Proxmox VE homelab: VMs, LXC containers,
+resource pools, firewall rules, certificates, and the published Ansible
+inventory.
 
-## Installation
-
-All tooling ships via the Nix devshell — activate once per worktree with
-`direnv allow` (requires direnv + nix-direnv); after that it's automatic on
-every `cd`.
-
-```bash
-direnv allow        # one-time
-```
-
-Tooling provided: `terragrunt`, `opentofu`, `terraform-docs`, `tflint`,
-`tfsec`, `trivy`, `sops`, `age`, `awscli2`, `jq`, `yq`, `pre-commit`.
-
-## Usage
-
-Every credentialed command requires AWS credentials (state backend) and
-Doppler (provider secrets). Run all commands through the wrapper:
-
-```bash
-aws-vault exec tf-proxmox -- doppler run -- terragrunt <COMMAND>
-```
-
-The SOPS age key is set up per host via `age-keygen` (see
-[docs/SOPS_SETUP.md](./docs/SOPS_SETUP.md)). A portable, backed-up home for the
-key (so decryption works on Linux/cloud agents too) is a planned per-host
-improvement. Secrets direction overall follows the four-tier hierarchy in
-[docs/SECRETS_ROADMAP.md](./docs/SECRETS_ROADMAP.md).
-
-Common operations:
-
-```bash
-doppler run -- terragrunt validate
-doppler run -- terragrunt plan
-doppler run -- terragrunt apply
-doppler run -- terragrunt show
-```
-
-Note: `aws-vault exec` triggers a keychain prompt on each invocation. Batch
-all credentialed work in a single `aws-vault exec tf-proxmox -- claude`
-session rather than re-invoking repeatedly.
+Terrakube owns state, native workspace locking, execution, and audit history.
+It exchanges workload identity for a short-lived OpenBao token. Providers then
+read Proxmox, SSH, Route53, and RustFS credentials with native ephemeral
+resources; no credential is stored in repository configuration or Terrakube
+workspace variables.
 
 ## Configuration
 
-Config is split across three layers:
+| Source | Contents |
+| --- | --- |
+| Private RustFS `deployment.json` | Desired state, topology, domain, and public SSH key |
+| OpenBao `secret/infrastructure/proxmox` | Proxmox API and SSH credentials |
+| OpenBao `secret/platform/object-storage` | RustFS endpoint and credentials |
 
-| Source | Contents | How to edit |
-| ------ | -------- | ----------- |
-| `deployment.json` | Container/VM definitions, pools, node placement | Private, in the on-prem `s3` store (see [AGENTS.md](AGENTS.md)) |
-| `terraform.sops.json` | Per-VLAN network CIDRs, domain, SSH key paths | Decrypt with SOPS, edit, re-encrypt |
-| Doppler | `PROXMOX_VE_*`, SSH key content, credentials | Doppler web UI or CLI |
+Every apply publishes `ansible_inventory.json` back to RustFS through the
+OpenTofu resource graph. Terrakube workspace locking replaces the former
+backend-specific lock; no second global OpenBao lock is used.
 
-`terraform.tfvars` is gitignored and must not exist — it silently overrides
-`deployment.json` via Terraform variable precedence.
+## Local validation
 
-See [docs/SOPS_SETUP.md](./docs/SOPS_SETUP.md) for the full three-layer setup.
-
-## IP derivation
-
-Every guest IP is `cidrhost(<vlan CIDR>, vm_id)`. No literal IPs are
-committed anywhere in this repo — they are derived at plan-time from
-Doppler-supplied `NETWORK_CIDR_*` values.
-
-## Testing
+The Nix dev shell activates through direnv. Local checks never require live
+credentials:
 
 ```bash
-tofu test           # mock-provider contract tests (no credentials needed)
+direnv allow
+tofu fmt -check -recursive
+tofu init -backend=false
+tofu validate
+tofu test
+tofu -chdir=modules/proxmox-stack init -backend=false
+tofu -chdir=modules/proxmox-stack test
 ```
 
-The full suite runs automatically in CI on every PR.
+Credentialed plans, applies, imports, and state operations run only in the
+private `tofu-proxmox` Terrakube workspace.
 
 ## Documentation
 
 | Doc | Purpose |
-| --- | ------- |
+| --- | --- |
 | [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) | Pipeline architecture and IP derivation |
-| [docs/SOPS_SETUP.md](./docs/SOPS_SETUP.md) | SOPS + age setup, Doppler integration |
-| [docs/SECRETS_ROADMAP.md](./docs/SECRETS_ROADMAP.md) | Four-tier secrets hierarchy (SOPS / OpenBao / Doppler / Bitwarden) |
-| [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) | Operational guidance, timeout/debug logging |
+| [docs/INVENTORY_PUBLISHING.md](./docs/INVENTORY_PUBLISHING.md) | Native RustFS inventory contract |
+| [docs/SECRETS_ROADMAP.md](./docs/SECRETS_ROADMAP.md) | OpenBao and Terrakube secret contract |
+| [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) | Operational recovery guidance |
 
 ## License
 
 Apache License 2.0 — see [LICENSE](LICENSE).
-
----
-
-> Part of a [larger ecosystem of ~40 repos](https://docs.jacobpevans.com) — see how it all fits together.

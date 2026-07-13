@@ -9,7 +9,7 @@ packer {
 
 # NOTE: variables.pkr.hcl is required locally but not committed to version control.
 # It defines: proxmox_url, PKR_PVE_USERNAME, PROXMOX_TOKEN, PROXMOX_VE_NODE, PROXMOX_VE_INSECURE
-# These values are environment-specific and retrieved from Doppler/aws-vault.
+# These values are retrieved from OpenBao at build time.
 
 source "proxmox-clone" "splunk-docker" {
   proxmox_url              = var.proxmox_url

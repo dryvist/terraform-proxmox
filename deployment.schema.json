@@ -5,15 +5,34 @@
   "type": "object",
   "required": [
     "containers",
+    "domain",
+    "network_cidrs",
     "nodes",
     "pools",
-    "proxmox_node"
+    "proxmox_node",
+    "vm_ssh_public_key"
   ],
   "additionalProperties": true,
   "properties": {
+    "domain": {
+      "type": "string",
+      "minLength": 1
+    },
+    "network_cidrs": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^[0-9.]+/[0-9]+$"
+      }
+    },
+    "vm_ssh_public_key": {
+      "type": "string",
+      "pattern": "^(ssh-|ecdsa-)"
+    },
     "containers": {
       "type": "object",
-      "description": "LXC desired-state, keyed by name. At least one is required — an empty map is the empty-{} destroy footgun this schema exists to catch. `_`-prefixed keys are inline `_*comment` docs (terragrunt strips them) and are exempt from the entry shape.",
+      "description": "LXC desired-state, keyed by name. At least one is required — an empty map is the empty-{} destroy footgun this schema exists to catch. `_`-prefixed keys are inline `_*comment` docs (tofu strips them) and are exempt from the entry shape.",
       "minProperties": 1,
       "patternProperties": {
         "^_": {}
@@ -92,7 +111,7 @@
     },
     "openbao_cluster_input": {
       "type": "object",
-      "description": "Parameterized OpenBao LXC cluster generator. Terragrunt expands this into regular containers so shared peer config is defined once.",
+      "description": "Parameterized OpenBao LXC cluster generator. OpenTofu expands this into regular containers so shared peer config is defined once.",
       "required": [
         "enabled",
         "name_prefix",

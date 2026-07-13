@@ -74,19 +74,21 @@ variable "proxmox_ssh_host" {
   description = "Hostname/IP for SSH access to the Proxmox node. Used by the cert-delivery null_resource provisioner."
   type        = string
   default     = ""
+  ephemeral   = true
 }
 
 variable "proxmox_ssh_username" {
   description = "SSH username for the Proxmox node (e.g., \"root\")."
   type        = string
   default     = "root"
+  ephemeral   = true
 }
 
 variable "proxmox_ssh_private_key" {
-  description = "SSH private key content or file path for connecting to the Proxmox node."
+  description = "Ephemeral SSH private key content for connecting to the Proxmox node."
   type        = string
   sensitive   = true
-  default     = ""
+  ephemeral   = true
 }
 
 variable "environment" {

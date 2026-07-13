@@ -1,7 +1,7 @@
 # Splunk variables: VM sizing, identity, and SSH access for the Splunk deployment
 
 variable "splunk_vm_id" {
-  description = "VM ID for the Splunk VM. The real VM ID is the single source of truth in deployment.json (injected by terragrunt); this default is a non-production placeholder (kept a valid /24 host octet so the derived siem IP resolves) so tests and standalone plans resolve without redeclaring it."
+  description = "VM ID for the Splunk VM. The real VM ID is the single source of truth in deployment.json (injected by tofu); this default is a non-production placeholder (kept a valid /24 host octet so the derived siem IP resolves) so tests and standalone plans resolve without redeclaring it."
   type        = number
   default     = 99
   validation {

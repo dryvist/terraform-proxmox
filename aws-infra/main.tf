@@ -1,22 +1,44 @@
 terraform {
   required_version = ">= 1.10"
 
+  # organization and hostname are intentionally omitted: OpenTofu reads them
+  # from TF_CLOUD_ORGANIZATION / TF_CLOUD_HOSTNAME so this file carries no
+  # environment-specific value.
+  cloud {
+    workspaces {
+      name = "tofu-proxmox-aws-infra"
+    }
+  }
+
   required_providers {
     aws = {
       source  = "hashicorp/aws"
       version = ">= 5.0"
     }
+    vault = {
+      source = "hashicorp/vault"
+    }
   }
 }
 
-# AWS Provider - credentials from Doppler environment variables
-# Static credentials are used here because this infrastructure runs on a local Proxmox host
-# rather than on AWS infrastructure. For production AWS environments, consider using
-# IAM roles, instance profiles, or the AWS CLI credential chain instead.
+# Terrakube exchanges its per-run workload identity for VAULT_TOKEN. OpenBao's
+# AWS secrets engine then mints a short-lived STS session. The ephemeral block
+# guarantees that the credentials are not persisted in a plan or state.
+provider "vault" {}
+
+ephemeral "vault_aws_access_credentials" "route53" {
+  mount  = var.openbao_aws_mount
+  role   = var.openbao_aws_role
+  type   = "sts"
+  region = var.aws_region
+  ttl    = var.openbao_aws_ttl
+}
+
 provider "aws" {
   region     = var.aws_region
-  access_key = var.aws_access_key
-  secret_key = var.aws_secret_key
+  access_key = ephemeral.vault_aws_access_credentials.route53.access_key
+  secret_key = ephemeral.vault_aws_access_credentials.route53.secret_key
+  token      = ephemeral.vault_aws_access_credentials.route53.security_token
 }
 
 # Route53 DNS Records module - manages A record for Proxmox VE UI

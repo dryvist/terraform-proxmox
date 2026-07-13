@@ -6,7 +6,7 @@ This directory contains Packer templates for building VM templates on Proxmox VE
 
 Variables are injected from two sources:
 
-1. **Doppler Secrets** (via `PKR_VAR_*` environment variables):
+1. **OpenBao fields** (via `PKR_VAR_*` environment variables):
    - `PROXMOX_VE_ENDPOINT` - API endpoint URL (e.g., `https://proxmox-1.example.com`)
    - `PKR_PVE_USERNAME` - Proxmox username with token ID in format `user@realm!tokenid`
    - `PROXMOX_TOKEN` - Proxmox API token secret (the secret portion of the token)
@@ -36,7 +36,7 @@ Variables are injected from two sources:
 ./packer-build.sh build
 ```
 
-The build script automatically validates Doppler secrets and injects them as environment variables.
+The build script validates `secret/infrastructure/proxmox-packer` and injects fields as environment variables.
 
 ## Splunk Enterprise Template
 

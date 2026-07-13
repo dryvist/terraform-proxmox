@@ -5,7 +5,7 @@
 
 # Firewall module - rules for Splunk and containers
 module "firewall" {
-  source = "./modules/firewall"
+  source = "../firewall"
 
   node_name = var.proxmox_node
 
@@ -100,7 +100,7 @@ module "firewall" {
 
   management_network = local.management_network
   splunk_network     = join(",", local.splunk_network_ips)
-  # Derived from the Doppler-sourced VLAN CIDR map (locals.tf) — no committed ranges.
+  # Derived from the private RustFS VLAN CIDR map (locals.tf) — no committed ranges.
   internal_networks = local.internal_networks
   # AI VLAN CIDR — least-privilege source scope for the Cribl Edge OTLP ingest.
   ai_network = local.ai_network

@@ -79,9 +79,9 @@ Resource allocations (cores, RAM, disk) are defined in `deployment.json`.
 
 **Rationale**: Proxmox is air-gapped with no internet access. Cloud-based secrets management is not viable for the cluster nodes.
 
-- **Local (Mac)**: Doppler for Proxmox API creds; SSH keys for host/VM access
+- **Local (Mac)**: OpenBao for Proxmox API creds; SSH keys for host/VM access
 - **Proxmox Host**: Splunk package pre-staged on host
-- **Terraform State**: S3 backend with DynamoDB locking, encryption enabled
+- **OpenTofu State**: encrypted Terrakube state with native workspace locking
 - **Splunk Credentials**: Managed by Ansible (admin password and cluster secret via Ansible Vault)
 
 ## Constraints and Decisions
@@ -92,7 +92,7 @@ Duplicated VM definitions identified; solution is `modules/splunk-indexer/`.
 
 ### Secrets Management
 
-File-based secrets chosen over Vault/BWS/Doppler on Proxmox due to air-gap.
+File-based secrets chosen over Vault/BWS/OpenBao on Proxmox due to air-gap.
 Real `terraform.tfvars` never committed to git.
 
 ### Manual Configuration
@@ -111,9 +111,9 @@ Splunk-to-Splunk communication deferred to post-deployment (tracked in GitHub is
 ### User Must Provide
 
 1. Cloud-init Template: VM 9000 with Debian 13
-2. SSH Keys: VM and PVE SSH key pairs (paths configured in SOPS)
-3. AWS Credentials: For Terragrunt S3 backend
-4. Doppler: Configured locally for Proxmox API credentials
+2. SSH Keys: VM and PVE SSH key pairs (paths configured in private RustFS)
+3. AWS Credentials: For OpenTofu S3 backend
+4. OpenBao: Configured locally for Proxmox API credentials
 
 ## References
 

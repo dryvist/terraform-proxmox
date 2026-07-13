@@ -14,7 +14,7 @@ locals {
 }
 
 # Zero-trust source-VLAN CIDRs (staged disabled). Keys mirror var.vlan_ids /
-# terragrunt.hcl's network_cidrs map. A missing key -> "" so a rule referencing
+# native root configuration's network_cidrs map. A missing key -> "" so a rule referencing
 # an undeployed VLAN is inert rather than a plan error.
 locals {
   zt_src = { for k in [

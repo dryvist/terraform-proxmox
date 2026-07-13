@@ -1,50 +1,16 @@
-# All real values are supplied at apply time from the secret store
-# (SOPS / Doppler / env / a gitignored *.auto.tfvars) — never committed. The
-# examples in terraform.tfvars.example use RFC1918 192.168.x placeholders only.
+# Runtime endpoints and credentials are read ephemerally from OpenBao by the
+# Terrakube job. Only the non-secret path contract is configured here.
 
-variable "sonarr_url" {
+variable "openbao_kv_mount" {
   type        = string
-  description = "Base URL of the Sonarr instance (e.g. http://192.168.55.222:8989)."
+  description = "OpenBao KV v2 mount containing the media application contract"
+  default     = "secret"
 }
 
-variable "sonarr_api_key" {
+variable "openbao_media_path" {
   type        = string
-  sensitive   = true
-  description = "Sonarr API key (SONARR_API_KEY from the secret store)."
-}
-
-variable "radarr_url" {
-  type        = string
-  description = "Base URL of the Radarr instance (e.g. http://192.168.55.223:7878)."
-}
-
-variable "radarr_api_key" {
-  type        = string
-  sensitive   = true
-  description = "Radarr API key (RADARR_API_KEY from the secret store)."
-}
-
-variable "qbittorrent_host" {
-  type        = string
-  description = "Host/IP the *arr apps use to reach qBittorrent on the download-vpn LAN address (e.g. 192.168.55.224)."
-}
-
-variable "qbittorrent_port" {
-  type        = number
-  default     = 8080
-  description = "qBittorrent WebUI port."
-}
-
-variable "qbittorrent_username" {
-  type        = string
-  default     = "admin"
-  description = "qBittorrent WebUI username."
-}
-
-variable "qbittorrent_password" {
-  type        = string
-  sensitive   = true
-  description = "qBittorrent WebUI password (QBITTORRENT_ADMIN_PASSWORD from the secret store)."
+  description = "OpenBao path containing Sonarr, Radarr, and qBittorrent runtime values"
+  default     = "apps/media"
 }
 
 variable "tv_root_folder" {
@@ -57,16 +23,4 @@ variable "movie_root_folder" {
   type        = string
   default     = "/data/media/movies"
   description = "Radarr root folder (unified /data hardlink layout)."
-}
-
-variable "tv_category" {
-  type        = string
-  default     = "tv-sonarr"
-  description = "qBittorrent category Sonarr assigns to its downloads."
-}
-
-variable "movie_category" {
-  type        = string
-  default     = "radarr"
-  description = "qBittorrent category Radarr assigns to its downloads."
 }

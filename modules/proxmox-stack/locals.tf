@@ -1,7 +1,7 @@
 # Local values for common computed expressions
 locals {
   # DRY per-VLAN Network Configuration - Single Source of Truth.
-  # Every guest IP is derived from its VLAN's CIDR (network-form, from Doppler)
+  # Every guest IP is derived from its VLAN's CIDR (network-form, from OpenBao)
   # and its VM ID: cidrhost(network_cidrs[vlan], vm_id). The gateway is the .1
   # host of that same subnet. Masks come from the CIDR itself, so this repo
   # holds zero literal IP octets.
@@ -11,7 +11,7 @@ locals {
   # nonsensitive(): a single host address (<vlan subnet>.<vmid>) or a guest's
   # own gateway is not independently secret, and these must flow into the
   # ansible_inventory output and module inputs (which are non-sensitive),
-  # exactly as the terraform-unifi reference resolves its Doppler CIDRs.
+  # exactly as the tofu-unifi reference resolves its OpenBao CIDRs.
 
   # Splunk lives on the siem VLAN (per network/architecture.md). The siem CIDR
   # is the only VLAN referenced by name here; all other guests resolve via their
@@ -106,7 +106,7 @@ locals {
   ]
 
   # Internal networks for guest-firewall source scoping — derived from the
-  # Doppler-sourced per-VLAN CIDR map (the existing single source of truth),
+  # private RustFS per-VLAN CIDR map (the existing single source of truth),
   # so the real ranges never appear in committed files. nonsensitive(): the
   # list must flow into firewall rule attributes; the full map stays sensitive.
   internal_networks = nonsensitive(distinct(values(var.network_cidrs)))

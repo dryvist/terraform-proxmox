@@ -534,8 +534,8 @@ run "outbound_https_is_tcp_443_only" {
     internal_networks = ["192.168.0.0/16"]
   }
 
-  # License-telemetry egress stays the single TCP/443 rule — any growth here
-  # widens internet egress for cribl containers and needs explicit review.
+  # Explicitly attached workload egress stays the single TCP/443 rule — any
+  # growth here widens internet egress and needs explicit review.
   assert {
     condition     = length(local.outbound_https_rules) == 1
     error_message = "outbound_https_rules must contain exactly one rule, got ${length(local.outbound_https_rules)}"
@@ -544,6 +544,22 @@ run "outbound_https_is_tcp_443_only" {
   assert {
     condition     = local.outbound_https_rules[0].proto == "tcp" && local.outbound_https_rules[0].dport == "443"
     error_message = "outbound_https_rules[0] must be TCP 443, got proto='${local.outbound_https_rules[0].proto}' dport='${local.outbound_https_rules[0].dport}'"
+  }
+}
+
+run "openbao_receives_outbound_https" {
+  command = plan
+
+  variables {
+    openbao_container_ids = { openbao = 130 }
+  }
+
+  assert {
+    condition = contains(
+      [for rule in proxmox_virtual_environment_firewall_rules.openbao_container["openbao"].rule : rule.security_group],
+      proxmox_virtual_environment_cluster_firewall_security_group.outbound_https.name,
+    )
+    error_message = "OpenBao containers must attach the outbound-https security group"
   }
 }
 

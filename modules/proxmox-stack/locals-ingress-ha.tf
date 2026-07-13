@@ -13,7 +13,7 @@
 locals {
   # ingress_vip_host: the reserved HOST OCTET for the VIP inside the ingress
   # VLAN. It is NOT a literal IP — the address is derived via cidrhost() from the
-  # Doppler-sourced network_cidrs, so the real subnet never appears in-repo.
+  # private RustFS network_cidrs, so the real subnet never appears in-repo.
   # Reserved-octet map for the ingress (mgmt) VLAN: .1 gateway, .4/.5 openbao,
   # .33 unifi-metrics, .101/.107 the two Traefik LXCs (vm_id-derived). .2 is
   # carved out here for the ingress VIP and must stay out of the DHCP pool.
