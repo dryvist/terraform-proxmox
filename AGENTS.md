@@ -110,13 +110,14 @@ local gitignored cache. See `docs/INVENTORY_PUBLISHING.md`.
 ### Inventory publish + sync (automatic)
 
 Every apply publishes the inventory **natively** to the versioned state bucket
-(`inventory_publish.tf`, `aws_s3_object.ansible_inventory`). The
-`after_hook` (`scripts/sync-inventory.sh`) then validates the output against
-the schema and handles what Terraform can't: the versioned-mirror PR into the
-private data repo (gated on `INVENTORY_DATA_REPO`) and the local
-`tofu_inventory.json` cache each consumer repo's resolver uses as its offline
-fallback. A partial/invalid output is rejected (nothing written). Repos not
-cloned locally are skipped with a stderr warning.
+(`inventory_publish.tf`, `aws_s3_object.ansible_inventory`). `lifecycle`
+preconditions on that resource validate the required inventory keys — mirroring
+the ansible-proxmox-apps JSON schema — before the write, so a partial/invalid
+output is rejected before anything reaches S3. The former private-data-repo
+versioned-mirror PR is retired; bucket versioning on `iac-inventory` is the
+safety net for a bad publish instead (see `docs/INVENTORY_PUBLISHING.md`). Each
+consumer's local gitignored cache remains an offline fallback, refreshed by its
+own `load_tofu.yml` resolver — not by this repo.
 
 To sync manually after importing state without applying, see
 `docs/ARCHITECTURE.md`.
@@ -131,10 +132,9 @@ backend, `tofu apply`) only run in CI under OIDC, or interactively
 when explicitly preparing to apply. Do not gate commits on them.
 
 > **Never run `tofu apply -target=...`.** A partial apply still runs
-> the `after_hook` inventory publish (see above) with an incomplete
-> `ansible_inventory`, overwriting the full published artifact and the
-> downstream mirror PR that all three consumer repos read. Always apply the
-> whole plan.
+> the inventory publish (see above) with an incomplete `ansible_inventory`,
+> overwriting the full published artifact that all three consumer repos read.
+> Always apply the whole plan.
 
 Test in isolated resource pools, never production-first. Use feature
 branches. Conventional-commit subjects only.
