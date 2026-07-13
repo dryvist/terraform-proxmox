@@ -128,24 +128,23 @@ variable "vms" {
 }
 
 # SSH Key Configuration for VMs
-variable "vm_ssh_public_key_path" {
-  description = "Path to the SSH public key for VM authentication (e.g., ~/.ssh/id_ed25519.pub)"
+variable "vm_ssh_public_key" {
+  description = "SSH public key content for VM authentication"
   type        = string
-  default     = "~/.ssh/id_ed25519.pub"
   validation {
-    condition     = can(regex("^(~/.ssh/|/).*\\.pub$", var.vm_ssh_public_key_path))
-    error_message = "SSH public key path must be a valid file path ending with .pub"
+    condition     = can(regex("^(ssh-|ecdsa-)", trimspace(var.vm_ssh_public_key)))
+    error_message = "SSH public key must be OpenSSH public-key content."
   }
 }
 
-variable "vm_ssh_private_key_path" {
-  description = "Path to the SSH private key for VM authentication (e.g., ~/.ssh/id_ed25519)"
+variable "vm_ssh_private_key" {
+  description = "Ephemeral SSH private key content for VM provisioning"
   type        = string
-  default     = "~/.ssh/id_ed25519"
   sensitive   = true
+  ephemeral   = true
   validation {
-    condition     = can(regex("^(~/.ssh/|/)", var.vm_ssh_private_key_path))
-    error_message = "SSH private key path must be a valid file path starting with ~/ or /"
+    condition     = can(regex("^-----BEGIN", trimspace(var.vm_ssh_private_key)))
+    error_message = "SSH private key must be PEM/OpenSSH private-key content."
   }
 }
 
@@ -155,7 +154,7 @@ variable "ansible_cloud_init_file" {
   type        = string
   default     = "cloud-init/ansible-server-example.yml"
   validation {
-    condition     = can(regex("^cloud-init/.*\\.ya?ml$", var.ansible_cloud_init_file))
+    condition     = can(regex("(^|/)cloud-init/.*\\.ya?ml$", var.ansible_cloud_init_file))
     error_message = "Cloud-init file must be in cloud-init/ directory and have .yml or .yaml extension."
   }
 }

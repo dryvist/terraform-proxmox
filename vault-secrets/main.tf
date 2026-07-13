@@ -1,5 +1,13 @@
 terraform {
-  required_version = ">= 1.10"
+  required_version = ">= 1.11"
+
+  cloud {
+    organization = "dryvist"
+
+    workspaces {
+      name = "tofu-proxmox-vault-secrets"
+    }
+  }
 
   required_providers {
     vault = {
@@ -17,41 +25,9 @@ terraform {
   }
 }
 
-# Vault (OpenBao) provider — authenticates via AppRole.
-# address / role_id / secret_id come from Doppler env vars (see terragrunt.hcl).
-provider "vault" {
-  address = var.vault_addr
-  # The Terraform AppRole is least-privilege for this module and cannot mint
-  # child tokens; use the login token directly.
-  skip_child_token = true
-
-  auth_login {
-    path = "auth/approle/login"
-
-    parameters = {
-      role_id   = var.vault_role_id
-      secret_id = var.vault_secret_id
-    }
-  }
-}
-
-# apps-seed provider alias — least-privilege writer scoped to secret/apps/* only
-# (cannot touch infra/platform/ai). Per-app service secrets are seeded through
-# this role instead of widening terraform-apply's blast radius.
-provider "vault" {
-  alias            = "apps_seed"
-  address          = var.vault_addr
-  skip_child_token = true
-
-  auth_login {
-    path = "auth/approle/login"
-
-    parameters = {
-      role_id   = var.apps_seed_role_id
-      secret_id = var.apps_seed_secret_id
-    }
-  }
-}
+# Terrakube exchanges its signed per-run workload identity with OpenBao and
+# injects VAULT_ADDR/VAULT_TOKEN. No AppRole SecretID is copied into a workspace.
+provider "vault" {}
 
 # Reuse the existing security module to generate a demo password + SSH key pair.
 module "security" {
@@ -162,9 +138,8 @@ resource "random_password" "zammad_hermes_api_token" {
 }
 
 resource "vault_kv_secret_v2" "zammad" {
-  provider = vault.apps_seed
-  mount    = "secret"
-  name     = "apps/zammad"
+  mount = "secret"
+  name  = "apps/zammad"
 
   data_json = jsonencode({
     db_password      = random_password.zammad_db_password.result

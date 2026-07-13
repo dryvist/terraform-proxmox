@@ -4,14 +4,23 @@
 # and is handled separately (see README); TRaSH custom-formats/quality come from
 # Configarr.
 
+provider "vault" {}
+
+# Terrakube supplies a short-lived OpenBao token from its workload identity.
+# The media credentials exist only for this run and never enter plan or state.
+ephemeral "vault_kv_secret_v2" "media" {
+  mount = var.openbao_kv_mount
+  name  = var.openbao_media_path
+}
+
 provider "sonarr" {
-  url     = var.sonarr_url
-  api_key = var.sonarr_api_key
+  url     = ephemeral.vault_kv_secret_v2.media.data["SONARR_URL"]
+  api_key = ephemeral.vault_kv_secret_v2.media.data["SONARR_API_KEY"]
 }
 
 provider "radarr" {
-  url     = var.radarr_url
-  api_key = var.radarr_api_key
+  url     = ephemeral.vault_kv_secret_v2.media.data["RADARR_URL"]
+  api_key = ephemeral.vault_kv_secret_v2.media.data["RADARR_API_KEY"]
 }
 
 # --- Sonarr ------------------------------------------------------------------
@@ -19,25 +28,11 @@ resource "sonarr_root_folder" "tv" {
   path = var.tv_root_folder
 }
 
-resource "sonarr_download_client_qbittorrent" "qbittorrent" {
-  name                       = "qBittorrent"
-  enable                     = true
-  priority                   = 1
-  host                       = var.qbittorrent_host
-  port                       = var.qbittorrent_port
-  username                   = var.qbittorrent_username
-  password                   = var.qbittorrent_password
-  use_ssl                    = false
-  tv_category                = var.tv_category
-  remove_completed_downloads = true
-  remove_failed_downloads    = true
+removed {
+  from = sonarr_download_client_qbittorrent.qbittorrent
 
-  # devopsarr stores the qBittorrent password write-only, so it can never be read
-  # back and would otherwise show as drift on every plan. The password is managed
-  # out-of-band (set by the app/secret store); ignore it so tofu plan stays a
-  # meaningful drift signal.
   lifecycle {
-    ignore_changes = [password]
+    destroy = false
   }
 }
 
@@ -46,21 +41,14 @@ resource "radarr_root_folder" "movies" {
   path = var.movie_root_folder
 }
 
-resource "radarr_download_client_qbittorrent" "qbittorrent" {
-  name                       = "qBittorrent"
-  enable                     = true
-  priority                   = 1
-  host                       = var.qbittorrent_host
-  port                       = var.qbittorrent_port
-  username                   = var.qbittorrent_username
-  password                   = var.qbittorrent_password
-  use_ssl                    = false
-  movie_category             = var.movie_category
-  remove_completed_downloads = true
-  remove_failed_downloads    = true
+removed {
+  from = radarr_download_client_qbittorrent.qbittorrent
 
-  # See the Sonarr client above — password is write-only in devopsarr.
   lifecycle {
-    ignore_changes = [password]
+    destroy = false
   }
 }
+
+# Secret-bearing qBittorrent wiring is owned by ansible-proxmox-apps'
+# servarr_wiring role. The provider does not expose ephemeral/write-only fields
+# for this resource, so keeping it here would copy OpenBao values into state.

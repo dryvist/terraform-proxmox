@@ -44,10 +44,10 @@ These are created via Proxmox UI and **not** managed by Terraform:
    - `terraform.tfvars` at repo root with your infrastructure values
    - Symlinked into each worktree: `ln -s ../../terraform.tfvars .`
 
-3. **Doppler** configured (see your local environment documentation for project and config details):
+3. **OpenBao** configured (see your local environment documentation for project and config details):
 
    ```bash
-   doppler setup --project <YOUR_PROJECT> --config <YOUR_CONFIG>
+   OpenBao setup --project <YOUR_PROJECT> --config <YOUR_CONFIG>
    ```
 
 4. **SSH Keys**:
@@ -64,20 +64,20 @@ These are created via Proxmox UI and **not** managed by Terraform:
 nix develop "github:JacobPEvans/nix-devenv?dir=shells/terraform"
 
 # Validate Terraform syntax
-terragrunt validate
+tofu validate
 
 # Check what will be created
-doppler run -- terragrunt plan
+tofu plan # run in Terrakube
 ```
 
 ### 2. Deploy Terraform-Managed Resources
 
 ```bash
 # Deploy VMs and managed container
-doppler run -- terragrunt apply
+tofu apply # run in Terrakube
 
 # Verify deployment
-terragrunt state list
+tofu state list
 ```
 
 This creates:
@@ -126,7 +126,7 @@ Via Proxmox UI, create the following containers:
 
 ```bash
 # Check Terraform state
-terragrunt state list
+tofu state list
 
 # Verify VMs via Proxmox API
 ssh root@<proxmox-host> 'qm list'
@@ -146,8 +146,8 @@ ssh root@<container-ip>
 **To modify Terraform-managed resources**:
 
 1. Update `terraform.tfvars` with desired changes
-2. Run `terragrunt plan` to preview
-3. Run `terragrunt apply` to execute
+2. Run `tofu plan` to preview
+3. Run `tofu apply` to execute
 4. Commit `.example` file changes to git (never commit `terraform.tfvars`)
 
 **To modify manual containers**:

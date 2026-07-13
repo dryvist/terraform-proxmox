@@ -177,7 +177,7 @@ variable "management_network" {
 }
 
 variable "ai_network" {
-  description = "CIDR of the AI VLAN — source scope for the Cribl Edge OTLP ingest (only AI-orchestration apps emit OpenTelemetry). Derived from the Doppler-sourced network_cidrs map in root locals; never committed."
+  description = "CIDR of the AI VLAN — source scope for the Cribl Edge OTLP ingest (only AI-orchestration apps emit OpenTelemetry). Derived from the OpenBao-sourced network_cidrs map in root locals; never committed."
   type        = string
 }
 
@@ -214,7 +214,7 @@ variable "network_cidrs" {
 }
 
 variable "internal_networks" {
-  description = "Internal CIDRs allowed through guest firewalls (SSH, service ports). No default — the real ranges come from Doppler via the root module and are never committed."
+  description = "Internal CIDRs allowed through guest firewalls (SSH, service ports). No default — the real ranges come from OpenBao via the root module and are never committed."
   type        = list(string)
 
   validation {

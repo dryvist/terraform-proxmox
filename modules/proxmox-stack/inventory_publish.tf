@@ -1,12 +1,12 @@
-# Native publish of the Ansible inventory to the terragrunt S3 backend.
+# Native publish of the Ansible inventory to the homelab RustFS service.
 #
-# `terragrunt apply` is the publish boundary: the aws_s3_object below uploads the
+# `tofu apply` is the publish boundary: the aws_s3_object below uploads the
 # inventory whenever its content changes — no shell script, no `aws` CLI. Any
 # consumer (CI via OIDC, cloud agents, ansible) fetches this object with scoped
 # read creds, with no checkout and no terraform toolchain.
 #
 # The AWS provider uses the same ambient credential chain as the S3 *state*
-# backend (terragrunt.hcl) — no static keys here.
+# backend (native root configuration) — no static keys here.
 
 locals {
   # The inventory value, shared by output.ansible_inventory and the publish
@@ -101,20 +101,14 @@ locals {
   }
 }
 
-# Same ambient credential chain as the S3 state backend (aws-vault locally, OIDC
-# in CI). Region matches the state bucket in terragrunt.hcl.
-provider "aws" {
-  region = "us-east-2"
-}
-
-data "aws_caller_identity" "current" {}
-
+# The inherited AWS provider targets homelab RustFS with ephemeral OpenBao
+# credentials configured by the Terrakube root workspace.
 # Publish point. The object updates only when the inventory content changes, and
 # only when this resource is in scope — a `-target` apply that excludes it does
 # not republish a partial inventory.
 resource "aws_s3_object" "ansible_inventory" {
-  bucket       = "terraform-proxmox-state-useast2-${data.aws_caller_identity.current.account_id}"
-  key          = "terraform-proxmox/inventory/ansible_inventory.json"
+  bucket       = var.inventory_bucket
+  key          = var.inventory_key
   content      = jsonencode(local.ansible_inventory)
   content_type = "application/json"
 

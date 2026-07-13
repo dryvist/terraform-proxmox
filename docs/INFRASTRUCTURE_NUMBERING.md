@@ -83,7 +83,7 @@ a **static** IP. An illustrative DNS secondary (the real IDs live only in `deplo
 - static `ip_config` `<dns-subnet>.3` (gateway `.1`, primary `.2`, secondary `.3`).
 
 > IP examples on this page use the `192.168.<vlan>.x` placeholder shape (committed-file rule);
-> real subnets come from Doppler `NETWORK_CIDR_*` at runtime and live only in the gitignored
+> real subnets come from OpenBao `NETWORK_CIDR_*` at runtime and live only in the gitignored
 > `deployment.json`. See [AGENTS.md](../AGENTS.md) for the config-file architecture.
 
 ---
@@ -162,4 +162,4 @@ Disk sizes are set in `deployment.json` (`splunk_boot_disk_size`, `splunk_data_d
 
 All guests, pools, and firewall rules are 100% Terraform-managed; the live set of resources is
 defined in `deployment.json` and surfaced to downstream Ansible via the `ansible_inventory`
-output. Deploy from scratch with `terragrunt apply`.
+output. Deploy from scratch with `tofu apply`.

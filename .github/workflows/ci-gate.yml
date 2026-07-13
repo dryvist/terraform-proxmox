@@ -85,6 +85,12 @@ jobs:
         run: tofu validate -no-color
       - name: OpenTofu Test
         run: tofu test -no-color
+      - name: OpenTofu Init (Proxmox stack module)
+        run: tofu init -backend=false
+        working-directory: modules/proxmox-stack
+      - name: OpenTofu Test (Proxmox stack module)
+        run: tofu test -no-color
+        working-directory: modules/proxmox-stack
 
   markdown-lint:
     name: Markdown Lint

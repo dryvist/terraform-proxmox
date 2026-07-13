@@ -77,7 +77,7 @@ The OpenBao guests currently follow **two conflicting schemes** in
 - **Live cluster = explicit** `openbao-01` / `openbao-02` entries in the
   `containers` map. These are the only nodes with a real `/etc/openbao` config
   and live Raft data.
-- **`openbao_cluster` generator** (expanded by Terragrunt) currently emits
+- **`openbao_cluster` generator** (expanded by OpenTofu) currently emits
   **five more** containers (suffixes 10/20/21/30/31). They exist as running
   LXCs but have **no OpenBao config** — orphan shells that were created and
   never converged. Because they carry the `openbao` tag, a full `openbao`
@@ -102,7 +102,7 @@ exactly the three real voters. Otherwise a converge joins the orphans too.
 1. Reconcile the orphans (disable generator / remove the 5 shells; drop
    `protection` so they are removable). Verify the `openbao` group resolves to
    exactly `openbao-01/02/03`.
-2. Add `openbao-03` to `deployment.json` (private S3 input) and `terragrunt
+2. Add `openbao-03` to `deployment.json` (private S3 input) and `tofu
    apply` (full apply, never `-target`) to create the LXC on `proxmox-4`.
 3. Converge the `openbao` group. `openbao-03` renders its config with
    `retry_join` to `.4/.5`, joins as a 3rd voter, and self-unseals via the

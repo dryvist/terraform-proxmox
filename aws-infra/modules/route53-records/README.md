@@ -56,8 +56,8 @@ Two additional record sets exist beyond the Proxmox A record above:
   authoritative for the guest subdomain only and forwards apex names to
   public resolvers.
 
-Both maps are populated by the parent `aws-infra/terragrunt.hcl` from
-`ROUTE53_CNAMES` / `ROUTE53_A_RECORDS` env vars (Doppler-sourced) — no
+Both maps are populated by the parent `aws-infra/native root configuration` from
+`ROUTE53_CNAMES` / `ROUTE53_A_RECORDS` env vars (private RustFS) — no
 hostname or IP literal is ever committed.
 
 ## Outputs
@@ -80,7 +80,7 @@ separated from the Proxmox infrastructure:
 terraform-proxmox/
 ├── aws-infra/                    # AWS resources (this module's parent)
 │   ├── main.tf                   # AWS provider and module calls
-│   ├── terragrunt.hcl            # Separate state management
+│   ├── native root configuration            # Separate state management
 │   └── modules/
 │       └── route53-records/      # This module
 │

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Test Proxmox API health before running Terraform operations
-# Run this script before terragrunt plan/apply to verify API connectivity
+# Run this script before tofu plan/apply to verify API connectivity
 set -euo pipefail
 
 echo "=== Proxmox API Health Check ==="
@@ -9,13 +9,13 @@ echo ""
 
 if [[ -z "${PROXMOX_VE_ENDPOINT:-}" ]]; then
   echo "ERROR: PROXMOX_VE_ENDPOINT is not set"
-  echo "Run: doppler run -- <this-script>"
+  echo "Run this check from an OpenBao-authenticated operator session."
   exit 1
 fi
 
 if [[ -z "${PROXMOX_VE_API_TOKEN:-}" ]]; then
   echo "ERROR: PROXMOX_VE_API_TOKEN is not set"
-  echo "Run: doppler run -- <this-script>"
+  echo "Run this check from an OpenBao-authenticated operator session."
   exit 1
 fi
 

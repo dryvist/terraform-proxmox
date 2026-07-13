@@ -26,18 +26,18 @@ Terraform (local) ──► BPG Proxmox Provider ──► Proxmox VE API
 | BPG Proxmox provider | Translates Terraform HCL into Proxmox API calls |
 | AWS Route53 | DNS-01 challenge: creates `_acme-challenge` TXT records |
 | `pve-daily-update.service` | Proxmox systemd service that renews certificates 30 days before expiry |
-| Doppler | Injects Route53 IAM credentials at deploy time and stores them in Proxmox |
+| OpenBao | Injects Route53 IAM credentials at deploy time and stores them in Proxmox |
 
 ### Secret Flow
 
 **Initial provisioning (Terraform apply):**
 
-1. Run: `aws-vault exec tf-proxmox -- doppler run -- terragrunt apply`
-2. Doppler injects `ROUTE53_ACCESS_KEY`, `ROUTE53_SECRET_KEY`, `ROUTE53_ZONE_ID`, `ACME_EMAIL`, `ACME_DOMAIN`
+1. Run: `tofu apply # run in Terrakube`
+2. OpenBao injects `ROUTE53_ACCESS_KEY`, `ROUTE53_SECRET_KEY`, `ROUTE53_ZONE_ID`, `ACME_EMAIL`, `ACME_DOMAIN`
 3. Terraform configures the BPG Proxmox DNS plugin via API
 4. Proxmox stores credentials in `/etc/pve/priv/acme/plugins.cfg` (encrypted cluster filesystem)
 
-**Automatic renewal (no Doppler required):**
+**Automatic renewal (no OpenBao required):**
 
 1. `pve-daily-update.service` runs daily
 2. Proxmox reads credentials from `/etc/pve/priv/acme/plugins.cfg`
@@ -47,9 +47,9 @@ Terraform (local) ──► BPG Proxmox Provider ──► Proxmox VE API
 
 ## Configuration Guide
 
-### Doppler Secrets
+### OpenBao Secrets
 
-Before applying, configure the following secrets in Doppler:
+Before applying, configure the following secrets in OpenBao:
 
 | Secret | Description |
 | --- | --- |
@@ -89,12 +89,12 @@ Minimum required IAM policy for Route53:
 
 ### Terraform Variables (`terraform.tfvars`)
 
-The Doppler secrets named `ROUTE53_ACCESS_KEY` / `ROUTE53_SECRET_KEY` are mapped to
+The OpenBao secrets named `ROUTE53_ACCESS_KEY` / `ROUTE53_SECRET_KEY` are mapped to
 the standard `AWS_*` keys that the BPG Proxmox provider expects via the
-[Doppler config name-transformer](https://docs.doppler.com/docs/cli-name-transformers)
+[OpenBao config name-transformer](https://docs.OpenBao.com/docs/cli-name-transformers)
 configured for this project. The Terraform variable `dns_plugins` then references
 those (now-canonically-named) secrets via the `TF_VAR_dns_plugins` env var that
-`doppler run -- terragrunt apply` injects — `terraform.tfvars` itself does not
+`tofu apply # run in Terrakube` injects — `terraform.tfvars` itself does not
 read environment variables.
 
 ```hcl
@@ -106,15 +106,15 @@ acme_accounts = {
   }
 }
 
-# dns_plugins is provided by Doppler as TF_VAR_dns_plugins (JSON), NOT in terraform.tfvars.
+# dns_plugins is provided by OpenBao as TF_VAR_dns_plugins (JSON), NOT in terraform.tfvars.
 # Example shape (do not commit literal credentials):
 #
 # dns_plugins = {
 #   "myroute53" = {
 #     plugin_type = "route53"
 #     data = {
-#       "AWS_ACCESS_KEY_ID"     = "<from doppler ROUTE53_ACCESS_KEY>"
-#       "AWS_SECRET_ACCESS_KEY" = "<from doppler ROUTE53_SECRET_KEY>"
+#       "AWS_ACCESS_KEY_ID"     = "<from OpenBao ROUTE53_ACCESS_KEY>"
+#       "AWS_SECRET_ACCESS_KEY" = "<from OpenBao ROUTE53_SECRET_KEY>"
 #       "AWS_DEFAULT_REGION"    = "us-east-1"
 #     }
 #   }
@@ -136,7 +136,7 @@ testing to avoid production rate limits.
 ### Applying
 
 ```bash
-aws-vault exec tf-proxmox -- doppler run -- terragrunt apply
+tofu apply # run in Terrakube
 ```
 
 ---
@@ -179,12 +179,12 @@ pvenode acme cert order
 
 If Route53 IAM credentials are rotated:
 
-1. Update secrets in Doppler
+1. Update secrets in OpenBao
 
 2. Re-apply Terraform to push new credentials to Proxmox:
 
    ```bash
-   aws-vault exec tf-proxmox -- doppler run -- terragrunt apply
+   tofu apply # run in Terrakube
    ```
 
 3. Verify Proxmox has the updated credentials:
@@ -208,17 +208,17 @@ If ACME resources were created manually in Proxmox before Terraform management w
 # so the resource addresses include the `[0]` index.
 
 # Import ACME account
-terragrunt run -- terraform import \
+tofu import \
   'module.acme_certificates[0].proxmox_virtual_environment_acme_account.accounts["letsencrypt"]' \
   'letsencrypt'
 
 # Import DNS plugin
-terragrunt run -- terraform import \
+tofu import \
   'module.acme_certificates[0].proxmox_virtual_environment_acme_dns_plugin.dns_plugins["myroute53"]' \
   'myroute53'
 
 # Import certificate (node name as the ID)
-terragrunt run -- terraform import \
+tofu import \
   'module.acme_certificates[0].proxmox_virtual_environment_acme_certificate.certificates["proxmox-1-cert"]' \
   'proxmox-1'
 ```
@@ -237,7 +237,7 @@ it cannot find the `_acme-challenge` TXT record.
 
 **Checks:**
 
-1. Verify Route53 IAM credentials in Doppler are valid
+1. Verify Route53 IAM credentials in OpenBao are valid
 2. Confirm IAM policy includes `route53:ChangeResourceRecordSets` and `route53:GetChange`
 
 3. Check DNS propagation:
@@ -268,7 +268,7 @@ it cannot find the `_acme-challenge` TXT record.
 
    ```bash
    # Re-apply Terraform to refresh credentials
-   aws-vault exec tf-proxmox -- doppler run -- terragrunt apply
+   tofu apply # run in Terrakube
    ```
 
 3. Confirm `pveproxy` is running:
@@ -286,7 +286,7 @@ it cannot find the `_acme-challenge` TXT record.
 1. Inspect imported state:
 
    ```bash
-   terragrunt run -- terraform state show \
+   tofu state show \
      'module.acme_certificates[0].proxmox_virtual_environment_acme_account.accounts["letsencrypt"]'
    ```
 

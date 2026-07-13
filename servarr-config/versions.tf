@@ -1,5 +1,13 @@
 terraform {
-  required_version = ">= 1.6"
+  required_version = ">= 1.11"
+
+  cloud {
+    organization = "dryvist"
+
+    workspaces {
+      name = "tofu-proxmox-servarr-config"
+    }
+  }
 
   required_providers {
     sonarr = {
@@ -9,6 +17,9 @@ terraform {
     radarr = {
       source  = "devopsarr/radarr"
       version = "~> 2.3"
+    }
+    vault = {
+      source = "hashicorp/vault"
     }
   }
 }

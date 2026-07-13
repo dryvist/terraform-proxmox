@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Doppler-integrated Packer build script for Splunk template
+# OpenBao-integrated Packer build script for Splunk template
 # Usage: ./packer-build.sh [init|build|validate]
 #
-# Doppler secrets use PROXMOX_VE_* naming (same as BPG Terraform provider)
+# Secret fields use the same names as the Packer variables.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -21,7 +21,7 @@ log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 # Check for required tools
 check_requirements() {
     local missing=()
-    command -v doppler >/dev/null 2>&1 || missing+=("doppler")
+    command -v bao >/dev/null 2>&1 || missing+=("bao")
     command -v packer >/dev/null 2>&1 || missing+=("packer")
 
     if [[ ${#missing[@]} -gt 0 ]]; then
@@ -30,9 +30,9 @@ check_requirements() {
     fi
 }
 
-# Validate that required Doppler secrets exist
+# Validate that required OpenBao fields exist
 validate_secrets() {
-    log_info "Validating Doppler secrets for Packer..."
+    log_info "Validating OpenBao secrets for Packer..."
 
     local required_secrets=(
         "PROXMOX_VE_ENDPOINT"
@@ -49,7 +49,7 @@ validate_secrets() {
 
     local missing=()
     local secrets
-    secrets=$(doppler secrets --json 2>/dev/null | jq -r 'keys[]')
+    secrets=$(bao kv get -format=json "${OPENBAO_PACKER_PATH:-secret/infrastructure/proxmox-packer}" | jq -r '.data.data | keys[]')
 
     for secret in "${required_secrets[@]}"; do
         if ! echo "$secrets" | grep -q "^${secret}$"; then
@@ -58,7 +58,7 @@ validate_secrets() {
     done
 
     if [[ ${#missing[@]} -gt 0 ]]; then
-        log_error "Missing required Doppler secrets: ${missing[*]}"
+        log_error "Missing required OpenBao fields: ${missing[*]}"
         exit 1
     fi
 
@@ -73,26 +73,29 @@ validate_secrets() {
     done
 
     if [[ ${#missing_optional[@]} -gt 0 ]]; then
-        log_warn "Missing optional Doppler secrets (add these for full functionality):"
+        log_warn "Missing optional OpenBao fields (add these for full functionality):"
         for secret in "${missing_optional[@]}"; do
             echo "  - $secret"
         done
     fi
 }
 
-# Run Packer command with Doppler secrets exported as PKR_VAR_* environment variables
+# Run Packer with OpenBao fields exported as PKR_VAR_* variables.
 run_packer_with_secrets() {
     local packer_command="$1"
+    local path="${OPENBAO_PACKER_PATH:-secret/infrastructure/proxmox-packer}"
+    local var value
+    local -a packer_args
 
-    doppler run -- bash -c '
-        # Transform secrets to PKR_VAR_* format for Packer
-        for var in PROXMOX_VE_ENDPOINT PKR_PVE_USERNAME PROXMOX_TOKEN PROXMOX_VE_NODE PROXMOX_VE_INSECURE SPLUNK_PASSWORD SPLUNK_DOWNLOAD_SHA512; do
-            if [[ -n "${!var:-}" ]]; then
-                export PKR_VAR_${var}="${!var}"
-            fi
-        done
-        '"$packer_command"'
-    '
+    for var in PROXMOX_VE_ENDPOINT PKR_PVE_USERNAME PROXMOX_TOKEN PROXMOX_VE_NODE PROXMOX_VE_INSECURE SPLUNK_PASSWORD SPLUNK_DOWNLOAD_SHA512; do
+        value=$(bao kv get -field="$var" "$path" 2>/dev/null || true)
+        if [[ -n "$value" ]]; then
+            export "PKR_VAR_${var}=$value"
+        fi
+    done
+
+    read -r -a packer_args <<< "$packer_command"
+    "${packer_args[@]}"
 }
 
 # Main
@@ -122,7 +125,7 @@ case "${1:-build}" in
         echo "  build     - Build the Splunk template"
         echo ""
         echo "Environment:"
-        echo "  Doppler secrets are mapped to Packer -var flags at runtime"
+        echo "  OpenBao fields are mapped to PKR_VAR_* at runtime"
         exit 1
         ;;
 esac

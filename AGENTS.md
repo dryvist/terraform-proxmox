@@ -1,6 +1,6 @@
 # Terraform Proxmox — AI Agent Documentation
 
-Infrastructure-as-code for the Proxmox VE homelab using Terraform/Terragrunt.
+Infrastructure-as-code for the Proxmox VE homelab using Terraform/OpenTofu.
 This is the **infrastructure layer**; downstream Ansible repos handle
 configuration management.
 
@@ -15,65 +15,40 @@ yourself suggesting deprecated features, stop and research first.
 
 | Tool | Role |
 | --- | --- |
-| Terraform / Terragrunt | Infrastructure provisioning, state in S3 + DynamoDB locking |
+| OpenTofu + Terrakube | Infrastructure provisioning, state, workspace locking, and run audit |
 | Ansible | Configuration management (downstream repos), tested via Molecule |
 | Python 3.12+ | Required by Ansible tooling |
 | GitHub Actions | CI/CD (`.github/workflows/`) |
-| Nix shell + direnv | Reproducible toolchain (terragrunt, opentofu, terraform-docs, tflint, tfsec, trivy, sops, age, awscli2, jq, yq, pre-commit) — auto-activates on `cd` |
-| aws-vault | AWS credentials for the S3 state backend |
-| Doppler | Runtime credentials (`PROXMOX_VE_*`, `PROXMOX_SSH_*`, `SPLUNK_*`) |
-| SOPS + age | Git-committed encrypted env-specific config (`terraform.sops.json`) |
+| Nix shell + direnv | Reproducible static-validation toolchain |
+| OpenBao | Native workload identity and ephemeral provider credentials |
+| RustFS | Private desired-state and Ansible inventory objects |
 
-## Running Terraform / Terragrunt
+## Running Terraform / OpenTofu
 
-All commands run through the toolchain wrapper:
-
-```bash
-aws-vault exec tf-proxmox -- doppler run -- terragrunt <COMMAND>
-```
-
-### Common commands
+Static checks run locally without credentials:
 
 ```bash
-doppler run -- terragrunt validate
-doppler run -- terragrunt plan
-doppler run -- terragrunt apply
-doppler run -- terragrunt show
+tofu init -backend=false
+tofu validate
+tofu test
 ```
 
-The SOPS age key is set up per host today (`age-keygen`); a portable, backed-up
-home for it (so a fresh host, including Linux cloud agents, can decrypt
-`terraform.sops.json` off-macOS) is a planned per-host improvement.
-
-Secrets follow the **four-tier hierarchy** — SOPS+age (T1), OpenBao (T2, the
-primary machine/AI runtime engine + flow-lock authority), Doppler (T3, strict
-secret-zero), Bitwarden (T4, human-only). Proton Pass as a cross-repo
-root-of-trust + AI keychain is **superseded** (out of the machine architecture).
-See [`docs/SECRETS_ROADMAP.md`](./docs/SECRETS_ROADMAP.md).
-
-The BPG Proxmox provider reads `PROXMOX_VE_*` env vars directly — no
-`--name-transformer` needed. The Nix shell activates via direnv (`.envrc`).
+Plans, applies, imports, and state operations run only in the private Terrakube
+workspace. OpenBao workload identity is the sole machine-secret path.
 
 ## Config-file architecture (single source of truth)
 
 ```text
-deployment.json          (private s3, fetched)  — containers, VMs, pools, proxmox_node
-terraform.sops.json      (committed, encrypted) — network_prefix, domain, vm_ssh_*_key_path, proxmox_ssh_username
-Doppler env vars         (runtime only)         — PROXMOX_VE_*, SPLUNK_*, SSH key content
-locals.tf derivations    (computed)             — management_network, splunk_network_ips
+deployment.json (private RustFS) — desired state, topology, domain, public key
+OpenBao KV                       — provider and SSH credentials
+locals.tf derivations            — management_network, splunk_network_ips
 ```
 
 - `deployment.json` — resource definitions (containers, VMs, pools, sizing).
-  Private, not committed; fetched from the on-prem `s3` store at plan/apply. See
+  Private, not committed; fetched from homelab RustFS at plan/apply. See
   [`deployment-json-source-of-truth`](agentsmd/rules/infra/deployment-json-source-of-truth.md).
-- `terraform.sops.json` — five env-specific values: `network_prefix`,
-  `domain`, `vm_ssh_public_key_path`, `vm_ssh_private_key_path`,
-  `proxmox_ssh_username`. Decrypted automatically by Terragrunt.
-- Doppler — credentials at runtime (provider auth + SSH key content).
-- The SOPS **age private key** is set up per host today (`age-keygen`). A
-  portable, backed-up home for it (so SOPS decryption works on Linux/cloud agents
-  too) is a planned per-host improvement; the earlier Proton Pass proposal for
-  this is superseded.
+- OpenBao native KV paths supply credentials through ephemeral resources; they
+  are never copied into Terrakube variables or desired-state objects.
 - `management_network` and `splunk_network` are derived in `locals.tf` and
   must never be set manually.
 
@@ -81,9 +56,7 @@ locals.tf derivations    (computed)             — management_network, splunk_n
 > exist. It silently overrides `deployment.json` due to Terraform variable
 > precedence. If it exists in your worktree, delete it: `rm terraform.tfvars`.
 
-See [`docs/SOPS_SETUP.md`](./docs/SOPS_SETUP.md) for full setup and usage.
-
-### Doppler secret naming (BPG standard)
+### OpenBao Proxmox secret fields
 
 | Secret | Purpose |
 | --- | --- |
@@ -153,11 +126,11 @@ To sync manually after importing state without applying, see
 Static checks (`tofu fmt -check`, `tofu validate`, `tofu test`) run
 automatically in pre-commit and CI — no manual invocation needed.
 
-Credentialed operations (`terragrunt plan` against the live state
-backend, `terragrunt apply`) only run in CI under OIDC, or interactively
+Credentialed operations (`tofu plan` against the live state
+backend, `tofu apply`) only run in CI under OIDC, or interactively
 when explicitly preparing to apply. Do not gate commits on them.
 
-> **Never run `terragrunt apply -target=...`.** A partial apply still runs
+> **Never run `tofu apply -target=...`.** A partial apply still runs
 > the `after_hook` inventory publish (see above) with an incomplete
 > `ansible_inventory`, overwriting the full published artifact and the
 > downstream mirror PR that all three consumer repos read. Always apply the
@@ -180,8 +153,8 @@ For slow operations and "context deadline exceeded" debugging:
 
 - Modular resource definitions; document variables with descriptions +
   validation; mark secrets `sensitive = true`.
-- Remote state encrypted (S3 + DynamoDB).
-- Never update VMs directly; use Terragrunt or Ansible.
+- Terrakube state encrypted and restricted to workspace-scoped identities.
+- Never update VMs directly; use OpenTofu or Ansible.
 - Ansible: roles under `ansible/roles/` with Molecule tests; collections
   pinned in `ansible/requirements.yml`; config in `ansible/.ansible-lint`
   (profile: production).
@@ -196,7 +169,7 @@ For slow operations and "context deadline exceeded" debugging:
 | Architecture (canonical) | [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) |
 | Secrets roadmap | [`docs/SECRETS_ROADMAP.md`](./docs/SECRETS_ROADMAP.md) |
 | Secrets hierarchy & RBAC (OpenBao KV layout, AI-agent groups) | [`docs/SECRETS_HIERARCHY.md`](./docs/SECRETS_HIERARCHY.md) |
-| SOPS / age setup | [`docs/SOPS_SETUP.md`](./docs/SOPS_SETUP.md) |
+| Secrets architecture | [`docs/SECRETS_ROADMAP.md`](./docs/SECRETS_ROADMAP.md) |
 | Network-quality monitoring (SmokePing) | [`docs/SMOKEPING.md`](./docs/SMOKEPING.md) |
 | Honeypots / deception fabric + phone alerting | [`docs/HONEYPOTS.md`](./docs/HONEYPOTS.md) |
 | Per-WAN network diagnosis (modem/WAN telemetry) | [`docs/NETWORK_DIAGNOSIS.md`](./docs/NETWORK_DIAGNOSIS.md) |
@@ -245,7 +218,7 @@ Stop and ask before proceeding if any of the following are true:
 
 - [ ] No exposed secrets or credentials.
 - [ ] Variables documented; `sensitive = true` where appropriate.
-- [ ] `terragrunt validate` passes.
+- [ ] `tofu validate` passes.
 - [ ] `ansible-lint` passes (if Ansible touched).
 - [ ] `molecule test` passes (if Ansible roles touched).
 - [ ] Conventional commit message.

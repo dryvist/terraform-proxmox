@@ -22,27 +22,41 @@ variable "proxmox_ssh_username" {
   description = "The SSH username for connecting to the Proxmox node (for cloud-init, etc.)"
   type        = string
   default     = "root@pam"
+  ephemeral   = true
 }
 
 variable "proxmox_ssh_private_key" {
-  description = "The SSH private key content for connecting to the Proxmox node (use secure parameter store or environment variable)"
+  description = "Ephemeral SSH private key content for connecting to the Proxmox node"
   type        = string
   sensitive   = true
-  default     = "~/.ssh/id_rsa"
+  ephemeral   = true
   validation {
-    condition     = can(regex("^(~/.ssh/|/.*|-----BEGIN)", var.proxmox_ssh_private_key))
-    error_message = "SSH private key must be either a file path starting with ~/ or /, or the actual key content starting with -----BEGIN."
+    condition     = can(regex("^-----BEGIN", trimspace(var.proxmox_ssh_private_key)))
+    error_message = "SSH private key must be PEM/OpenSSH private-key content."
   }
 }
 
 variable "proxmox_ssh_host" {
-  description = "Hostname or IP for SSH access to the Proxmox node. Used by the acme-certificate module's null_resource provisioner to deliver issued certs to LXCs/VMs. Sourced from PROXMOX_VE_HOSTNAME via Doppler/terragrunt."
+  description = "Hostname or IP for SSH access to the Proxmox node. Used by the acme-certificate module's null_resource provisioner to deliver issued certs to LXCs/VMs. Sourced from PROXMOX_VE_HOSTNAME via OpenBao/tofu."
   type        = string
   default     = ""
+  ephemeral   = true
+}
+
+variable "inventory_bucket" {
+  description = "RustFS bucket receiving the published Ansible inventory"
+  type        = string
+  default     = "iac-inventory"
+}
+
+variable "inventory_key" {
+  description = "RustFS object key receiving the published Ansible inventory"
+  type        = string
+  default     = "ansible_inventory.json"
 }
 
 # Proxmox cluster nodes. Keyed by Proxmox node_name (e.g. "proxmox-1", "proxmox-2", "proxmox-3").
-# Non-secret identity only — real management/BMC IPs live in terraform.sops.json
+# Non-secret identity only — real management/BMC IPs live in private RustFS deployment object
 # (see the rack_server_cluster module). A node with commissioned = false is
 # declared but not yet installed: no workloads are placed on it and its
 # node_storage is not applied until it is brought online.

@@ -1,10 +1,10 @@
 # ==============================================================================
-# SECRET VARIABLES - Injected from Doppler as PKR_VAR_* environment variables
+# SECRET VARIABLES - Injected from OpenBao as PKR_VAR_* environment variables
 # ==============================================================================
-# All Doppler secrets are exported as PKR_VAR_* environment variables.
+# OpenBao fields are exported as PKR_VAR_* environment variables.
 # Packer automatically reads PKR_VAR_<name> and maps to variable <name>.
 #
-# Required Doppler secrets:
+# Required OpenBao fields:
 #   PROXMOX_VE_ENDPOINT       - API endpoint URL
 #   PKR_PVE_USERNAME          - Composed as: ${PROXMOX_VE_USERNAME}@realm!${PROXMOX_TOKEN_ID}
 #   PROXMOX_TOKEN             - Just the secret UUID

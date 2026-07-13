@@ -191,7 +191,7 @@ diagnostics and `netflow` flow indexes are each capped at **50GB** (`51200`).
 
 ## HEC Token Configuration
 
-The Splunk HEC token is stored in Doppler as `SPLUNK_HEC_TOKEN`.
+The Splunk HEC token is stored in OpenBao as `SPLUNK_HEC_TOKEN`.
 
 **HEC settings**:
 

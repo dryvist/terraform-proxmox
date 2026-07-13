@@ -18,8 +18,8 @@ The module does **not** manage Route53 hosted zones (see `aws-infra/` for that).
 - Proxmox VE node with cluster-level ACME support (PVE 7.x+).
 - BPG Proxmox provider `~> 0.106`, hashicorp/null `~> 3.2`.
 - A reachable ACME directory (Let's Encrypt prod or staging).
-- A DNS-01 challenge provider (this repo uses AWS Route53; credentials must live in SOPS or
-  Doppler, never plaintext).
+- A DNS-01 challenge provider (this repo uses AWS Route53; credentials must live in private RustFS or
+  OpenBao, never plaintext).
 - SSH access from the Terraform-runner host to the Proxmox node (`var.proxmox_ssh_host`,
   `var.proxmox_ssh_username`, `var.proxmox_ssh_private_key`).
 - For VM delivery destinations: SSH access from the Proxmox node to each VM's `target_ip` as
@@ -43,8 +43,8 @@ module "acme_certificates" {
     AWS = {
       plugin_type = "aws"
       data = {
-        AWS_ACCESS_KEY_ID     = "<from SOPS>"
-        AWS_SECRET_ACCESS_KEY = "<from SOPS>"
+        AWS_ACCESS_KEY_ID     = "<from private RustFS>"
+        AWS_SECRET_ACCESS_KEY = "<from private RustFS>"
       }
     }
   }
@@ -97,7 +97,7 @@ ToS URL (drift on `tos` is ignored via lifecycle).
 ### `dns_plugins`
 
 `data` is a free-form map carrying provider credentials. For Route53:
-`{ AWS_ACCESS_KEY_ID = "...", AWS_SECRET_ACCESS_KEY = "..." }`. Must come from SOPS/Doppler.
+`{ AWS_ACCESS_KEY_ID = "...", AWS_SECRET_ACCESS_KEY = "..." }`. Must come from private RustFS/OpenBao.
 
 ### `acme_certificates`
 
@@ -125,9 +125,9 @@ Validation: each destination must set **either** `bundle_path` **or** both `cert
 
 ### `proxmox_ssh_host` / `proxmox_ssh_username` / `proxmox_ssh_private_key`
 
-SSH credentials for the cert-delivery null_resource. Sourced from Doppler
+SSH credentials for the cert-delivery null_resource. Sourced from OpenBao
 (`PROXMOX_VE_HOSTNAME`, `PROXMOX_SSH_USERNAME`, `PROXMOX_SSH_PRIVATE_KEY`) and threaded through
-`terragrunt.hcl` → root `main.tf`.
+`native root configuration` → root `main.tf`.
 
 ## Delivery model
 
@@ -163,25 +163,25 @@ import them before the first `apply`:
 cd <repo>/main
 
 # 1. Account — name from `pvesh get /cluster/acme/account` (default in homelab is "default")
-doppler run -- terragrunt run -- import \
+tofu import \
   'module.acme_certificates[0].proxmox_acme_account.accounts["default"]' \
   'default'
 
 # 2. DNS plugin — name from `pvesh get /cluster/acme/plugins`
-doppler run -- terragrunt run -- import \
+tofu import \
   'module.acme_certificates[0].proxmox_acme_dns_plugin.dns_plugins["AWS"]' \
   'AWS'
 
 # 3. Certificate — ID is the node name
-doppler run -- terragrunt run -- import \
+tofu import \
   'module.acme_certificates[0].proxmox_acme_certificate.certificates["proxmox-1"]' \
   'proxmox-1'
 ```
 
-After import, run `terragrunt plan`. Expected diff:
+After import, run `tofu plan`. Expected diff:
 
 - **Account**: zero changes (assuming HCL email/directory/tos match).
-- **DNS plugin**: zero changes if HCL `data` matches what's stored in PVE. Update SOPS to match
+- **DNS plugin**: zero changes if HCL `data` matches what's stored in PVE. Update private RustFS to match
   if there's drift.
 - **Certificate**: drift on `domains` if you're adding SANs in HCL that weren't on the live
   cert. Apply triggers re-issuance with the new SAN list.
@@ -207,15 +207,15 @@ ssh root@<pve-host> 'journalctl -u pve-daily-update.service --since "7 days ago"
 ssh root@<pve-host> 'pvenode acme cert order'
 ```
 
-When Proxmox renews, the next `terragrunt apply` (or any plan that refreshes the `null_resource`
+When Proxmox renews, the next `tofu apply` (or any plan that refreshes the `null_resource`
 triggers) will re-push the cert to every destination automatically.
 
 ## Troubleshooting
 
 | Symptom | Likely cause |
 | --- | --- |
-| Plan wants to recreate the account | `tos` or `directory` mismatch — update SOPS to match the live account |
-| Plan wants to recreate the DNS plugin | `data` map drift (AWS key rotated outside Terraform) — update SOPS |
+| Plan wants to recreate the account | `tos` or `directory` mismatch — update private RustFS to match the live account |
+| Plan wants to recreate the DNS plugin | `data` map drift (AWS key rotated outside Terraform) — update private RustFS |
 | Cert order fails with DNS validation | Route53 IAM perms insufficient, or wrong zone; check `journalctl -u pveproxy` |
 | `pct push` fails with "no such file" | Target directory doesn't exist — module auto-`mkdir -p`s but check the path |
 | `scp` to VM fails with auth error | PVE node lacks SSH access to the VM as `root`; check `~/.ssh/authorized_keys` |

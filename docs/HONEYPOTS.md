@@ -125,7 +125,7 @@ Tag-driven, wired through `modules/firewall` (see `honeypot_rules.tf`,
 
 ## Alerting setup (secrets)
 
-The apprise gateway loads its targets from Doppler at runtime — **never
+The apprise gateway loads its targets from OpenBao at runtime — **never
 committed**:
 
 - `SLACK_WEBHOOK_URL` (or `APPRISE_SLACK_*`) — Slack incoming webhook.
@@ -167,7 +167,7 @@ untrusted segment and never holds anything real.
 ## Verification
 
 1. `tofu fmt -check`, `tofu validate`, `tofu test` (root + `modules/firewall`).
-2. `terragrunt plan` — expect the tripwire LXCs + notify CTs + T-Pot VMs + the
+2. `tofu plan` — expect the tripwire LXCs + notify CTs + T-Pot VMs + the
    `honeypot-svc`/`honeypot-notify-svc` groups + `security` pool, with
    `node_name` per the placement table and no changes to existing resources.
 3. **End-to-end:** from a host on any VLAN, `nmap -sT <tripwire-fqdn>` or
