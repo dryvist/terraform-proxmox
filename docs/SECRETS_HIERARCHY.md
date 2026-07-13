@@ -7,7 +7,6 @@ native paths listed in [SECRETS_ROADMAP.md](./SECRETS_ROADMAP.md).
 - `tofu-proxmox` reads Proxmox and RustFS credentials.
 - `tofu-proxmox-aws-infra` requests its Route53 STS role.
 - `tofu-proxmox-servarr-config` reads only media application fields.
-- `tofu-proxmox-vault-secrets` writes only its application-secret prefixes.
 - Platform bootstrap roles cannot read application values.
 
 Human recovery credentials stay outside routine machine execution. Never copy

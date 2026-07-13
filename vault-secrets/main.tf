@@ -1,15 +1,10 @@
 terraform {
   required_version = ">= 1.11"
 
-  # organization and hostname are intentionally omitted: OpenTofu reads them
-  # from TF_CLOUD_ORGANIZATION / TF_CLOUD_HOSTNAME so this file carries no
-  # environment-specific value.
-  cloud {
-    workspaces {
-      name = "tofu-proxmox-vault-secrets"
-    }
-  }
-
+  # No Terrakube cloud{} block: this root writes secret/apps/* and must not run
+  # under a Terrakube machine identity (OpenBao admin-write gate). Its backend
+  # and auth are unresolved pending a lead decision on its home — see the PR
+  # note. It is NOT a Terrakube workspace.
   required_providers {
     vault = {
       source  = "hashicorp/vault"
