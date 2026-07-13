@@ -7,7 +7,7 @@ variable "openbao_kv_mount" {
 variable "openbao_object_storage_path" {
   description = "Native OpenBao KV path containing RustFS S3 endpoint and credentials"
   type        = string
-  default     = "infrastructure/terrakube/object-storage"
+  default     = "platform/object-storage"
 }
 
 variable "openbao_proxmox_path" {

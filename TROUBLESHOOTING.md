@@ -16,7 +16,7 @@ token.
 ## RustFS desired state cannot be read
 
 Check the native OpenBao path
-`secret/infrastructure/terrakube/object-storage`, RustFS DNS/TLS reachability,
+`secret/platform/object-storage`, RustFS DNS/TLS reachability,
 and the `iac-inventory/deployment.json` object. The configuration fails closed;
 never substitute an empty object.
 

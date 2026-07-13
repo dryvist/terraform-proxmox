@@ -16,7 +16,7 @@ secrets and provider credentials are not stored in Terrakube.
 | Path | Consumer | Contents |
 | --- | --- | --- |
 | `secret/infrastructure/proxmox` | `tofu-proxmox` | Proxmox API, PVE SSH, and VM SSH credentials |
-| `secret/infrastructure/terrakube/object-storage` | infrastructure workspaces | RustFS endpoint and credentials |
+| `secret/platform/object-storage` | infrastructure workspaces | RustFS endpoint and credentials |
 | `aws/creds/tf-proxmox` | `tofu-proxmox-aws-infra` | Dynamic Route53 STS credentials |
 | `secret/apps/media` | `tofu-proxmox-servarr-config` | Sonarr/Radarr endpoints and API keys |
 | `secret/infrastructure/proxmox-packer` | approved Packer operator | Packer-only Proxmox and Splunk fields |

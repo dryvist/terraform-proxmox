@@ -16,7 +16,7 @@ workspace variables.
 | --- | --- |
 | Private RustFS `deployment.json` | Desired state, topology, domain, and public SSH key |
 | OpenBao `secret/infrastructure/proxmox` | Proxmox API and SSH credentials |
-| OpenBao `secret/infrastructure/terrakube/object-storage` | RustFS endpoint and credentials |
+| OpenBao `secret/platform/object-storage` | RustFS endpoint and credentials |
 
 Every apply publishes `ansible_inventory.json` back to RustFS through the
 OpenTofu resource graph. Terrakube workspace locking replaces the former
