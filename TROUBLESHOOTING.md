@@ -46,6 +46,16 @@ Confirm Terrakube is down, hold the `flow-lock --flow tofu-breakglass` lease (on
 operator), snapshot with `tofu state pull` first, and run a full plan (never
 `-target`). Return to Terrakube runs once the platform is healthy.
 
+### Retired `vault-secrets` root
+
+The `vault-secrets` OpenTofu root was removed. Its live state is intentionally
+**abandoned** in the legacy S3 backend (retained 30 days, then deleted with the
+rest of the legacy estate) — this is a **0-destroy** change: no `tofu destroy`
+runs, and the KV secrets it wrote (`secret/apps/{nautobot,zammad}`) are untouched
+in OpenBao. Generation of those app secrets now belongs to the human-gated
+`openbao` Ansible role (`ansible-proxmox-apps`, generate-if-absent), so nothing
+needs to import or re-apply the abandoned state.
+
 ## Provider installation without internet
 
 Terrakube executors use the homelab provider/module mirror configured by the
