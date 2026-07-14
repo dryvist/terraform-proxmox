@@ -547,6 +547,27 @@ run "outbound_https_is_tcp_443_only" {
   }
 }
 
+run "outbound_http_is_tcp_80_only" {
+  command = plan
+  module {
+    source = "./"
+  }
+  variables {
+    node_name         = "pve1"
+    internal_networks = ["10.0.0.0/8"]
+  }
+
+  assert {
+    condition     = length(local.outbound_http_rules) == 1
+    error_message = "outbound_http_rules must contain exactly one rule, got ${length(local.outbound_http_rules)}"
+  }
+
+  assert {
+    condition     = local.outbound_http_rules[0].proto == "tcp" && local.outbound_http_rules[0].dport == "80"
+    error_message = "outbound_http_rules[0] must be TCP 80, got proto='${local.outbound_http_rules[0].proto}' dport='${local.outbound_http_rules[0].dport}'"
+  }
+}
+
 run "openbao_receives_outbound_https" {
   command = plan
 
