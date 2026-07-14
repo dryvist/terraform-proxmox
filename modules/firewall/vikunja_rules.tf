@@ -75,5 +75,15 @@ resource "proxmox_virtual_environment_firewall_rules" "vikunja_container" {
     comment        = "Outbound to internal only"
   }
 
+  rule {
+    security_group = proxmox_virtual_environment_cluster_firewall_security_group.outbound_https.name
+    comment        = "Outbound HTTPS (OIDC SSO discovery and API calls)"
+  }
+
+  rule {
+    security_group = proxmox_virtual_environment_cluster_firewall_security_group.outbound_http.name
+    comment        = "Outbound HTTP (OCSP/CRL checks during TLS handshake)"
+  }
+
   depends_on = [proxmox_virtual_environment_firewall_options.vikunja_container]
 }
