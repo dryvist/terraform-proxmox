@@ -24,7 +24,9 @@ terraform {
 # Terrakube exchanges its per-run workload identity for VAULT_TOKEN. OpenBao's
 # AWS secrets engine then mints a short-lived STS session. The ephemeral block
 # guarantees that the credentials are not persisted in a plan or state.
-provider "vault" {}
+provider "vault" {
+  skip_child_token = true
+}
 
 ephemeral "vault_aws_access_credentials" "route53" {
   mount  = var.openbao_aws_mount

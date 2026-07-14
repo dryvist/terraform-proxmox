@@ -4,7 +4,9 @@
 # and is handled separately (see README); TRaSH custom-formats/quality come from
 # Configarr.
 
-provider "vault" {}
+provider "vault" {
+  skip_child_token = true
+}
 
 # Terrakube supplies a short-lived OpenBao token from its workload identity.
 # The media credentials exist only for this run and never enter plan or state.
