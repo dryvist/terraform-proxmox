@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.67.2](https://github.com/dryvist/tofu-proxmox/compare/v1.67.1...v1.67.2) (2026-07-14)
+
+
+### Bug Fixes
+
+* **vault:** set skip_child_token to true on vault providers ([#651](https://github.com/dryvist/tofu-proxmox/issues/651)) ([29c2d2d](https://github.com/dryvist/tofu-proxmox/commit/29c2d2d02e7cb5406336b7c81517c27768cb71c6))
+
 ## [1.67.1](https://github.com/dryvist/tofu-proxmox/compare/v1.67.0...v1.67.1) (2026-07-14)
 
 
