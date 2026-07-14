@@ -10,6 +10,21 @@ read Proxmox, SSH, Route53, and RustFS credentials with native ephemeral
 resources; no credential is stored in repository configuration or Terrakube
 workspace variables.
 
+## Installation
+
+This repo is consumed by CI and Terrakube, not installed. For local static
+checks, the Nix dev shell provides `tofu` via direnv:
+
+```bash
+direnv allow
+```
+
+## Usage
+
+Static checks run locally without credentials; credentialed plans and
+applies run remotely — see [How to apply / redeploy](#how-to-apply--redeploy)
+below.
+
 ## Configuration
 
 | Source | Contents |
@@ -39,6 +54,21 @@ tofu -chdir=modules/proxmox-stack test
 
 Credentialed plans, applies, imports, and state operations run only in the
 private `tofu-proxmox` Terrakube workspace.
+
+## How to apply / redeploy
+
+Authenticate once per machine, then plan and apply like any other `tofu`
+command — the run executes remotely on a Terrakube executor, so no local
+Proxmox, AWS, or GitHub credential is ever needed:
+
+```bash
+tofu login terrakube-api.<domain>   # one-time per machine
+tofu init
+tofu apply
+```
+
+Full runbook (access model, credential lifecycle, token scoping):
+[docs.jacobpevans.com/infrastructure/applying-via-terrakube](https://docs.jacobpevans.com/infrastructure/applying-via-terrakube).
 
 ## Documentation
 
