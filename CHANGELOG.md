@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.67.0](https://github.com/dryvist/tofu-proxmox/compare/v1.66.0...v1.67.0) (2026-07-13)
+
+
+### Features
+
+* **firewall:** allow OpenBao HTTPS egress ([#634](https://github.com/dryvist/tofu-proxmox/issues/634)) ([6238ce8](https://github.com/dryvist/tofu-proxmox/commit/6238ce819fed709637dc46eb30bda0220ae99e70))
+
 ## [1.66.0](https://github.com/dryvist/tofu-proxmox/compare/v1.65.1...v1.66.0) (2026-07-12)
 
 

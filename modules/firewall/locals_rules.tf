@@ -132,6 +132,10 @@ locals {
     { proto = "tcp", dport = "443", dest = null, comment = "Outbound HTTPS — Cribl license telemetry (CDN-fronted, no stable dest CIDR)" },
   ]
 
+  outbound_http_rules = [
+    { proto = "tcp", dport = "80", dest = null, comment = "Outbound HTTP to anywhere" },
+  ]
+
   # iDRAC KVM: inbound noVNC HTTP ports from internal; egress reuses outbound_internal
   idrac_kvm_services_rules = [
     { proto = "tcp", dport = tostring(local.svc_ports.idrac_kvm_r410), source = local.internal_src, comment = "iDRAC HTML5 KVM R410 (TCP ${local.svc_ports.idrac_kvm_r410}) from internal" },

@@ -75,7 +75,17 @@ resource "proxmox_virtual_environment_firewall_rules" "zammad_container" {
 
   rule {
     security_group = proxmox_virtual_environment_cluster_firewall_security_group.outbound_internal.name
-    comment        = "Outbound to internal only"
+    comment        = "Outbound to internal services (DNS/LDAP/NTP/Postgres/Redis/Elasticsearch)"
+  }
+
+  rule {
+    security_group = proxmox_virtual_environment_cluster_firewall_security_group.outbound_https.name
+    comment        = "Outbound HTTPS (OIDC SSO discovery, updates, webhooks)"
+  }
+
+  rule {
+    security_group = proxmox_virtual_environment_cluster_firewall_security_group.outbound_http.name
+    comment        = "Outbound HTTP (OCSP/CRL checks during TLS handshake)"
   }
 
   depends_on = [proxmox_virtual_environment_firewall_options.zammad_container]

@@ -81,5 +81,10 @@ resource "proxmox_virtual_environment_firewall_rules" "nautobot_container" {
     comment        = "Outbound HTTPS (PyPI package installs during converge)"
   }
 
+  rule {
+    security_group = proxmox_virtual_environment_cluster_firewall_security_group.outbound_http.name
+    comment        = "Outbound HTTP (OCSP/CRL checks during TLS handshake)"
+  }
+
   depends_on = [proxmox_virtual_environment_firewall_options.nautobot_container]
 }

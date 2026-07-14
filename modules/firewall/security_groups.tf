@@ -182,6 +182,23 @@ resource "proxmox_virtual_environment_cluster_firewall_security_group" "outbound
   }
 }
 
+resource "proxmox_virtual_environment_cluster_firewall_security_group" "outbound_http" {
+  name    = "outbound-http"
+  comment = "Allow outbound HTTP (TCP 80) to any destination for explicitly attached workloads (see locals.outbound_http_rules)"
+
+  dynamic "rule" {
+    for_each = local.outbound_http_rules
+    content {
+      type    = "out"
+      action  = "ACCEPT"
+      proto   = rule.value.proto
+      dport   = rule.value.dport
+      dest    = rule.value.dest
+      comment = rule.value.comment
+    }
+  }
+}
+
 resource "proxmox_virtual_environment_cluster_firewall_security_group" "notification_services" {
   name    = "notification-svc"
   comment = "Notification service ports: Mailpit SMTP (1025), Mailpit Web (8025), ntfy HTTP (8080) from internal networks"
