@@ -29,7 +29,9 @@ terraform {
 # Terrakube supplies a short-lived OpenBao token through its native workload
 # identity integration. No AppRole secret or long-lived token is stored in the
 # workspace.
-provider "vault" {}
+provider "vault" {
+  skip_child_token = true
+}
 
 ephemeral "vault_kv_secret_v2" "object_storage" {
   mount = var.openbao_kv_mount
