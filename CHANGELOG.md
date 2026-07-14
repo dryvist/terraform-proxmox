@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.67.2](https://github.com/dryvist/tofu-proxmox/compare/v1.67.1...v1.67.2) (2026-07-14)
+
+
+### Bug Fixes
+
+* **vault:** set skip_child_token to true on vault providers ([#651](https://github.com/dryvist/tofu-proxmox/issues/651)) ([29c2d2d](https://github.com/dryvist/tofu-proxmox/commit/29c2d2d02e7cb5406336b7c81517c27768cb71c6))
+
+## [1.67.1](https://github.com/dryvist/tofu-proxmox/compare/v1.67.0...v1.67.1) (2026-07-14)
+
+
+### Bug Fixes
+
+* add outbound_http rules to fix TLS connection hangs on Traefik backends ([a7ada6d](https://github.com/dryvist/tofu-proxmox/commit/a7ada6d33c957ba85e12124eb9f61c54134791cb))
+* add outbound_http to fix Traefik backend timeouts ([238bb2e](https://github.com/dryvist/tofu-proxmox/commit/238bb2e9c1762ff26bc21fcd85ac2a092715ce0d))
+* add outbound_https rule to vikunja firewall to prevent 504 timeout on OIDC requests ([8fe638b](https://github.com/dryvist/tofu-proxmox/commit/8fe638bff34ae86f7d7c8c183f7b314d4a0b4d45))
+
 ## [1.67.0](https://github.com/dryvist/tofu-proxmox/compare/v1.66.0...v1.67.0) (2026-07-13)
 
 
