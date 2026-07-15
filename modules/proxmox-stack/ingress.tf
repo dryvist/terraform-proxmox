@@ -21,7 +21,6 @@ locals {
     phpipam          = { backend = "phpipam", port = local.pipeline_constants.service_ports.phpipam_web }
     nautobot         = { backend = "nautobot", port = local.pipeline_constants.service_ports.nautobot_web } # native IPAM/DCIM UI; Postgres has NO ingress row (in-cluster 5432 only)
     vikunja          = { backend = "vikunja", port = local.pipeline_constants.service_ports.vikunja_web }
-    zammad           = { backend = "zammad", port = local.pipeline_constants.service_ports.zammad_web } # native ITSM/ticketing + KB UI; nginx on 8080
     "object-storage" = { backend = "s3", port = local.pipeline_constants.service_ports.object_storage_console }
     # RustFS S3 API fronted by a valid-TLS hostname. Path-style S3 format.
     s3 = { backend = "s3", port = local.pipeline_constants.service_ports.object_storage_s3 }
