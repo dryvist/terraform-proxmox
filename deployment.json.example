@@ -259,18 +259,36 @@
         { "volume": "local-zfs", "size": "10G", "path": "/var/lib/vikunja" }
       ]
     },
-    "zammad": {
+    "zammad-20": {
       "vm_id": 605020,
       "dhcp": true,
       "reserved_host": 54,
       "vlan": "apps",
-      "hostname": "zammad",
+      "hostname": "zammad-20",
       "description": "Zammad ITSM/ticketing + knowledge base — the incident-management system of record. Native DEB (Rails web/worker/websocket + colocated Elasticsearch for full-text incident search + colocated Redis); nginx/API on zammad_web (8080) fronted by Traefik; state in the shared Postgres; persistent /opt/zammad holds app state + attachments. The ES index is derived/rebuildable and stays on the ephemeral rootfs (rake zammad:searchindex:rebuild).",
       "cpu_cores": 4,
       "memory_dedicated": 8192,
       "tags": ["terraform", "container", "zammad"],
       "pool_id": "infrastructure",
-      "node_name": "proxmox-1",
+      "node_name": "proxmox-2",
+      "unprivileged": true,
+      "root_disk": { "size": 24 },
+      "mount_points": [
+        { "volume": "local-zfs", "size": "40G", "path": "/opt/zammad" }
+      ]
+    },
+    "zammad-30": {
+      "vm_id": 605030,
+      "dhcp": true,
+      "reserved_host": 55,
+      "vlan": "apps",
+      "hostname": "zammad-30",
+      "description": "Zammad ITSM/ticketing + knowledge base (HA Instance 2).",
+      "cpu_cores": 4,
+      "memory_dedicated": 8192,
+      "tags": ["terraform", "container", "zammad"],
+      "pool_id": "infrastructure",
+      "node_name": "proxmox-3",
       "unprivileged": true,
       "root_disk": { "size": 24 },
       "mount_points": [
