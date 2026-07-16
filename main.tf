@@ -6,7 +6,6 @@ terraform {
   # environment-specific value.
   cloud {
     workspaces {
-      name = "tofu-proxmox"
     }
   }
 
