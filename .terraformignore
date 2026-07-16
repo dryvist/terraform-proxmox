@@ -1,0 +1,10 @@
+.direnv/
+.entire/
+.docs
+.git/
+.terraform/
+.terragrunt-cache/
+aws-infra/.terragrunt-cache/
+servarr-config/.terragrunt-cache/
+vault-secrets/
+*.log
