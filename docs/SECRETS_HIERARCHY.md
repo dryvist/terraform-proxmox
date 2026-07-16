@@ -21,6 +21,7 @@ coordination path (`TF_CLOUD_HOSTNAME`, `TF_CLOUD_ORGANIZATION`). It cannot
 read infrastructure provider credentials or Terrakube server secrets.
 
 ## Rules
+
 - Human recovery credentials stay outside routine machine execution.
 - Never copy an OpenBao token, unseal material, or provider credential into a
   Terrakube workspace variable.
