@@ -34,6 +34,9 @@ module "firewall" {
   # Vector database containers: Qdrant (vectordb tag)
   vectordb_container_ids = local.vectordb_container_ids
 
+  # Hindsight agent-memory containers (hindsight tag) — API 8888 / CP UI 9999
+  hindsight_container_ids = local.hindsight_container_ids
+
   # RAG engine containers: LlamaIndex (rag tag)
   rag_container_ids = local.rag_container_ids
 

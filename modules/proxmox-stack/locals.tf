@@ -230,11 +230,19 @@ locals {
     if contains(coalesce(try(v.tags, null), []), "hermes-agent")
   }
 
-  # Postgres LXC (postgres tag) — the shared native Postgres backing Nautobot
-  # (and later Vikunja/EspoCRM). modules/firewall opens 5432 to it from internal.
+  # Postgres LXCs — the shared native cluster ("postgres" tag) plus the ai-VLAN
+  # memory cluster ("postgres_ai" tag; primary + streaming standby backing
+  # Hindsight). Both take the same postgres-svc firewall shape (5432 from
+  # internal); Ansible grouping stays separate via the distinct tags.
   postgres_container_ids = {
     for k, v in var.containers : k => v.vm_id
-    if contains(coalesce(try(v.tags, null), []), "postgres")
+    if length(setintersection(toset(coalesce(try(v.tags, null), [])), toset(["postgres", "postgres_ai"]))) > 0
+  }
+
+  # Hindsight agent-memory containers (hindsight tag) — stateless API replicas.
+  hindsight_container_ids = {
+    for k, v in var.containers : k => v.vm_id
+    if contains(coalesce(try(v.tags, null), []), "hindsight")
   }
 
   # Nautobot LXC (nautobot tag) — native IPAM/DCIM source of truth, web UI on
