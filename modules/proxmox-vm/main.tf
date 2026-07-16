@@ -26,10 +26,13 @@ resource "proxmox_virtual_environment_vm" "vms" {
   # Startup configuration
   on_boot = try(each.value.on_boot, true)
 
-  # Startup order: 256 - vm_id (higher IDs start first)
+  # Startup order: 256 - vm_id (higher IDs start first). Clamped at 0 so
+  # 6-digit positional VMIDs (DNS-first/DHCP guests, see docs vmid-network-tiers)
+  # don't produce a negative order — those guests get order 0 (unordered), which
+  # is correct for non-critical DHCP workloads. Legacy <256 IDs are unaffected.
   # Delay: global startup_delay between each start
   startup {
-    order    = 256 - each.value.vm_id
+    order    = max(0, 256 - each.value.vm_id)
     up_delay = var.startup_delay
   }
 
