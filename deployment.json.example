@@ -223,6 +223,24 @@
         { "volume": "local-zfs", "size": "60G", "path": "/var/lib/postgresql" }
       ]
     },
+    "postgres-apps": {
+      "vm_id": 602000,
+      "dhcp": true,
+      "reserved_host": 56,
+      "vlan": "apps",
+      "hostname": "postgres-apps",
+      "description": "Apps-tier primary Postgres — native Postgres backing Nautobot/Vikunja/Zammad, on the applications VLAN alongside its dependents. Streaming-replication primary; persistent data mount + pgdump backups.",
+      "cpu_cores": 2,
+      "memory_dedicated": 2048,
+      "tags": ["terraform", "container", "postgres"],
+      "pool_id": "infrastructure",
+      "node_name": "proxmox-2",
+      "unprivileged": true,
+      "root_disk": { "size": 16 },
+      "mount_points": [
+        { "volume": "local-zfs", "size": "60G", "path": "/var/lib/postgresql" }
+      ]
+    },
     "nautobot": {
       "vm_id": 605000,
       "dhcp": true,
