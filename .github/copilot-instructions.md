@@ -1,4 +1,4 @@
-# GitHub Copilot Instructions — terraform-proxmox
+# GitHub Copilot Instructions — tofu-proxmox
 
 ## Repository Purpose
 
