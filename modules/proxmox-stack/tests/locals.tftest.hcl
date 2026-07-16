@@ -769,3 +769,57 @@ run "media_container_ids_excludes_vpn_tagged_downloader" {
     error_message = "media_container_ids must contain exactly the media-minus-vpn set"
   }
 }
+
+# ha.tf gating: the `ha` tag selects members; apps_ha_enabled is the master
+# switch; the affinity node set derives from the tagged guests' home nodes so a
+# sleeping node with no ha-tagged guest is excluded automatically.
+run "apps_ha_disabled_by_default_but_members_resolved" {
+  command = plan
+
+  variables {
+    containers = {
+      "postgres-apps" = { vm_id = 602000, hostname = "postgres-apps", vlan = "apps", dhcp = true, reserved_host = 56, node_name = "proxmox-2", tags = ["container", "postgres", "ha"] }
+      "nautobot"      = { vm_id = 605000, hostname = "nautobot", vlan = "apps", dhcp = true, reserved_host = 52, node_name = "proxmox-1", tags = ["container", "nautobot", "ha"] }
+      "zammad-30"     = { vm_id = 605030, hostname = "zammad-30", vlan = "apps", dhcp = true, reserved_host = 55, node_name = "proxmox-3", tags = ["container", "zammad"] }
+    }
+  }
+
+  assert {
+    condition     = local.ha_enabled == false
+    error_message = "apps_ha_enabled defaults false, so ha_enabled must be false even with ha-tagged guests"
+  }
+
+  assert {
+    condition     = length(local.ha_container_keys) == 2 && !contains(local.ha_container_keys, "zammad-30")
+    error_message = "only the two `ha`-tagged guests must be selected; the untagged zammad-30 must be excluded"
+  }
+}
+
+run "apps_ha_nodes_derive_and_exclude_sleeper" {
+  command = plan
+
+  variables {
+    apps_ha_enabled = true
+    containers = {
+      "postgres-apps" = { vm_id = 602000, hostname = "postgres-apps", vlan = "apps", dhcp = true, reserved_host = 56, node_name = "proxmox-2", tags = ["container", "postgres", "ha"] }
+      "nautobot"      = { vm_id = 605000, hostname = "nautobot", vlan = "apps", dhcp = true, reserved_host = 52, node_name = "proxmox-1", tags = ["container", "nautobot", "ha"] }
+      "vikunja"       = { vm_id = 605010, hostname = "vikunja", vlan = "apps", dhcp = true, reserved_host = 53, node_name = "proxmox-1", tags = ["container", "vikunja", "ha"] }
+      "zammad-30"     = { vm_id = 605030, hostname = "zammad-30", vlan = "apps", dhcp = true, reserved_host = 55, node_name = "proxmox-3", tags = ["container", "zammad"] }
+    }
+  }
+
+  assert {
+    condition     = local.ha_enabled == true
+    error_message = "apps_ha_enabled=true with ha-tagged guests must yield ha_enabled=true"
+  }
+
+  assert {
+    condition     = length(local.ha_nodes) == 2 && contains(local.ha_nodes, "proxmox-1") && contains(local.ha_nodes, "proxmox-2")
+    error_message = "ha_nodes must be exactly the tagged guests' home nodes {proxmox-1, proxmox-2}"
+  }
+
+  assert {
+    condition     = !contains(local.ha_nodes, "proxmox-3")
+    error_message = "proxmox-3 hosts no ha-tagged guest and must be excluded from the affinity node set"
+  }
+}

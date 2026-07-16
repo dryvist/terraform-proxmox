@@ -131,6 +131,7 @@ check "deployment_contract" {
 module "homelab" {
   source = "./modules/proxmox-stack"
 
+  apps_ha_enabled            = try(local.deployment.apps_ha_enabled, false)
   acme_accounts              = try(local.deployment.acme_accounts, {})
   acme_certificates          = try(local.deployment.acme_certificates, {})
   ansible_cloud_init_file    = "${path.root}/${try(local.deployment.ansible_cloud_init_file, "cloud-init/ansible-server-example.yml")}"

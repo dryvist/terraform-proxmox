@@ -18,6 +18,12 @@ variable "proxmox_node" {
   default     = "proxmox-1"
 }
 
+variable "apps_ha_enabled" {
+  description = "Master switch for apps-tier Proxmox HA (ha.tf). Default false ships the HA config disabled: no HA resources/rules are created until this is true. Keep off until live per-guest storage replication exists AND a single owner of /etc/pve/ha is chosen (see ha.tf)."
+  type        = bool
+  default     = false
+}
+
 variable "proxmox_ssh_username" {
   description = "The SSH username for connecting to the Proxmox node (for cloud-init, etc.)"
   type        = string
