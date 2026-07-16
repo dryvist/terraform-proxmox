@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.68.1](https://github.com/dryvist/tofu-proxmox/compare/v1.68.0...v1.68.1) (2026-07-16)
+
+
+### Bug Fixes
+
+* **vm:** clamp startup order at 0 for 6-digit VMIDs ([#668](https://github.com/dryvist/tofu-proxmox/issues/668)) ([2ecda6c](https://github.com/dryvist/tofu-proxmox/commit/2ecda6c7f48ca5f53bcf39b0d2f54e1c6d6ffc57))
+
 ## [1.68.0](https://github.com/dryvist/tofu-proxmox/compare/v1.67.2...v1.68.0) (2026-07-16)
 
 
