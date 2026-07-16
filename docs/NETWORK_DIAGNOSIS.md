@@ -61,7 +61,7 @@ security-log indexes.
 
 | Work | Repo |
 | --- | --- |
-| netmon LXC definitions, `netmon_metrics` index doc, ports | terraform-proxmox (this) |
+| netmon LXC definitions, `netmon_metrics` index doc, ports | tofu-proxmox (this) |
 | Telegraf + exporter + SmokePing container config | ansible-proxmox-apps |
 | `netmon_metrics` Splunk index creation | ansible-splunk |
 | Per-uplink source-IP policy routes | tofu-unifi (gated apply) |

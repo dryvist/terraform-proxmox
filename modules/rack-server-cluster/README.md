@@ -61,7 +61,7 @@ to verify the declared inventory matches the live cluster.
 
 ## Why nothing is hard-coded
 
-`terraform-proxmox` is the org's source of truth for cluster identity, but
+`tofu-proxmox` is the org's source of truth for cluster identity, but
 this repo is public. Real values (IPs, MACs, service tags, hostnames) must
 be supplied via private RustFS or environment, never committed. The
 `private deployment object.example` at the repo root shows the placeholder shape
