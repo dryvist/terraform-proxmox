@@ -36,6 +36,16 @@ locals {
     if contains(keys(var.containers), k)
   ]
 
+  # Zammad HA backend pool. Every LXC tagged "zammad" is load-balanced
+  # behind a single zammad.<domain> route with sticky sessions.
+  zammad_backend_keys = sort([
+    for k, v in var.containers : k
+    if contains(coalesce(try(v.tags, null), []), "zammad")
+  ])
+  zammad_backends = [
+    for k in local.zammad_backend_keys : local.container_address[k]
+  ]
+
   # Assembled routes: one {name, ip, port} per fronted service whose backend
   # container is actually defined (others are skipped, so a partial deployment
   # never emits a dangling route). The backend address comes from
@@ -134,6 +144,17 @@ locals {
         port              = local.pipeline_constants.service_ports.llm_router_api
         health_check      = true
         health_check_path = "/health/liveliness"
+      }
+    ] : [],
+    # Zammad HA: one zammad.<domain> route load-balancing the application nodes.
+    # sticky keeps a browser UI session pinned to one node.
+    length(local.zammad_backends) > 0 ? [
+      {
+        name         = "zammad"
+        backends     = local.zammad_backends
+        port         = local.pipeline_constants.service_ports.zammad_web
+        sticky       = true
+        health_check = true
       }
     ] : [],
     # IaC automation platform (Terrakube + Semaphore UI) on the iac-platform VM

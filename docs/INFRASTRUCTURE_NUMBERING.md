@@ -13,9 +13,12 @@ maintenance windows allow — they are **not** the target.
 
 ---
 
-## The VMID positional scheme (current)
+## Hostname & Multi-Instance Naming Law
 
-A VMID is six digits, each position carrying meaning (read coarsest → finest):
+**FUTURE LAW**: For all new multi-instance containers or VMs, the hostname suffix MUST be two digits where the **first digit is the Proxmox node ID**.
+For example, instead of `zammad-1` and `zammad-2`, use `zammad-20` (Node 2, instance 0) and `zammad-30` (Node 3, instance 0).
+
+## The VMID positional scheme (current)
 
 ```text
 [Tier][Sub-tier][Crit][OS][Instance][Env]

@@ -77,7 +77,7 @@ This module is part of the `aws-infra/` root module, which is completely
 separated from the Proxmox infrastructure:
 
 ```text
-terraform-proxmox/
+tofu-proxmox/
 ├── aws-infra/                    # AWS resources (this module's parent)
 │   ├── main.tf                   # AWS provider and module calls
 │   ├── native root configuration            # Separate state management

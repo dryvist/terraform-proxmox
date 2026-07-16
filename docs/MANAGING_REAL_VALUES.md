@@ -106,7 +106,7 @@ tofu apply -var-file=terraform.tfvars.prod
 
 ```bash
 # Repository structure with worktrees
-~/git/terraform-proxmox/
+~/git/tofu-proxmox/
 ├── .git/                    # Shared git directory (bare repo)
 ├── .env/terraform.tfvars    # Shared environment config (gitignored)
 ├── main/                    # Main branch worktree
@@ -114,7 +114,7 @@ tofu apply -var-file=terraform.tfvars.prod
 └── bugfix/bug-fix/          # Fix branch worktree
 
 # Each worktree references the shared .env/terraform.tfvars via symlink
-~/git/terraform-proxmox/feature/feature-name/.env -> ../../.env
+~/git/tofu-proxmox/feature/feature-name/.env -> ../../.env
 ```
 
 **Configuration precedence** (highest to lowest):
@@ -135,14 +135,14 @@ tofu apply -var-file=terraform.tfvars.prod
 
 ```bash
 # Create .env directory at repo root (if not exists)
-mkdir -p ~/git/terraform-proxmox/.env
+mkdir -p ~/git/tofu-proxmox/.env
 
 # Copy your real values to .env/terraform.tfvars
 cp terraform.tfvars.example .env/terraform.tfvars
 # Edit .env/terraform.tfvars with your real values
 
 # Create symlink in each worktree
-cd ~/git/terraform-proxmox/feat/your-branch
+cd ~/git/tofu-proxmox/feat/your-branch
 ln -s ../../.env .env
 
 # OpenTofu now automatically loads .env/terraform.tfvars
