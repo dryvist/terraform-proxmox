@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.68.0](https://github.com/dryvist/tofu-proxmox/compare/v1.67.2...v1.68.0) (2026-07-16)
+
+
+### Features
+
+* **deployment:** add apps-tier primary Postgres LXC (postgres-apps) ([#662](https://github.com/dryvist/tofu-proxmox/issues/662)) ([a76a4a0](https://github.com/dryvist/tofu-proxmox/commit/a76a4a087cac2049829693e20ff8c74d15dffdcd))
+* **infra:** deploy Zammad in HA configuration and define multi-instance naming scheme ([46190a0](https://github.com/dryvist/tofu-proxmox/commit/46190a0c2693b2910b336850c9d7c618fce03bb9))
+
 ## [1.67.2](https://github.com/dryvist/tofu-proxmox/compare/v1.67.1...v1.67.2) (2026-07-14)
 
 
