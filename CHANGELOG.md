@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.71.0](https://github.com/dryvist/tofu-proxmox/compare/v1.70.0...v1.71.0) (2026-07-17)
+
+
+### Features
+
+* **container:** set guest DNS to the homelab resolvers, not the node's upstream ([#689](https://github.com/dryvist/tofu-proxmox/issues/689)) ([8d2464c](https://github.com/dryvist/tofu-proxmox/commit/8d2464c2e75c677b3f58f9fc02ecb77be5620771))
+
 ## [1.70.0](https://github.com/dryvist/tofu-proxmox/compare/v1.69.0...v1.70.0) (2026-07-17)
 
 
