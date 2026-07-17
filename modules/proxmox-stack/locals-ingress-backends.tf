@@ -178,6 +178,7 @@ locals {
         port              = local.pipeline_constants.memory_ports.hindsight_api
         health_check      = true
         health_check_path = "/health"
+        sso               = false # agent/machine memory API
       },
       {
         # Control Plane admin UI (access-key gated in the app). Same attribute
@@ -188,6 +189,7 @@ locals {
         port              = local.pipeline_constants.memory_ports.hindsight_cp
         health_check      = false
         health_check_path = "/"
+        sso               = true # browser admin UI — gated
       }
     ] : [],
     # Zammad HA: one zammad.<domain> route load-balancing the application nodes.
