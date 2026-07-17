@@ -356,6 +356,29 @@ run "ansible_inventory_ingress_route_table" {
     error_message = "ingress must front seerr at 192.168.70.211:5055"
   }
 
+  # Every published ingress row carries an explicit sso flag (the forwardAuth
+  # gate contract — the ansible consumer treats a missing flag as ungated, so
+  # an absent key would silently drop a route out of the SSO gate).
+  assert {
+    condition = alltrue([
+      for r in output.ansible_inventory.ingress : can(r.sso)
+    ])
+    error_message = "every ingress row must carry an explicit sso flag"
+  }
+
+  # Table rows without an explicit opt-out default to gated (sso = true):
+  # seerr omits sso in ingress_services; plex opts out (native client auth).
+  assert {
+    condition = length([
+      for r in output.ansible_inventory.ingress :
+      r if r.name == "seerr" && r.sso == true
+      ]) == 1 && length([
+      for r in output.ansible_inventory.ingress :
+      r if r.name == "plex" && r.sso == false
+    ]) == 1
+    error_message = "sso must default true for unmarked rows (seerr) and honor explicit opt-outs (plex)"
+  }
+
   # Services whose backend container is absent are skipped (sonarr not deployed).
   assert {
     condition     = length([for r in output.ansible_inventory.ingress : r if r.name == "sonarr"]) == 0

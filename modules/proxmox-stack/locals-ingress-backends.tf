@@ -75,6 +75,7 @@ locals {
         # Consumers default scheme=http / insecure_tls=false when absent.
         scheme       = "https"
         insecure_tls = true
+        sso          = true # browser UI — gated
       },
       {
         # Splunk management / REST API (splunkd, 8089) fronted at
@@ -163,6 +164,7 @@ locals {
         port         = local.pipeline_constants.service_ports.zammad_web
         sticky       = true
         health_check = true
+        sso          = true # browser UI — gated
       }
     ] : [],
     # IaC automation platform (Terrakube + Semaphore UI) on the iac-platform VM
