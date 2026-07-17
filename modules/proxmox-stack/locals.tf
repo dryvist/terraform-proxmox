@@ -230,20 +230,8 @@ locals {
     if contains(coalesce(try(v.tags, null), []), "hermes-agent")
   }
 
-  # Postgres LXCs — the shared native cluster ("postgres" tag) plus the ai-VLAN
-  # memory cluster ("postgres_ai" tag; primary + streaming standby backing
-  # Hindsight). Both take the same postgres-svc firewall shape (5432 from
-  # internal); Ansible grouping stays separate via the distinct tags.
-  postgres_container_ids = {
-    for k, v in var.containers : k => v.vm_id
-    if length(setintersection(toset(coalesce(try(v.tags, null), [])), toset(["postgres", "postgres_ai"]))) > 0
-  }
-
-  # Hindsight agent-memory containers (hindsight tag) — stateless API replicas.
-  hindsight_container_ids = {
-    for k, v in var.containers : k => v.vm_id
-    if contains(coalesce(try(v.tags, null), []), "hindsight")
-  }
+  # postgres_container_ids + hindsight_container_ids live in
+  # locals-memory.tf to keep this file under the 12 KB size gate.
 
   # Nautobot LXC (nautobot tag) — native IPAM/DCIM source of truth, web UI on
   # nautobot_web (8080). modules/firewall opens 8080 to it from internal.
