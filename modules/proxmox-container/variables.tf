@@ -88,6 +88,19 @@ variable "domain" {
   default     = ""
 }
 
+variable "dns_servers" {
+  description = <<-EOT
+    Nameservers for the container's resolv.conf (the homelab's own authoritative
+    resolvers — Technitium primary, Pi-hole secondary). Set explicitly so guests
+    resolve via internal DNS that the outbound-internal firewall group already
+    permits, rather than inheriting the Proxmox node's upstream gateway resolver
+    (which sits on a VLAN a DROP-policy guest cannot egress to). Empty = inherit
+    the node's resolv.conf (previous behaviour).
+  EOT
+  type        = list(string)
+  default     = []
+}
+
 variable "environment" {
   description = "Environment name for resource tagging"
   type        = string
