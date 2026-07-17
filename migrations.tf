@@ -40,11 +40,6 @@ moved {
   to   = module.homelab.module.firewall
 }
 
-moved {
-  from = null_resource.ansible_ssh_key_setup
-  to   = module.homelab.null_resource.ansible_ssh_key_setup
-}
-
 # The former AWS inventory object remains available during the migration soak.
 # Terrakube creates the replacement in RustFS; retire the orphaned AWS object
 # separately only after every Ansible consumer has proven the native path.

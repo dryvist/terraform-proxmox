@@ -137,17 +137,6 @@ variable "vm_ssh_public_key" {
   }
 }
 
-variable "vm_ssh_private_key" {
-  description = "Ephemeral SSH private key content for VM provisioning"
-  type        = string
-  sensitive   = true
-  ephemeral   = true
-  validation {
-    condition     = can(regex("^-----BEGIN", trimspace(var.vm_ssh_private_key)))
-    error_message = "SSH private key must be PEM/OpenSSH private-key content."
-  }
-}
-
 # Cloud-init configuration
 variable "ansible_cloud_init_file" {
   description = "Path to the cloud-init configuration file for Ansible server"
