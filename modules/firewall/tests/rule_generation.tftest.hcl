@@ -34,6 +34,7 @@ variables {
       redis_default          = 6379
       nautobot_web           = 8080
       vikunja_web            = 3456
+      authelia_portal        = 9091
       zammad_web             = 8080
       ntp                    = 123
       idrac_kvm_r410         = 5410
@@ -695,6 +696,32 @@ run "nautobot_rule_tracks_constant_and_internal_scope" {
   assert {
     condition     = local.nautobot_services_rules[0].proto == "tcp" && local.nautobot_services_rules[0].dport == tostring(var.pipeline_constants.service_ports.nautobot_web)
     error_message = "nautobot rule must be TCP tracking service_ports.nautobot_web, got proto='${local.nautobot_services_rules[0].proto}' dport='${local.nautobot_services_rules[0].dport}'"
+  }
+}
+
+# --- authelia service rules ---
+
+run "authelia_rule_tracks_constant_and_internal_scope" {
+  command = plan
+
+  variables {
+    internal_networks = ["192.168.10.0/24", "192.168.20.0/24"]
+  }
+
+  # Exactly one live rule: TCP authelia_portal (9091) from the internal networks.
+  assert {
+    condition     = length(local.authelia_services_rules) == 1
+    error_message = "authelia_services_rules must be exactly 1 (TCP authelia_portal), got ${length(local.authelia_services_rules)}"
+  }
+
+  assert {
+    condition     = local.authelia_services_rules[0].proto == "tcp" && local.authelia_services_rules[0].dport == tostring(var.pipeline_constants.service_ports.authelia_portal)
+    error_message = "authelia rule must be TCP tracking service_ports.authelia_portal, got proto='${local.authelia_services_rules[0].proto}' dport='${local.authelia_services_rules[0].dport}'"
+  }
+
+  assert {
+    condition     = local.authelia_services_rules[0].source == "192.168.10.0/24,192.168.20.0/24"
+    error_message = "authelia rule source must be the comma-joined internal networks, got '${local.authelia_services_rules[0].source}'"
   }
 }
 
