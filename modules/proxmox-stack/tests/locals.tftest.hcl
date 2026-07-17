@@ -98,6 +98,19 @@ run "container_ipv4_uses_vlan_cidr" {
     error_message = "dns-VLAN gateway should be 192.168.2.1, got ${local.container_gateway["technitium-dns"]}"
   }
 
+  # Guests must resolve via the homelab's own resolver (an internal address the
+  # outbound-internal firewall group permits), not the node's upstream gateway
+  # resolver a DROP-policy guest cannot reach. dns_servers is the technitium-dns
+  # address (CIDR stripped), fed into every container's initialization.dns.servers.
+  # Asserted by derivation, not a literal, so no real address appears here.
+  assert {
+    condition = contains(
+      local.dns_servers,
+      split("/", local.container_ipv4["technitium-dns"])[0]
+    )
+    error_message = "dns_servers must include the technitium-dns resolver address, got ${jsonencode(local.dns_servers)}"
+  }
+
   # DHCP-first guest short-circuits cidrhost — the positional VMID must never
   # be interpreted as a /24 host number.
   assert {
