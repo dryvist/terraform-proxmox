@@ -34,6 +34,9 @@ module "firewall" {
   # Vector database containers: Qdrant (vectordb tag)
   vectordb_container_ids = local.vectordb_container_ids
 
+  # Hindsight agent-memory containers (hindsight tag) — API 8888 / CP UI 9999
+  hindsight_container_ids = local.hindsight_container_ids
+
   # RAG engine containers: LlamaIndex (rag tag)
   rag_container_ids = local.rag_container_ids
 
@@ -57,6 +60,7 @@ module "firewall" {
   postgres_container_ids = local.postgres_container_ids
   nautobot_container_ids = local.nautobot_container_ids
   vikunja_container_ids  = local.vikunja_container_ids
+  authelia_container_ids = local.authelia_container_ids
   zammad_container_ids   = local.zammad_container_ids
 
   # Ingress (Traefik HA) containers (ingress tag) — define-disabled guest firewall

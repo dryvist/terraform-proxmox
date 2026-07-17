@@ -230,12 +230,8 @@ locals {
     if contains(coalesce(try(v.tags, null), []), "hermes-agent")
   }
 
-  # Postgres LXC (postgres tag) — the shared native Postgres backing Nautobot
-  # (and later Vikunja/EspoCRM). modules/firewall opens 5432 to it from internal.
-  postgres_container_ids = {
-    for k, v in var.containers : k => v.vm_id
-    if contains(coalesce(try(v.tags, null), []), "postgres")
-  }
+  # postgres_container_ids + hindsight_container_ids live in
+  # locals-memory.tf to keep this file under the 12 KB size gate.
 
   # Nautobot LXC (nautobot tag) — native IPAM/DCIM source of truth, web UI on
   # nautobot_web (8080). modules/firewall opens 8080 to it from internal.

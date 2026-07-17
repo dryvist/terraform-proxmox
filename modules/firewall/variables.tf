@@ -33,6 +33,12 @@ variable "vectordb_container_ids" {
   default     = {}
 }
 
+variable "hindsight_container_ids" {
+  description = "Map of Hindsight agent-memory container names to their IDs (hindsight tag). Stateless API replicas — inbound 8888/9999 from internal; egress outbound-internal + HTTPS."
+  type        = map(number)
+  default     = {}
+}
+
 variable "rag_container_ids" {
   description = "Map of RAG engine container names to their IDs (LlamaIndex)"
   type        = map(number)
@@ -77,6 +83,12 @@ variable "postgres_container_ids" {
 
 variable "nautobot_container_ids" {
   description = "Map of Nautobot container names to their IDs (nautobot tag). Native IPAM/DCIM — inbound nautobot_web (8080) from internal; egress outbound-internal + outbound-HTTPS (PyPI installs during converge)."
+  type        = map(number)
+  default     = {}
+}
+
+variable "authelia_container_ids" {
+  description = "Map of Authelia container names to their IDs (authelia tag). Native SSO portal / Traefik forwardAuth provider — inbound authelia_portal (9091) from internal; egress outbound-internal only (SQLite local, SMTP relay internal, binary controller-staged)."
   type        = map(number)
   default     = {}
 }
@@ -201,6 +213,7 @@ variable "pipeline_constants" {
     netflow_ports      = map(number)
     notification_ports = map(number)
     vector_db_ports    = map(number)
+    memory_ports       = map(number)
     honeypot_ports     = map(number)
     ai_log_ports       = map(number)
     media_ports        = map(number)

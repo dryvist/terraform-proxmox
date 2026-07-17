@@ -564,6 +564,34 @@ run "vikunja_tag_filters_correctly" {
   }
 }
 
+# --- authelia_container_ids test ---
+
+run "authelia_tag_filters_correctly" {
+  command = plan
+
+  variables {
+    containers = {
+      "authelia" = {
+        vm_id     = 100050
+        hostname  = "authelia"
+        vlan      = "mgmt"
+        ip_config = { ipv4_address = "192.168.5.6/24" }
+        tags      = ["terraform", "container", "authelia"]
+      }
+    }
+  }
+
+  assert {
+    condition     = local.authelia_container_ids["authelia"] == 100050 && length(local.authelia_container_ids) == 1
+    error_message = "authelia-tagged container must be the sole member of authelia_container_ids"
+  }
+
+  assert {
+    condition     = !contains(keys(local.pipeline_container_ids), "authelia")
+    error_message = "authelia must not land in pipeline_container_ids"
+  }
+}
+
 # A generic 'database'-tagged guest (e.g. mssql) must NOT be pulled into
 # postgres_container_ids — only the specific 'postgres' tag opens the 5432 rule.
 run "generic_database_tag_not_in_postgres_ids" {

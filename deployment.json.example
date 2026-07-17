@@ -277,6 +277,23 @@
         { "volume": "local-zfs", "size": "10G", "path": "/var/lib/vikunja" }
       ]
     },
+    "authelia": {
+      "vm_id": 100050,
+      "vlan": "mgmt",
+      "ip_config": { "ipv4_address": "198.51.100.6/24" },
+      "hostname": "authelia",
+      "description": "Authelia SSO portal / Traefik forwardAuth provider — criticality-1 core service (auth plane, beside ingress/DNS): native Go binary, portal + authz API on 9091 fronted by Traefik; passkey-first login; state in local SQLite on persistent /var/lib/authelia.",
+      "cpu_cores": 1,
+      "memory_dedicated": 512,
+      "tags": ["terraform", "container", "authelia"],
+      "pool_id": "infrastructure",
+      "node_name": "proxmox-1",
+      "unprivileged": true,
+      "root_disk": { "size": 8 },
+      "mount_points": [
+        { "volume": "local-zfs", "size": "2G", "path": "/var/lib/authelia" }
+      ]
+    },
     "zammad-20": {
       "vm_id": 605020,
       "dhcp": true,

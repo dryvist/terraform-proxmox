@@ -36,6 +36,19 @@ locals {
     if contains(keys(var.containers), k)
   ]
 
+  # Hindsight agent-memory pool. Every LXC tagged "hindsight" is load-balanced
+  # behind a single hindsight.<domain> route with health checks. The replicas
+  # are stateless (all state in the ai-VLAN Postgres cluster), so no sticky.
+  # Clients — agentgateway's MCP target, Hermes remote memory, Claude Code —
+  # all dial this one pooled hostname.
+  hindsight_backend_keys = sort([
+    for k, v in var.containers : k
+    if contains(coalesce(try(v.tags, null), []), "hindsight")
+  ])
+  hindsight_backends = [
+    for k in local.hindsight_backend_keys : local.container_address[k]
+  ]
+
   # Zammad HA backend pool. Every LXC tagged "zammad" is load-balanced
   # behind a single zammad.<domain> route with sticky sessions.
   zammad_backend_keys = sort([
@@ -59,6 +72,9 @@ locals {
         name = name
         ip   = local.container_address[svc.backend]
         port = svc.port
+        # Authelia forwardAuth gate flag, consumed by the ansible traefik role.
+        # Defaults true (gated) unless the table row opts out (sso = false).
+        sso = try(svc.sso, true)
       }
       if contains(keys(var.containers), svc.backend)
     ],
@@ -72,6 +88,7 @@ locals {
         # Consumers default scheme=http / insecure_tls=false when absent.
         scheme       = "https"
         insecure_tls = true
+        sso          = true # browser UI — gated
       },
       {
         # Splunk management / REST API (splunkd, 8089) fronted at
@@ -84,6 +101,7 @@ locals {
         port         = local.pipeline_constants.service_ports.splunk_mgmt
         scheme       = "https"
         insecure_tls = true
+        sso          = false # REST API clients (CLI, automation)
       },
       {
         # Splunk HEC (8088) fronted at splunk-hec.<domain> on the standard
@@ -96,6 +114,7 @@ locals {
         port         = local.pipeline_constants.service_ports.splunk_hec
         scheme       = "https"
         insecure_tls = true
+        sso          = false # HEC token senders (Cribl edges)
       }
     ],
     # Proxmox cluster UI apex (the ingress subdomain apex), load-balanced.
@@ -113,6 +132,7 @@ locals {
         insecure_tls = true
         sticky       = true
         health_check = true
+        sso          = false # tofu provider / API clients share this route
       }
     ] : [],
     # OpenBao HA: one openbao.<domain> route load-balancing the Raft peers.
@@ -133,6 +153,7 @@ locals {
         sticky            = true
         health_check      = true
         health_check_path = "/v1/sys/health?standbyok=true"
+        sso               = false # token/AppRole/JWT API clients (CLI, Terrakube, roles)
       }
     ] : [],
     # LiteLLM router pool: llm.<domain> load-balancing the stateless routers.
@@ -144,6 +165,29 @@ locals {
         port              = local.pipeline_constants.service_ports.llm_router_api
         health_check      = true
         health_check_path = "/health/liveliness"
+        sso               = false # OpenAI-compatible API clients
+      }
+    ] : [],
+    # Hindsight agent memory: one hindsight.<domain> route load-balancing the
+    # stateless API replicas. No sticky — every replica serves every bank from
+    # the same Postgres. /health is the upstream readiness endpoint.
+    length(local.hindsight_backends) > 0 ? [
+      {
+        name              = "hindsight"
+        backends          = local.hindsight_backends
+        port              = local.pipeline_constants.memory_ports.hindsight_api
+        health_check      = true
+        health_check_path = "/health"
+      },
+      {
+        # Control Plane admin UI (access-key gated in the app). Same attribute
+        # shape as the API route above — both arms of the conditional must
+        # unify to one object type.
+        name              = "hindsight-cp"
+        backends          = local.hindsight_backends
+        port              = local.pipeline_constants.memory_ports.hindsight_cp
+        health_check      = false
+        health_check_path = "/"
       }
     ] : [],
     # Zammad HA: one zammad.<domain> route load-balancing the application nodes.
@@ -155,6 +199,7 @@ locals {
         port         = local.pipeline_constants.service_ports.zammad_web
         sticky       = true
         health_check = true
+        sso          = true # browser UI — gated
       }
     ] : [],
     # IaC automation platform (Terrakube + Semaphore UI) on the iac-platform VM
@@ -167,15 +212,18 @@ locals {
     # off nightly — consumers must treat these routes as daytime-available.
     contains(keys(var.vms), "iac-platform") ? [
       for svc in [
+        # UI hosts stay gated (sso omitted -> true); the API/registry/dex hosts
+        # serve machine clients (CLI, dex OIDC redirects) and opt out.
         { name = "terrakube", port = local.pipeline_constants.iac_platform_ports.terrakube_ui },
-        { name = "terrakube-api", port = local.pipeline_constants.iac_platform_ports.terrakube_api },
-        { name = "terrakube-registry", port = local.pipeline_constants.iac_platform_ports.terrakube_registry },
-        { name = "terrakube-dex", port = local.pipeline_constants.iac_platform_ports.terrakube_dex },
+        { name = "terrakube-api", port = local.pipeline_constants.iac_platform_ports.terrakube_api, sso = false },
+        { name = "terrakube-registry", port = local.pipeline_constants.iac_platform_ports.terrakube_registry, sso = false },
+        { name = "terrakube-dex", port = local.pipeline_constants.iac_platform_ports.terrakube_dex, sso = false },
         { name = "semaphore", port = local.pipeline_constants.iac_platform_ports.semaphore_web },
         ] : {
         name = svc.name
         ip   = local.vm_address["iac-platform"]
         port = svc.port
+        sso  = try(svc.sso, true)
       }
     ] : []
   )
