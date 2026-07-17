@@ -174,6 +174,15 @@ run "ansible_inventory_constants_vector_db_ports_exists" {
   }
 }
 
+run "ansible_inventory_constants_memory_ports_exists" {
+  command = plan
+
+  assert {
+    condition     = can(output.ansible_inventory.constants.memory_ports)
+    error_message = "ansible_inventory.constants must contain 'memory_ports' key"
+  }
+}
+
 run "ansible_inventory_constants_media_ports_exists" {
   command = plan
 

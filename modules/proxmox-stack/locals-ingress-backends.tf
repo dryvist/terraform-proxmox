@@ -36,6 +36,19 @@ locals {
     if contains(keys(var.containers), k)
   ]
 
+  # Hindsight agent-memory pool. Every LXC tagged "hindsight" is load-balanced
+  # behind a single hindsight.<domain> route with health checks. The replicas
+  # are stateless (all state in the ai-VLAN Postgres cluster), so no sticky.
+  # Clients — agentgateway's MCP target, Hermes remote memory, Claude Code —
+  # all dial this one pooled hostname.
+  hindsight_backend_keys = sort([
+    for k, v in var.containers : k
+    if contains(coalesce(try(v.tags, null), []), "hindsight")
+  ])
+  hindsight_backends = [
+    for k in local.hindsight_backend_keys : local.container_address[k]
+  ]
+
   # Zammad HA backend pool. Every LXC tagged "zammad" is load-balanced
   # behind a single zammad.<domain> route with sticky sessions.
   zammad_backend_keys = sort([
@@ -144,6 +157,28 @@ locals {
         port              = local.pipeline_constants.service_ports.llm_router_api
         health_check      = true
         health_check_path = "/health/liveliness"
+      }
+    ] : [],
+    # Hindsight agent memory: one hindsight.<domain> route load-balancing the
+    # stateless API replicas. No sticky — every replica serves every bank from
+    # the same Postgres. /health is the upstream readiness endpoint.
+    length(local.hindsight_backends) > 0 ? [
+      {
+        name              = "hindsight"
+        backends          = local.hindsight_backends
+        port              = local.pipeline_constants.memory_ports.hindsight_api
+        health_check      = true
+        health_check_path = "/health"
+      },
+      {
+        # Control Plane admin UI (access-key gated in the app). Same attribute
+        # shape as the API route above — both arms of the conditional must
+        # unify to one object type.
+        name              = "hindsight-cp"
+        backends          = local.hindsight_backends
+        port              = local.pipeline_constants.memory_ports.hindsight_cp
+        health_check      = false
+        health_check_path = "/"
       }
     ] : [],
     # Zammad HA: one zammad.<domain> route load-balancing the application nodes.

@@ -141,6 +141,14 @@ locals {
       qdrant_http = 6333
       qdrant_grpc = 6334
     }
+    # Agent memory service (Hindsight, ai VLAN). hindsight_api serves the REST
+    # API and the built-in MCP endpoint (/mcp); hindsight_cp is the Control
+    # Plane admin UI. Two stateless replicas share one Postgres and sit behind
+    # a Traefik load-balanced pool (locals-ingress-backends.tf).
+    memory_ports = {
+      hindsight_api = 8888
+      hindsight_cp  = 9999
+    }
     # AI / LLM log-ingest ports — one dedicated Cribl TCP-JSON receiver per source
     # family (defined in constants-ai-log.tf to keep this file under the shared
     # _file-size 12 KB gate; locals merge across files in the module).

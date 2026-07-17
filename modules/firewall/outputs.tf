@@ -23,6 +23,11 @@ output "vectordb_container_firewall_enabled" {
   value       = { for k, v in proxmox_virtual_environment_firewall_options.vectordb_container : k => v.enabled }
 }
 
+output "hindsight_container_firewall_enabled" {
+  description = "Map of Hindsight agent-memory container IDs with firewall enabled"
+  value       = { for k, v in proxmox_virtual_environment_firewall_options.hindsight_container : k => v.enabled }
+}
+
 output "rag_container_firewall_enabled" {
   description = "Map of RAG engine container IDs with firewall enabled (LlamaIndex)"
   value       = { for k, v in proxmox_virtual_environment_firewall_options.rag_container : k => v.enabled }

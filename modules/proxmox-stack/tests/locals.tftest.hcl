@@ -392,6 +392,20 @@ run "pipeline_constants_vector_db_ports" {
   }
 }
 
+run "pipeline_constants_memory_ports" {
+  command = plan
+
+  assert {
+    condition     = local.pipeline_constants.memory_ports.hindsight_api == 8888
+    error_message = "hindsight_api port should be 8888"
+  }
+
+  assert {
+    condition     = local.pipeline_constants.memory_ports.hindsight_cp == 9999
+    error_message = "hindsight_cp port should be 9999"
+  }
+}
+
 run "pipeline_constants_db_ports" {
   command = plan
 

@@ -96,6 +96,10 @@ variables {
       qdrant_http = 6333
       qdrant_grpc = 6334
     }
+    memory_ports = {
+      hindsight_api = 8888
+      hindsight_cp  = 9999
+    }
     ai_log_ports = {
       claude_code    = 10311
       codex_cli      = 10312

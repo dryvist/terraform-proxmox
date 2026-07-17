@@ -33,6 +33,12 @@ variable "vectordb_container_ids" {
   default     = {}
 }
 
+variable "hindsight_container_ids" {
+  description = "Map of Hindsight agent-memory container names to their IDs (hindsight tag). Stateless API replicas — inbound 8888/9999 from internal; egress outbound-internal + HTTPS."
+  type        = map(number)
+  default     = {}
+}
+
 variable "rag_container_ids" {
   description = "Map of RAG engine container names to their IDs (LlamaIndex)"
   type        = map(number)
@@ -201,6 +207,7 @@ variable "pipeline_constants" {
     netflow_ports      = map(number)
     notification_ports = map(number)
     vector_db_ports    = map(number)
+    memory_ports       = map(number)
     honeypot_ports     = map(number)
     ai_log_ports       = map(number)
     media_ports        = map(number)
