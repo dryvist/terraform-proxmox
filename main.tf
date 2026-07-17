@@ -179,9 +179,8 @@ module "homelab" {
     homeauto  = 80
     nonprod   = 90
   })
-  vm_ssh_private_key = ephemeral.vault_kv_secret_v2.proxmox.data.VM_SSH_PRIVATE_KEY
-  vm_ssh_public_key  = local.deployment.vm_ssh_public_key
-  vms                = try(local.deployment.vms, {})
+  vm_ssh_public_key = local.deployment.vm_ssh_public_key
+  vms               = try(local.deployment.vms, {})
 
   inventory_bucket = var.inventory_bucket
   inventory_key    = var.inventory_key
