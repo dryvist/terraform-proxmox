@@ -134,6 +134,7 @@ module "containers" {
   environment       = var.environment
   default_datastore = var.datastore_default
   domain            = var.domain
+  dns_servers       = local.dns_servers
 
   depends_on = [module.pools, module.storage]
 }

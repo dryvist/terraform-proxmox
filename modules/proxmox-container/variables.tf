@@ -88,6 +88,12 @@ variable "domain" {
   default     = ""
 }
 
+variable "dns_servers" {
+  description = "Resolver IPs for guest DNS. Derived by the root module from the DNS containers' addresses — never literals. Empty preserves node-inherited behavior."
+  type        = list(string)
+  default     = []
+}
+
 variable "environment" {
   description = "Environment name for resource tagging"
   type        = string

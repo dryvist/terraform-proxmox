@@ -59,11 +59,18 @@ resource "proxmox_virtual_environment_container" "containers" {
       }
     }
 
-    # DNS search domain for FQDN resolution
+    # DNS search domain + explicit resolvers. Without explicit servers a
+    # container inherits the host node's /etc/resolv.conf at creation and keeps
+    # it forever, so guests created against different nodes/points-in-time drift
+    # onto different resolvers — when one resolver was retired, exactly the
+    # guests that had inherited it lost DNS, taking down the OpenBao->Terrakube
+    # workload-identity path estate-wide (2026-07-17). Pinning servers here
+    # (same derived list the VMs use) makes the resolver deterministic.
     dynamic "dns" {
-      for_each = var.domain != "" ? [1] : []
+      for_each = var.domain != "" || length(var.dns_servers) > 0 ? [1] : []
       content {
-        domain = var.domain
+        domain  = var.domain != "" ? var.domain : null
+        servers = length(var.dns_servers) > 0 ? var.dns_servers : null
       }
     }
 
