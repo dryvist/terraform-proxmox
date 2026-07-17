@@ -190,33 +190,8 @@ module "rack_server_cluster" {
   rack_servers = var.rack_servers
 }
 
-# Secure SSH key provisioning for Ansible VM
-resource "null_resource" "ansible_ssh_key_setup" {
-  count = contains(keys(var.vms), "ansible") ? 1 : 0
-
-  depends_on = [module.vms]
-
-  connection {
-    type        = "ssh"
-    user        = var.vms["ansible"].user_account.username
-    private_key = var.vm_ssh_private_key
-    host        = cidrhost(var.vms["ansible"].ip_config.ipv4_address, 0)
-    timeout     = "2m"
-  }
-
-  provisioner "file" {
-    content     = var.vm_ssh_private_key
-    destination = "/home/${var.vms["ansible"].user_account.username}/.ssh/id_ed25519"
-  }
-
-  provisioner "remote-exec" {
-    inline = [
-      "chmod 600 /home/${var.vms["ansible"].user_account.username}/.ssh/id_ed25519",
-      "chown ${var.vms["ansible"].user_account.username}:${var.vms["ansible"].user_account.username} /home/${var.vms["ansible"].user_account.username}/.ssh/id_ed25519"
-    ]
-  }
-
-  triggers = {
-    vm_id = module.vms.vm_ids["ansible"]
-  }
-}
+# The former null_resource.ansible_ssh_key_setup (copying the shared VM
+# private key onto the ansible control guest) is retired: automation now
+# authenticates with short-TTL certificates from the OpenBao SSH client CA
+# (ssh-certificate-authority ADR), and the control guest is an LXC converged
+# over pct. Verified absent on the live guest before removal.
