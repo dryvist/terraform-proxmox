@@ -28,6 +28,7 @@ locals {
       # every port lives in one place and the ingress table (below) references
       # constants, never literals.
       technitium_web    = 5380
+      authelia_portal   = 9091
       phpipam_web       = 80
       nautobot_web      = 8080
       vikunja_web       = 3456

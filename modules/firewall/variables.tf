@@ -87,6 +87,12 @@ variable "nautobot_container_ids" {
   default     = {}
 }
 
+variable "authelia_container_ids" {
+  description = "Map of Authelia container names to their IDs (authelia tag). Native SSO portal / Traefik forwardAuth provider — inbound authelia_portal (9091) from internal; egress outbound-internal only (SQLite local, SMTP relay internal, binary controller-staged)."
+  type        = map(number)
+  default     = {}
+}
+
 variable "vikunja_container_ids" {
   description = "Map of Vikunja container names to their IDs (vikunja tag). Native task-management app — inbound vikunja_web (3456) from internal; egress outbound-internal only (no package-manager egress, binary is controller-staged)."
   type        = map(number)
