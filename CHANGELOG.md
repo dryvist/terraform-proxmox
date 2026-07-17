@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.69.0](https://github.com/dryvist/tofu-proxmox/compare/v1.68.1...v1.69.0) (2026-07-17)
+
+
+### Features
+
+* add Hindsight agent-memory service (constants, ingress pool, firewall) ([#675](https://github.com/dryvist/tofu-proxmox/issues/675)) ([70344b4](https://github.com/dryvist/tofu-proxmox/commit/70344b44b5d726d46ddd78805c68fa21d3bf2cb9))
+* **ingress:** Authelia SSO guest, portal route, per-route sso gate flag ([#677](https://github.com/dryvist/tofu-proxmox/issues/677)) ([d70f851](https://github.com/dryvist/tofu-proxmox/commit/d70f85139d9d5c542c19d512d7834da0aab68fe2))
+
 ## [1.68.1](https://github.com/dryvist/tofu-proxmox/compare/v1.68.0...v1.68.1) (2026-07-16)
 
 
