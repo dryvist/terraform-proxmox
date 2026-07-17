@@ -57,6 +57,7 @@ module "firewall" {
   postgres_container_ids = local.postgres_container_ids
   nautobot_container_ids = local.nautobot_container_ids
   vikunja_container_ids  = local.vikunja_container_ids
+  authelia_container_ids = local.authelia_container_ids
   zammad_container_ids   = local.zammad_container_ids
 
   # Ingress (Traefik HA) containers (ingress tag) — define-disabled guest firewall
