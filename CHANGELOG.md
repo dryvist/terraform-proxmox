@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.70.0](https://github.com/dryvist/tofu-proxmox/compare/v1.69.0...v1.70.0) (2026-07-17)
+
+
+### Features
+
+* **ssh:** retire the ansible-guest private-key copy (null_resource) ([#683](https://github.com/dryvist/tofu-proxmox/issues/683)) ([2e57d2a](https://github.com/dryvist/tofu-proxmox/commit/2e57d2a757458b4252ad09b888968667749f4721))
+
+
+### Bug Fixes
+
+* **ingress:** explicit sso flags on hindsight routes ([#680](https://github.com/dryvist/tofu-proxmox/issues/680)) ([9986c79](https://github.com/dryvist/tofu-proxmox/commit/9986c790d9f027412525d0011520063fa9a41d15))
+
 ## [1.69.0](https://github.com/dryvist/tofu-proxmox/compare/v1.68.1...v1.69.0) (2026-07-17)
 
 
