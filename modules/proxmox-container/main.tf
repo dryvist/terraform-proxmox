@@ -59,11 +59,16 @@ resource "proxmox_virtual_environment_container" "containers" {
       }
     }
 
-    # DNS search domain for FQDN resolution
+    # DNS search domain + explicit nameservers. servers points guests at the
+    # homelab's own resolvers (Technitium/Pi-hole, inside the internal networks
+    # the outbound-internal firewall group already permits) instead of inheriting
+    # the node's upstream gateway resolver, which a DROP-policy guest cannot reach.
+    # Empty servers list => omit the arg => inherit the node's resolv.conf.
     dynamic "dns" {
-      for_each = var.domain != "" ? [1] : []
+      for_each = var.domain != "" || length(var.dns_servers) > 0 ? [1] : []
       content {
-        domain = var.domain
+        domain  = var.domain != "" ? var.domain : null
+        servers = length(var.dns_servers) > 0 ? var.dns_servers : null
       }
     }
 
