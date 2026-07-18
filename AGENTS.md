@@ -94,6 +94,14 @@ locals.tf derivations            — management_network, splunk_network_ips
 This repo is the **single source of truth** for infrastructure: VMs,
 containers, IPs, ports, and firewall rules.
 
+> **Authority flip in design (not started).** A separately-gated effort will
+> move network intent (IPs, VLANs, DNS names, firewall intent) to Nautobot as
+> the source of truth, leaving this repo authoritative for **guest lifecycle
+> only**. Until Phase 2 is explicitly gated open, this repo remains the source
+> of truth described here — do **not** shrink `deployment.json` network fields
+> or retire the published `ansible_inventory.json`. Design + boundary:
+> [Phase-2 authority-flip design](https://github.com/dryvist/ansible-proxmox-apps/blob/develop/docs/nautobot/phase2-authority-flip-design.md).
+
 - **IP derivation**: every IP is `cidrhost(network_cidrs[vlan], vm_id)`. Example
   CIDRs are `192.168.<vlan_id>.0/24`, so a compute-VLAN (id 10) VM 42 →
   `192.168.10.42`. Never hardcode IPs in any repo — they come from terraform output.
