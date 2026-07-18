@@ -48,6 +48,28 @@ variable "splunk_data_disk_size" {
   }
 }
 
+variable "splunk_fast_disk_size" {
+  description = "Size of the fast-splunk tier disk in GB (hot + warm buckets, on the fast/mirror pool)"
+  type        = number
+  default     = 1024
+
+  validation {
+    condition     = var.splunk_fast_disk_size > 0 && var.splunk_fast_disk_size <= 4096
+    error_message = "Splunk fast-splunk disk size must be between 1 and 4096 GB."
+  }
+}
+
+variable "splunk_bulk_disk_size" {
+  description = "Size of the bulk-splunk tier disk in GB (cold buckets, on the non-RAID cold pool; not backed up by design)"
+  type        = number
+  default     = 2048
+
+  validation {
+    condition     = var.splunk_bulk_disk_size > 0 && var.splunk_bulk_disk_size <= 8192
+    error_message = "Splunk bulk-splunk disk size must be between 1 and 8192 GB."
+  }
+}
+
 variable "splunk_cpu_cores" {
   description = "Number of CPU cores for the Splunk VM"
   type        = number

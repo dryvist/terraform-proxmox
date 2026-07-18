@@ -171,3 +171,18 @@ variable "dns_servers" {
   type        = list(string)
   default     = []
 }
+
+variable "tiered_disks" {
+  description = "Additional tiered Splunk data disks (fast-splunk hot/warm, bulk-splunk cold)."
+  type = map(object({
+    datastore_id = string
+    interface    = string
+    size         = number
+    backup       = optional(bool, true)
+    file_format  = optional(string, "raw")
+    iothread     = optional(bool, true)
+    ssd          = optional(bool, false)
+    discard      = optional(string, "ignore")
+  }))
+  default = {}
+}
