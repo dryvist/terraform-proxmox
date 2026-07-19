@@ -76,6 +76,17 @@ locals {
         ansible_connection = "ssh"
       }
     }
+    # Splunk tiered storage - one {datastore_id, disk_interface, size_gb} per tier
+    # (fast-splunk hot/warm, bulk-splunk cold). Kept as its own top-level key
+    # rather than nested under splunk_vm, which is typed against the shared vm
+    # schema. ansible-splunk maps its volume stanzas onto these disks.
+    splunk_storage = {
+      for tier, d in module.splunk_vm.tiered_disks : tier => {
+        datastore_id   = d.datastore_id
+        disk_interface = d.interface
+        size_gb        = d.size
+      }
+    }
     # Pipeline constants - service and syslog port definitions
     constants = local.pipeline_constants
     # Traefik ingress route table - one {name, ip, port} per fronted service UI.
@@ -172,6 +183,15 @@ resource "aws_s3_object" "ansible_inventory" {
         ])
       )
       error_message = "splunk_vm is empty or malformed — the schema requires at least one entry with ip/node/hostname/vmid set and ansible_connection = \"ssh\". Inspect module.splunk_vm output."
+    }
+    precondition {
+      condition = alltrue([
+        for tier in ["fast", "bulk"] :
+        can(local.ansible_inventory.splunk_storage[tier]) &&
+        try(local.ansible_inventory.splunk_storage[tier].datastore_id, "") != "" &&
+        try(local.ansible_inventory.splunk_storage[tier].disk_interface, "") != ""
+      ])
+      error_message = "splunk_storage must define both the fast and bulk tiers, each with a non-empty datastore_id and disk_interface. Inspect module.splunk_vm.tiered_disks and the tiered_disks wiring in modules/proxmox-stack/main.tf."
     }
     precondition {
       condition = alltrue([

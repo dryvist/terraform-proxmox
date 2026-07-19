@@ -20,3 +20,8 @@ output "mac_address" {
   description = "The MAC address of the Splunk VM network interface"
   value       = length(proxmox_virtual_environment_vm.splunk_vm.mac_addresses) > 0 ? proxmox_virtual_environment_vm.splunk_vm.mac_addresses[0] : null
 }
+
+output "tiered_disks" {
+  description = "Tiered Splunk data disks (fast-splunk/bulk-splunk) as declared, keyed by tier."
+  value       = var.tiered_disks
+}

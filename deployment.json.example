@@ -78,9 +78,22 @@
           "protected": true,
           "register": false,
           "content": ["images", "rootdir"],
+          "_splunk_fast_comment": "fast-splunk hot/warm tier. The `pvesm_id` registers this child dataset as its own first-class Proxmox storage id `fast-splunk`, which the Splunk VM's virtio2 disk targets directly (a plain quota would land the disk at the pool root instead). In the real topology the fast tier lives on the fast/NVMe node.",
           "datasets": {
+            "splunk": { "quota": "1T", "pvesm_id": "fast-splunk", "properties": { "recordsize": "128K", "compression": "lz4" } },
             "siem/splunk-hot": { "quota": "300G", "properties": { "recordsize": "128K", "compression": "lz4" } },
             "siem/cribl-pq": { "quota": "50G", "properties": { "compression": "lz4", "com.sun:auto-snapshot": "false" } }
+          }
+        },
+        "_bulk_splunk_comment": "bulk-splunk cold tier: a DEDICATED non-RAID pool (raid: \"\"), separate from the raidz1 example-pool because ZFS RAID is pool-wide — a non-RAID cold tier cannot share a raidz pool. protected:false + no snapshots + backup=false on its VM disk (see tofu) is intentional: durability comes from the Backblaze B2 frozen archive, never vzdump. HUMAN ACTION: the physical spare disk (/dev/disk/by-id/...) for this pool must be confirmed/supplied before ansible-proxmox can create it. register:true + the `data` dataset's pvesm_id publish the `bulk-splunk` storage id the Splunk VM's virtio3 disk targets.",
+        "bulk-splunk": {
+          "type": "zfspool",
+          "raid": "",
+          "protected": false,
+          "register": true,
+          "content": ["images"],
+          "datasets": {
+            "data": { "quota": "2T", "pvesm_id": "bulk-splunk", "properties": { "com.sun:auto-snapshot": "false" } }
           }
         }
       }

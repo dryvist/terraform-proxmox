@@ -152,12 +152,27 @@ the data disk; see the Cribl roles in the downstream apps repo.
 
 ### Splunk VM disk layout
 
-The Splunk VM uses separate boot and data disks:
+The Splunk VM carries a boot disk, a legacy data disk, and two tiered storage
+disks:
 
-- **Boot disk (virtio0)**: OS, Splunk application, configuration.
-- **Data disk (virtio1)**: Splunk index storage and event data, mounted at `/opt/splunk/var`.
+- **Boot disk**: OS, Splunk application, configuration. Declared `virtio0`; the
+  live disk has drifted to `scsi0`/50G — see
+  [`SPLUNK_VM_DISK_DRIFT.md`](./SPLUNK_VM_DISK_DRIFT.md).
+- **Legacy data disk (`virtio1`, 200G)**: current Splunk index storage, mounted
+  at `/opt/splunk/var`. Transitional — kept attached until a separate migration
+  moves data onto the tiered disks below.
+- **`fast-splunk` (`virtio2`)**: hot + warm buckets on the fast/NVMe tier
+  (`datastore_id = fast-splunk`, backed up).
+- **`bulk-splunk` (`virtio3`)**: cold buckets on the non-RAID cold tier
+  (`datastore_id = bulk-splunk`, `backup = false` by design; archived to
+  Backblaze B2).
 
-Disk sizes are set in `deployment.json` (`splunk_boot_disk_size`, `splunk_data_disk_size`).
+Disk sizes are set in `deployment.json`: `splunk_boot_disk_size`,
+`splunk_data_disk_size` (legacy `virtio1`), `splunk_fast_disk_size` (default
+1024), and `splunk_bulk_disk_size` (default 2048). The tiered disks are declared
+but do not attach until the disk-drift reconciliation completes (see the drift
+doc). See [`ARCHITECTURE.md`](./ARCHITECTURE.md) for the per-tier RAID/backup
+posture.
 
 ---
 
