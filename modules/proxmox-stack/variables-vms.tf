@@ -93,10 +93,6 @@ variable "vms" {
     protection    = optional(bool, false)
     os_type       = optional(string, "l26")
 
-    # Startup dependency tier (1-5, see constants-startup-tiers.tf). Defaults
-    # to 3 (platform) when unset.
-    startup_tier = optional(number, 3)
-
     # Cloud-init configuration
     cloud_init_user_data = optional(string)
   }))
@@ -128,13 +124,6 @@ variable "vms" {
       for k, v in var.vms : contains(["std", "cirrus", "vmware", "qxl"], v.vga_type)
     ])
     error_message = "The vga_type for each VM must be one of: std, cirrus, vmware, qxl."
-  }
-
-  validation {
-    condition = alltrue([
-      for k, v in var.vms : v.startup_tier >= 1 && v.startup_tier <= 5
-    ])
-    error_message = "VM startup_tier must be between 1 (core infra) and 5 (agents)."
   }
 }
 
