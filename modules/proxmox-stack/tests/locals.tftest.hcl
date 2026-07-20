@@ -586,15 +586,17 @@ run "dns_servers_derived_from_dns_containers" {
 
   variables {
     containers = {
-      "technitium-dns" = { vm_id = 103, hostname = "technitium-dns", vlan = "dns", ip_config = { ipv4_address = "192.168.2.2/24" } }
-      "pi-hole"        = { vm_id = 104, hostname = "pi-hole", vlan = "dns" }
+      "technitium-dns"   = { vm_id = 103, hostname = "technitium-dns", vlan = "dns", ip_config = { ipv4_address = "192.0.2.2/24" } }
+      "technitium-dns-2" = { vm_id = 113, hostname = "technitium-dns-2", vlan = "dns", ip_config = { ipv4_address = "192.0.2.3/24" } }
+      "pi-hole"          = { vm_id = 104, hostname = "pi-hole", vlan = "dns" }
     }
   }
 
-  # Static pin honored for Technitium; Pi-hole derived from vm_id; order fixed
+  # Every technitium-dns* node (static pins honored, sorted by key) for real
+  # cross-host HA; pi-hole is excluded (never brought up, VMID-derived IP).
   assert {
-    condition     = jsonencode(local.dns_servers) == jsonencode(["192.168.2.2", "192.168.2.104"])
-    error_message = "dns_servers must be [technitium (pinned), pi-hole (derived)], got ${jsonencode(local.dns_servers)}"
+    condition     = jsonencode(local.dns_servers) == jsonencode(["192.0.2.2", "192.0.2.3"])
+    error_message = "dns_servers must be all technitium nodes sorted, pi-hole excluded, got ${jsonencode(local.dns_servers)}"
   }
 }
 
