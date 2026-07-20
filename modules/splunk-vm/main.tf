@@ -62,6 +62,11 @@ resource "proxmox_virtual_environment_vm" "splunk_vm" {
   # Startup configuration
   on_boot = true
 
+  startup {
+    order    = var.startup_order
+    up_delay = var.startup_delay
+  }
+
   agent {
     enabled = true
     timeout = "15m"
