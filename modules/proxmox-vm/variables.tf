@@ -84,9 +84,6 @@ variable "vms" {
     # Startup configuration
     on_boot = optional(bool, true)
 
-    # Startup dependency tier (1-5); looked up in var.startup_tier_order for
-    # the `startup.order` value. Defaults to 3 (platform) when unset.
-    startup_tier = optional(number, 3)
   }))
   default = {}
 
@@ -133,18 +130,6 @@ variable "startup_delay" {
   description = "Delay in seconds after this tier starts before the next tier starts"
   type        = number
   default     = 10
-}
-
-variable "startup_tier_order" {
-  description = "Startup dependency tier -> Proxmox startup.order (see modules/proxmox-stack/constants-startup-tiers.tf, the single source of truth for callers other than proxmox-stack)"
-  type        = map(number)
-  default = {
-    1 = 100
-    2 = 200
-    3 = 300
-    4 = 400
-    5 = 500
-  }
 }
 
 variable "dns_servers" {

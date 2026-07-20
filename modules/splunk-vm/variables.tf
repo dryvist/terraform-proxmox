@@ -172,12 +172,6 @@ variable "dns_servers" {
   default     = []
 }
 
-variable "startup_order" {
-  description = "Proxmox startup.order value (see modules/proxmox-stack/constants-startup-tiers.tf). Default is tier 2 (data/log platform) — Splunk had no startup ordering at all before this, so it landed arbitrarily late (~11.5 min after boot during the 2026-07-20 pve1 reboot, INC-17124/INC-17125)."
-  type        = number
-  default     = 200
-}
-
 variable "startup_delay" {
   description = "Delay in seconds after this VM starts before the next tier starts"
   type        = number

@@ -26,12 +26,14 @@ resource "proxmox_virtual_environment_vm" "vms" {
   # Startup configuration
   on_boot = try(each.value.on_boot, true)
 
-  # Startup order: dependency tier, not VMID (see startup_tier_order /
-  # constants-startup-tiers.tf). The prior `256 - vm_id` scheme clamped every
-  # 6-digit-VMID guest to the same order, leaving Proxmox's tiebreak among them
-  # undefined — root cause of consumers starting before their dependencies.
+  # Startup order derives from the VMID itself: the 6-digit scheme's thousands
+  # prefix already encodes dependency priority (e.g. 303000 postgres starts
+  # before 517000 hermes), and legacy 3-digit IDs (<1000) are used directly.
+  # Lower order starts first. INC-17124/INC-17125: the prior `256 - vm_id`
+  # scheme clamped every 6-digit-VMID guest to the same order (0), leaving
+  # Proxmox's tiebreak among them undefined.
   startup {
-    order    = var.startup_tier_order[each.value.startup_tier]
+    order    = each.value.vm_id < 1000 ? each.value.vm_id : floor(each.value.vm_id / 1000)
     up_delay = var.startup_delay
   }
 
