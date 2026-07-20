@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.73.2](https://github.com/dryvist/tofu-proxmox/compare/v1.73.1...v1.73.2) (2026-07-20)
+
+
+### Bug Fixes
+
+* **startup:** derive guest boot order from VMID instead of startup_tier ([#720](https://github.com/dryvist/tofu-proxmox/issues/720)) ([fd4faac](https://github.com/dryvist/tofu-proxmox/commit/fd4faac0a097fff2859209de020f260ec484785b))
+* **startup:** order guest boot by dependency tier, not VMID ([#719](https://github.com/dryvist/tofu-proxmox/issues/719)) ([f05e99d](https://github.com/dryvist/tofu-proxmox/commit/f05e99d7d62e362815e174041fb5015ec0048b6e))
+
 ## [1.73.1](https://github.com/dryvist/tofu-proxmox/compare/v1.73.0...v1.73.1) (2026-07-20)
 
 
