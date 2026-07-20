@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.73.1](https://github.com/dryvist/tofu-proxmox/compare/v1.73.0...v1.73.1) (2026-07-20)
+
+
+### Bug Fixes
+
+* **ci:** pass OPENAI_API_KEY through to the shared AI workflows ([#711](https://github.com/dryvist/tofu-proxmox/issues/711)) ([778cd66](https://github.com/dryvist/tofu-proxmox/commit/778cd66cc141bc519933f9bc7b7736323c16cb4c))
+
 ## [1.73.0](https://github.com/dryvist/tofu-proxmox/compare/v1.72.0...v1.73.0) (2026-07-20)
 
 
