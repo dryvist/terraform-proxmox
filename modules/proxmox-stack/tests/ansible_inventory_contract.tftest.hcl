@@ -684,9 +684,9 @@ run "ansible_inventory_ingress_openbao_ha_pool" {
       && try(r.port, 0) == 8200
       && try(r.sticky, false)
       && try(r.health_check, false)
-      && try(r.health_check_path, "") == "/v1/sys/health?standbyok=true"
+      && try(r.health_check_path, "") == "/v1/sys/health"
     ]) == 1
-    error_message = "ingress must front OpenBao with a sorted, sticky, standby-aware 5-backend HA pool"
+    error_message = "ingress must front OpenBao with a sorted, sticky, active-only 5-backend HA pool (health check /v1/sys/health, no standbyok — routes to the Raft leader)"
   }
 }
 
