@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.73.0](https://github.com/dryvist/tofu-proxmox/compare/v1.72.0...v1.73.0) (2026-07-20)
+
+
+### Features
+
+* **proxmox-stack:** route hermes agent logs to dedicated hermes index ([#705](https://github.com/dryvist/tofu-proxmox/issues/705)) ([ec201d8](https://github.com/dryvist/tofu-proxmox/commit/ec201d8fa5c2b90c9009668e1a6558e6b891ed93))
+
 ## [1.72.0](https://github.com/dryvist/tofu-proxmox/compare/v1.71.0...v1.72.0) (2026-07-20)
 
 
