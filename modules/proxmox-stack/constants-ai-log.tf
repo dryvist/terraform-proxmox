@@ -21,6 +21,7 @@ locals {
     macstudio_gate = 10322 # Mac Studio caddy LLM-gate access -> index=llm
     homelab_llm    = 10323 # homelab llama_cpp + llm_router   -> index=llm
     openbao_audit  = 10331 # OpenBao file audit device        -> index=openbao_audit (new)
+    hermes_agent   = 10332 # Hermes agent gateway + watchdog syslog -> index=hermes (new)
   }
 
   # Splunk landing zone per source, keyed to the SAME names as ai_log_ports so
@@ -41,6 +42,7 @@ locals {
     macstudio_gate = { index = "llm", sourcetype = "caddy:access" }
     homelab_llm    = { index = "llm", sourcetype = "llamaswap" }
     openbao_audit  = { index = "openbao_audit", sourcetype = "openbao:audit" }
+    hermes_agent   = { index = "hermes", sourcetype = "hermes:agent" }
   }
 
   ai_log_routing = {
