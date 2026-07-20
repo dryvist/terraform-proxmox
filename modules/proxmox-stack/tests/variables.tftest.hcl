@@ -37,6 +37,10 @@ override_module {
     name        = "splunk-vm"
     ip_address  = "192.168.40.200"
     mac_address = "BC:24:11:00:00:C8"
+    tiered_disks = {
+      fast = { datastore_id = "fast-splunk", interface = "virtio2", size = 1024, backup = true }
+      bulk = { datastore_id = "bulk-splunk", interface = "virtio3", size = 2048, backup = false }
+    }
   }
 }
 

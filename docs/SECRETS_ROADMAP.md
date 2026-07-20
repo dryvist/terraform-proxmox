@@ -56,6 +56,34 @@ encrypt Terrakube state until the provider adds native support.
 The private RustFS `deployment.json` holds desired state only. It may contain
 network topology and public keys, but never tokens, passwords, or private keys.
 
+## Third-party SaaS credentials (`secrets-external/` mount)
+
+Third-party SaaS credentials have a different security posture than
+homelab-internal machine credentials, so they live under their own top-level
+OpenBao KV mount rather than nesting under `secret/platform/...`:
+
+| Mount | Holds |
+| --- | --- |
+| `secret/` | Homelab-internal machine/service credentials (existing, unchanged). |
+| `secrets-external/` | Third-party SaaS API keys/credentials, least-privilege-scoped per consumer the same way `secret/` is. |
+
+First path:
+
+| Path | Consumer | Fields |
+| --- | --- | --- |
+| `secrets-external/backblaze-b2` | `ansible-splunk` (Splunk B2 frozen tier) | `S3_ENDPOINT`, `S3_REGION`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, `S3_BUCKET` |
+
+The Backblaze B2 credential is consumed by `ansible-splunk` to configure the
+Splunk frozen (archival) tier — **not** by this repo or Terrakube. No workspace
+role here reads `secrets-external/`.
+
+> Enabling the new `secrets-external/` KV v2 engine and writing its first policy
+> is a **human-admin OpenBao action**. No dedicated secrets-platform Terraform
+> repo exists in this workspace to automate it, and per this org's admin
+> write-gate convention machine identities do not provision new mounts or
+> policies. This document describes the convention; it does not provision the
+> mount.
+
 ## Locking
 
 Terrakube workspace locking serializes OpenTofu runs. OpenBao does not provide

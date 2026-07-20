@@ -139,12 +139,19 @@ locals {
     # backends (plural) -> multi-server loadBalancer; health_check drops a down
     # node; sticky keeps a browser UI session pinned. Omitted if no peer exists.
     #
-    # health_check_path forces ?standbyok=true: only the active OpenBao peer
-    # returns 200 on /v1/sys/health — standby peers return 429, which Traefik
-    # would otherwise read as unhealthy and evict from the pool, killing the
-    # standby-forwarding the HA design depends on. ?standbyok=true makes standbys
-    # return 200 so they stay in the pool. The `traefik` role renders this path
-    # for the route's health check (defaulting to "/" when unset).
+    # health_check_path is /v1/sys/health WITHOUT ?standbyok — so ONLY the active
+    # peer returns 200; standby peers return 429 and Traefik evicts them, routing
+    # every request straight to the active node. This is deliberate: a mint/write
+    # must be served by the Raft leader anyway, and the previous ?standbyok=true
+    # (which kept standbys in the pool) meant ~6/7 requests hit a standby that
+    # then had to FORWARD to the leader — and that inter-node forward path is the
+    # one that intermittently fails ("internal error"), so pooling standbys
+    # amplified the failure rather than adding resilience (verified 2026-07-20;
+    # see ansible-proxmox-apps#1125 for the underlying Raft comms issue). Trade-off:
+    # during a leader election there is a brief window until Traefik's health check
+    # re-converges on the new active — far cheaper than the continuous failure rate
+    # standby-pooling caused. The `traefik` role renders this path for the route's
+    # health check (defaulting to "/" when unset).
     length(local.openbao_backends) > 0 ? [
       {
         name              = "openbao"
@@ -152,7 +159,7 @@ locals {
         port              = local.pipeline_constants.service_ports.openbao_api
         sticky            = true
         health_check      = true
-        health_check_path = "/v1/sys/health?standbyok=true"
+        health_check_path = "/v1/sys/health"
         sso               = false # token/AppRole/JWT API clients (CLI, Terrakube, roles)
       }
     ] : [],

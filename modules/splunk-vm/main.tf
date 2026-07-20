@@ -8,23 +8,30 @@ terraform {
 }
 
 # =============================================================================
-# CRITICAL — SPLUNK INDEXER DATA IS NOT BACKED UP
+# CRITICAL — SPLUNK BOOT + LEGACY DATA DISKS ARE NOT BACKED UP
 # =============================================================================
-# The Splunk indexer data on this VM's data disks (virtio0 = 25G, virtio1 =
-# 200G) is NOT backed up anywhere. Treat EVERY operation on this VM as
+# The boot disk and the legacy virtio1 (200G) data disk carry live Splunk state
+# that is NOT backed up anywhere. Treat EVERY operation on this VM as
 # potentially data-destructive:
 #   - NEVER destroy/recreate the VM. `prevent_destroy = true` is set below for
 #     exactly this reason — do not remove it.
-#   - NEVER touch the data disks (virtio0/virtio1). Only the 4MB cloud-init
-#     drive is safe to modify.
+#   - NEVER touch the boot disk or virtio1. Only the 4MB cloud-init drive is
+#     safe to modify.
 #   - AVOID `cloud-init clean` + reboot here. It re-runs cloud-init; it is only
 #     data-safe because the cloud-init user-data has no disk_setup/fs_setup/
 #     growpart today — re-verify that before ever relying on it.
 #   - The guest network/OS config is Ansible-owned post-boot (cloud-init is
 #     first-boot only); tofu manages the NIC VLAN tag, not the guest IP, which
 #     is why initialization[0].ip_config is in ignore_changes below.
-# ACTION NEEDED: stand up a real backup job (PBS / zfs-send) for virtio0+virtio1
-# BEFORE the next risky change. The disks carry backup=1 but no backup runs yet.
+#
+# Backup posture per disk (see var.tiered_disks / docs/ARCHITECTURE.md):
+#   - boot + virtio1: backup=1 but NO backup job runs yet. ACTION NEEDED — stand
+#     up a real backup job (PBS / zfs-send) BEFORE the next risky change.
+#   - fast-splunk (virtio2, hot/warm): backup=true, but the actual job is still
+#     undecided. ACTION NEEDED — decide PBS vs. B2-only before it holds real data.
+#   - bulk-splunk (virtio3, cold): backup=false BY DESIGN. This tier is
+#     deliberately non-RAID and excluded from vzdump; its durability comes from
+#     the Backblaze B2 frozen archive (configured Splunk-side). NOT an open item.
 # =============================================================================
 
 # Render cloud-init configuration with secrets and config files
@@ -97,6 +104,31 @@ resource "proxmox_virtual_environment_vm" "splunk_vm" {
       iothread     = true
       ssd          = false
       discard      = "ignore"
+    }
+  }
+
+  # Tiered Splunk data disks (fast-splunk hot/warm, bulk-splunk cold). Same
+  # map-driven shape as modules/proxmox-vm's additional_disks, so new tiers are
+  # added by map entry, not by another hardcoded block. bpg keys disks by their
+  # explicit `interface` (virtio2/virtio3), so map iteration order is irrelevant.
+  # bulk-splunk carries backup = false: it is the non-RAID cold tier whose
+  # durability comes from the Backblaze B2 frozen archive (configured Splunk-side
+  # in ansible-splunk), never from Proxmox vzdump.
+  # NOTE: while `ignore_changes = [disk]` is active (see lifecycle below), adding
+  # these blocks produces NO plan diff — actually attaching them is a
+  # human-supervised step gated on the live disk-drift reconciliation. See
+  # docs/SPLUNK_VM_DISK_DRIFT.md.
+  dynamic "disk" {
+    for_each = var.tiered_disks
+    content {
+      datastore_id = disk.value.datastore_id
+      interface    = disk.value.interface
+      size         = disk.value.size
+      backup       = disk.value.backup
+      file_format  = disk.value.file_format
+      iothread     = disk.value.iothread
+      ssd          = disk.value.ssd
+      discard      = disk.value.discard
     }
   }
 
@@ -184,6 +216,22 @@ resource "proxmox_virtual_environment_vm" "splunk_vm" {
       # the 200G data disk. Disk sizing/layout is owned outside tofu (Proxmox +
       # the ansible sanoid/syncoid protection layer), so ignore disk drift. Revisit
       # if tofu is ever made the source of truth for the disk split (see #247).
+      #
+      # FINDING (var.tiered_disks interaction): narrowing this to a positional
+      # index (e.g. `disk[0]`, `disk[1]`) to un-ignore only the new virtio2/virtio3
+      # tiers is NOT viable on bpg/proxmox. bpg keys disk blocks by their
+      # `interface` value, not positionally, so a numeric `ignore_changes` index
+      # does not stably map to a given disk across refreshes — Terraform's
+      # ignore_changes indexing is undefined for set-like nested blocks. Keeping
+      # the whole `disk` attribute ignored is therefore the only safe state today.
+      # CONSEQUENCE: while `disk` stays ignored, the var.tiered_disks blocks above
+      # produce NO plan diff and will NOT attach on apply.
+      # TODO (human-supervised, out of scope for this PR): to actually attach
+      # fast-splunk/bulk-splunk, first reconcile the live disk drift into state
+      # (import/declare the real scsi0 boot disk + virtio1), then remove this
+      # `disk` entry entirely under a reviewed apply so bpg matches existing disks
+      # by interface and creates only the genuinely-new virtio2/virtio3. See
+      # docs/SPLUNK_VM_DISK_DRIFT.md for the exact blocking steps.
       disk,
     ]
   }

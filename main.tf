@@ -156,8 +156,10 @@ module "homelab" {
   proxmox_ssh_username       = ephemeral.vault_kv_secret_v2.proxmox.data.PROXMOX_SSH_USERNAME
   rack_servers               = try(local.deployment.rack_servers, {})
   splunk_boot_disk_size      = try(local.deployment.splunk_boot_disk_size, 25)
+  splunk_bulk_disk_size      = try(local.deployment.splunk_bulk_disk_size, 2048)
   splunk_cpu_cores           = try(local.deployment.splunk_cpu_cores, 8)
   splunk_data_disk_size      = try(local.deployment.splunk_data_disk_size, 200)
+  splunk_fast_disk_size      = try(local.deployment.splunk_fast_disk_size, 1024)
   splunk_memory              = try(local.deployment.splunk_memory, 12288)
   splunk_vm_id               = try(local.deployment.splunk_vm_id, 99)
   splunk_vm_name             = try(local.deployment.splunk_vm_name, "splunk-vm")

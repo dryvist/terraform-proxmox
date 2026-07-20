@@ -122,6 +122,13 @@ variable "node_storage" {
         quota      = optional(string)
         mountpoint = optional(string)
         nfs_export = optional(string)
+        # When set, ansible-proxmox registers this dataset as its own Proxmox
+        # zfspool storage id (`pvesm add zfspool <pvesm_id> -pool <pool>/<dataset>`),
+        # so a VM/LXC disk can target it directly as a first-class datastore_id.
+        # A plain `quota` alone does NOT do this — zfspool-backed VM disks land at
+        # the pool root, not inside an arbitrary child dataset. Leave unset (null)
+        # for datasets that are only bind-mounted or NFS-exported.
+        pvesm_id = optional(string)
         # Arbitrary ZFS properties (recordsize, compression, readonly,
         # com.sun:auto-snapshot, …) applied idempotently by ansible-proxmox.
         # Use ZFS canonical forms as strings (e.g. "1M", "zstd", "false").

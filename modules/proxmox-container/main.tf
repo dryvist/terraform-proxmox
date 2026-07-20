@@ -60,7 +60,7 @@ resource "proxmox_virtual_environment_container" "containers" {
     }
 
     # DNS search domain + explicit nameservers. servers points guests at the
-    # homelab's own resolvers (Technitium/Pi-hole, inside the internal networks
+    # homelab's own resolvers (Technitium nodes, inside the internal networks
     # the outbound-internal firewall group already permits) instead of inheriting
     # the node's upstream gateway resolver, which a DROP-policy guest cannot reach.
     # Empty servers list => omit the arg => inherit the node's resolv.conf.

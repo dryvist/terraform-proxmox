@@ -39,6 +39,10 @@ override_module {
     name        = "splunk-aio"
     ip_address  = "192.168.40.200"
     mac_address = "BC:24:11:00:00:C8"
+    tiered_disks = {
+      fast = { datastore_id = "fast-splunk", interface = "virtio2", size = 1024, backup = true }
+      bulk = { datastore_id = "bulk-splunk", interface = "virtio3", size = 2048, backup = false }
+    }
   }
 }
 
@@ -252,6 +256,39 @@ run "ansible_inventory_containers_exists" {
   assert {
     condition     = can(output.ansible_inventory.containers)
     error_message = "ansible_inventory must contain 'containers' key at root level"
+  }
+}
+
+# --- splunk_storage: tiered-disk contract (ansible-splunk volume mapping) ---
+#
+# ansible-splunk maps its hot/warm and cold volume stanzas onto these disks.
+# Pin: both the fast and bulk tiers surface with datastore_id + disk_interface +
+# size_gb, and it is a top-level key distinct from splunk_vm (which is typed
+# against the shared vm schema and must not carry storage fields).
+run "ansible_inventory_splunk_storage_contract" {
+  command = plan
+
+  assert {
+    condition     = can(output.ansible_inventory.splunk_storage)
+    error_message = "ansible_inventory must contain 'splunk_storage' key at root level"
+  }
+
+  assert {
+    condition = (
+      output.ansible_inventory.splunk_storage.fast.datastore_id == "fast-splunk" &&
+      output.ansible_inventory.splunk_storage.fast.disk_interface == "virtio2" &&
+      output.ansible_inventory.splunk_storage.bulk.datastore_id == "bulk-splunk" &&
+      output.ansible_inventory.splunk_storage.bulk.disk_interface == "virtio3"
+    )
+    error_message = "splunk_storage must carry fast-splunk (virtio2) and bulk-splunk (virtio3) tiers with their datastore_id + disk_interface"
+  }
+
+  assert {
+    condition = (
+      output.ansible_inventory.splunk_storage.fast.size_gb == 1024 &&
+      output.ansible_inventory.splunk_storage.bulk.size_gb == 2048
+    )
+    error_message = "splunk_storage tiers must carry size_gb (default 1024 fast / 2048 bulk)"
   }
 }
 
@@ -647,9 +684,9 @@ run "ansible_inventory_ingress_openbao_ha_pool" {
       && try(r.port, 0) == 8200
       && try(r.sticky, false)
       && try(r.health_check, false)
-      && try(r.health_check_path, "") == "/v1/sys/health?standbyok=true"
+      && try(r.health_check_path, "") == "/v1/sys/health"
     ]) == 1
-    error_message = "ingress must front OpenBao with a sorted, sticky, standby-aware 5-backend HA pool"
+    error_message = "ingress must front OpenBao with a sorted, sticky, active-only 5-backend HA pool (health check /v1/sys/health, no standbyok — routes to the Raft leader)"
   }
 }
 
