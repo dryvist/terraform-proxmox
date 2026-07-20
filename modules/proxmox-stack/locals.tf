@@ -95,14 +95,21 @@ locals {
   # VGA type validation helper
   valid_vga_types = ["std", "cirrus", "vmware", "qxl"]
 
-  # Resolver list for guest cloud-init DNS: Technitium primary, Pi-hole
-  # secondary. Derived via container_ipv4 (honors static ip pins) so no
-  # literal resolver IPs exist anywhere in the repo. Containers inherit the
-  # node's resolv.conf instead; this feeds VMs only.
+  # Resolver list for guest cloud-init DNS: every deployed Technitium node,
+  # each on its own Proxmox host, for real cross-host HA (a single-node
+  # resolver, or a resolver pinned to the same host as its dependents, isn't
+  # HA — verified 2026-07-19: the estate DNS outage traced to guests pointed
+  # at an unreachable resolver with no working fallback). Derived via
+  # container_ipv4 (honors static ip pins) so no literal resolver IPs exist
+  # anywhere in the repo; self-extending — a new "technitium-dns-N" container
+  # joins the list with zero code changes. Pi-hole was never brought up
+  # (stopped, VMID-derived IP) and is intentionally excluded — Technitium is
+  # the estate's only resolver. Containers inherit the node's resolv.conf
+  # instead; this feeds VMs only.
   dns_servers = [
-    for name in ["technitium-dns", "pi-hole"] :
+    for name in sort(keys(var.containers)) :
     split("/", local.container_ipv4[name])[0]
-    if contains(keys(var.containers), name)
+    if can(regex("^technitium-dns", name))
   ]
 
   # Internal networks for guest-firewall source scoping — derived from the
