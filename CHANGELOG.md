@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.72.0](https://github.com/dryvist/tofu-proxmox/compare/v1.71.0...v1.72.0) (2026-07-20)
+
+
+### Features
+
+* **splunk:** declare fast-splunk/bulk-splunk storage tiers ([33cdfe3](https://github.com/dryvist/tofu-proxmox/commit/33cdfe3af71268aff414c3496e3b0ecfd9ff0c3e))
+
+
+### Bug Fixes
+
+* **dns:** derive resolver list from all technitium nodes, drop pi-hole ([#696](https://github.com/dryvist/tofu-proxmox/issues/696)) ([d104725](https://github.com/dryvist/tofu-proxmox/commit/d10472587e8d0b701289ec76a744a589ab4288e6))
+* **openbao:** route ingress to the active peer only (drop standbyok) ([#700](https://github.com/dryvist/tofu-proxmox/issues/700)) ([80f6698](https://github.com/dryvist/tofu-proxmox/commit/80f6698f57b87bb1887833ff295086fb5fdfb21e))
+
 ## [1.71.0](https://github.com/dryvist/tofu-proxmox/compare/v1.70.0...v1.71.0) (2026-07-17)
 
 
