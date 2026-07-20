@@ -62,6 +62,14 @@ resource "proxmox_virtual_environment_vm" "splunk_vm" {
   # Startup configuration
   on_boot = true
 
+  # Startup order derives from the VMID itself, same convention as
+  # proxmox-vm/proxmox-container: legacy 3-digit IDs (<1000) start in that
+  # order; 6-digit IDs use their thousands prefix.
+  startup {
+    order    = var.vm_id < 1000 ? var.vm_id : floor(var.vm_id / 1000)
+    up_delay = var.startup_delay
+  }
+
   agent {
     enabled = true
     timeout = "15m"

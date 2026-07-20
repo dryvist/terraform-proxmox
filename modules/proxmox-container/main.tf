@@ -32,13 +32,14 @@ resource "proxmox_virtual_environment_container" "containers" {
   # Startup configuration
   start_on_boot = each.value.start_on_boot
 
-  # Startup order: 256 - vm_id (higher IDs start first). Clamped at 0 so
-  # 6-digit positional VMIDs (DNS-first/DHCP guests, see docs vmid-network-tiers)
-  # don't produce a negative order — those guests get order 0 (unordered), which
-  # is correct for non-critical DHCP workloads. Legacy <256 IDs are unaffected.
-  # Delay: global startup_delay between each start
+  # Startup order derives from the VMID itself: the 6-digit scheme's thousands
+  # prefix already encodes dependency priority (e.g. 303000 postgres starts
+  # before 517000 hermes), and legacy 3-digit IDs (<1000) are used directly.
+  # Lower order starts first. INC-17124/INC-17125: the prior `256 - vm_id`
+  # scheme clamped every 6-digit-VMID guest to the same order (0), leaving
+  # Proxmox's tiebreak among them undefined.
   startup {
-    order    = max(0, 256 - each.value.vm_id)
+    order    = each.value.vm_id < 1000 ? each.value.vm_id : floor(each.value.vm_id / 1000)
     up_delay = var.startup_delay
   }
 

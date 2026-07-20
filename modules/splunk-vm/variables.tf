@@ -172,6 +172,12 @@ variable "dns_servers" {
   default     = []
 }
 
+variable "startup_delay" {
+  description = "Delay in seconds after this VM starts before the next tier starts"
+  type        = number
+  default     = 10
+}
+
 variable "tiered_disks" {
   description = "Additional tiered Splunk data disks (fast-splunk hot/warm, bulk-splunk cold)."
   type = map(object({

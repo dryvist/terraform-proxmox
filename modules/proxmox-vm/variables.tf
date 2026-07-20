@@ -83,6 +83,7 @@ variable "vms" {
 
     # Startup configuration
     on_boot = optional(bool, true)
+
   }))
   default = {}
 
@@ -126,9 +127,9 @@ variable "proxmox_ssh_private_key" {
 }
 
 variable "startup_delay" {
-  description = "Global startup delay in seconds between VM starts"
+  description = "Delay in seconds after this tier starts before the next tier starts"
   type        = number
-  default     = 30
+  default     = 10
 }
 
 variable "dns_servers" {

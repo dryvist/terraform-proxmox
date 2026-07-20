@@ -114,7 +114,7 @@ variable "default_datastore" {
 }
 
 variable "startup_delay" {
-  description = "Global startup delay in seconds between container starts"
+  description = "Delay in seconds after this tier starts before the next tier starts"
   type        = number
-  default     = 30
+  default     = 10
 }
