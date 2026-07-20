@@ -80,10 +80,11 @@ module "vms" {
     })
   }
 
-  environment       = var.environment
-  default_datastore = var.datastore_default
-  domain            = var.domain
-  dns_servers       = local.dns_servers
+  environment        = var.environment
+  default_datastore  = var.datastore_default
+  domain             = var.domain
+  dns_servers        = local.dns_servers
+  startup_tier_order = local.startup_tier_order
 
   # SSH credentials for provisioners (BPG provider reads auth from PROXMOX_VE_* env vars)
   proxmox_ssh_username    = var.proxmox_ssh_username
@@ -131,10 +132,11 @@ module "containers" {
     })
   }
 
-  environment       = var.environment
-  default_datastore = var.datastore_default
-  domain            = var.domain
-  dns_servers       = local.dns_servers
+  environment        = var.environment
+  default_datastore  = var.datastore_default
+  domain             = var.domain
+  dns_servers        = local.dns_servers
+  startup_tier_order = local.startup_tier_order
 
   depends_on = [module.pools, module.storage]
 }
@@ -162,6 +164,7 @@ module "splunk_vm" {
   memory         = var.splunk_memory
   domain         = var.domain
   dns_servers    = local.dns_servers
+  startup_order  = local.startup_tier_order[2] # data/log platform tier
 
   # Tiered storage: fast-splunk (hot/warm) and bulk-splunk (cold). datastore_ids
   # are the Proxmox zfspool storage ids that ansible-proxmox registers from the

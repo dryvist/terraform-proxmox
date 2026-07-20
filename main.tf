@@ -96,6 +96,9 @@ locals {
         vlan      = local.openbao_cluster.vlan
         hostname  = format("%s%02d", try(local.openbao_cluster.name_prefix, "openbao-"), peer.suffix)
         node_name = peer.node_name
+        # Secrets engine: tier 1 (core infra) — everything else needs OpenBao
+        # reachable before it boots. See constants-startup-tiers.tf.
+        startup_tier = 1
         ip_config = {
           ipv4_address = format(
             "%s/%s",

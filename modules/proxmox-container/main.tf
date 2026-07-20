@@ -32,13 +32,12 @@ resource "proxmox_virtual_environment_container" "containers" {
   # Startup configuration
   start_on_boot = each.value.start_on_boot
 
-  # Startup order: 256 - vm_id (higher IDs start first). Clamped at 0 so
-  # 6-digit positional VMIDs (DNS-first/DHCP guests, see docs vmid-network-tiers)
-  # don't produce a negative order — those guests get order 0 (unordered), which
-  # is correct for non-critical DHCP workloads. Legacy <256 IDs are unaffected.
-  # Delay: global startup_delay between each start
+  # Startup order: dependency tier, not VMID (see startup_tier_order /
+  # constants-startup-tiers.tf). The prior `256 - vm_id` scheme clamped every
+  # 6-digit-VMID guest to the same order, leaving Proxmox's tiebreak among them
+  # undefined — root cause of consumers starting before their dependencies.
   startup {
-    order    = max(0, 256 - each.value.vm_id)
+    order    = var.startup_tier_order[each.value.startup_tier]
     up_delay = var.startup_delay
   }
 

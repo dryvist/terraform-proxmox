@@ -89,6 +89,10 @@ variable "containers" {
     os_type       = optional(string, "debian")
     start_on_boot = optional(bool, true)
 
+    # Startup dependency tier (1-5, see constants-startup-tiers.tf). Defaults
+    # to 3 (platform) when unset.
+    startup_tier = optional(number, 3)
+
     # LXC features (set nesting=true for Docker-in-LXC on unprivileged containers;
     # privileged containers run Docker without features — requires root@pam to set any flag)
     features = optional(object({
@@ -126,5 +130,12 @@ variable "containers" {
       for k, v in var.containers : try(v.reserved_host, null) != null if try(v.dhcp, false)
     ])
     error_message = "Every dhcp = true container must set reserved_host: it is the host octet UniFi pins the deterministic MAC to (DHCP reservation) and the DNS A record resolves to."
+  }
+
+  validation {
+    condition = alltrue([
+      for k, v in var.containers : v.startup_tier >= 1 && v.startup_tier <= 5
+    ])
+    error_message = "Container startup_tier must be between 1 (core infra) and 5 (agents)."
   }
 }
