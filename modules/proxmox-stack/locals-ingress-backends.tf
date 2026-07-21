@@ -66,12 +66,15 @@ locals {
   # (dhcp = true) guest's FQDN — same hostname-not-IP shape as proxmox_ui_backends.
   # The Splunk VM is appended separately: it is a VM (not in var.containers), so
   # its IP comes from splunk_derived_ip (siem VLAN) rather than container_address.
-  ingress = concat(
+  ingress = [for route in concat(
     [
       for name, svc in local.ingress_services : {
-        name = name
-        ip   = local.container_address[svc.backend]
-        port = svc.port
+        name        = name
+        hostname    = try(svc.hostname, name)
+        path_prefix = try(svc.path_prefix, null)
+        priority    = try(svc.priority, null)
+        ip          = local.container_address[svc.backend]
+        port        = svc.port
         # Authelia forwardAuth gate flag, consumed by the ansible traefik role.
         # Defaults true (gated) unless the table row opts out (sso = false).
         sso = try(svc.sso, true)
@@ -235,5 +238,5 @@ locals {
         sso  = try(svc.sso, true)
       }
     ] : []
-  )
+  ) : merge({ hostname = route.name }, route)]
 }
