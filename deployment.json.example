@@ -619,6 +619,22 @@
       "features": { "nesting": true }
     },
 
+    "_ai_runner_comment": "Headless AI execution plane (AI/ML tier 5, ai VLAN). An ai-runner is a confined guest that runs a coding agent (Claude Code / Codex) in permission-skipping mode; the LXC boundary is the ONLY safety control, so the firewall profile is load-bearing. The `ai-github` tag selects the tightest egress profile (modules/firewall/ai_runner_rules.tf): outbound to internal DNS/NTP/OpenBao only + outbound HTTPS to any (github.com + Anthropic/OpenAI are CDN-fronted, no stable dest CIDR). The `ai-runner` tag is the inventory group the ansible-proxmox-ai `ai_runner` role converges. Native installs (Node + npm CLIs) — plain LXC, no Docker/nesting. VMID follows the 6-digit positional convention (docs vmid-network-tiers); the value here is illustrative. This example omits node_name and uses the default node (same as the sibling AI guests) — the live guest pins its node in the private deployment.json (the runner host is an idle-capacity node). Reconcile vm_id + reserved_host against your live deployment.json before applying. Other profiles (ai-terrakube, ai-full-net) are follow-ups: each is a new tag + rules file.",
+    "ai-runner-01": {
+      "vm_id": 515010,
+      "dhcp": true,
+      "reserved_host": 48,
+      "vlan": "ai",
+      "hostname": "ai-runner-01",
+      "description": "Headless AI job runner — Claude Code + Codex CLIs in permission-skipping mode, confined by the ai-github firewall egress profile. Polls the Vikunja AI Jobs queue; converged by the ansible-proxmox-ai ai_runner role.",
+      "cpu_cores": 4,
+      "memory_dedicated": 8192,
+      "tags": ["terraform", "container", "ai", "ai-runner", "ai-github"],
+      "pool_id": "ai",
+      "unprivileged": true,
+      "root_disk": { "size": 24 }
+    },
+
     "_honeypot_comment": "DECEPTION FABRIC (see docs/HONEYPOTS.md). Three pieces: (1) honeypot-notify — the dedicated alert gateway (caronc/apprise-api). Honeypots POST one webhook; Apprise fans it to Slack + phone push (ntfy/Pushover). The `honeypot`+`notify` tags give it the apprise port inbound + OPEN egress (to reach external notifiers); Slack webhook/phone tokens come from OpenBao at runtime, never committed. (2) honeypot-tw-* — one lightweight OpenCanary tripwire PER VLAN (clone the example below for every entry in your network_cidrs map: lan_main, dns, mgmt, bmc, compute, siem, pipeline, data, ai, apps, media_svc, homeauto, nonprod). Each fakes SSH/HTTP/SMB/DB/RDP/SNMP/... and alerts instantly on any touch; the `honeypot` tag opens the decoy ports + internal-only egress (a poked sensor can reach the gateway + syslog 519 but never the internet). (3) the T-Pot VM above. VMID convention (positional, DNS-first): a tripwire adopts the TIER of the VLAN it defends (tier = VLAN/10; specials 1/5/53 use the 7-digit prefix form) · sub 9 (deception) · crit 5 · OS 0 (LXC) · instance 0 · env 0 — e.g. nonprod(90)=995000, apps(60)=695000, compute(10)=195000, mgmt(5)=0595000. Placement honors the node roles: gateway + most tripwires on proxmox-2; put 1-2 tripwires (highest-value VLANs) + the T-Pot VM on the fast node proxmox-1; warm/backup copies on the normally-off proxmox-3. reserved_host octets (.36-.39 + per-tripwire) are illustrative — reconcile every VMID + octet against your live deployment.json before applying.",
     "honeypot-notify": {
       "vm_id": 492000,

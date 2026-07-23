@@ -21,6 +21,16 @@ locals {
     if contains(coalesce(try(v.tags, null), []), "langfuse")
   }
 
+  # AI runner LXCs (ai-github tag): headless coding-agent guests in the
+  # `ai-github` egress profile. See modules/firewall/ai_runner_rules.tf — tight
+  # egress (internal DNS/NTP/OpenBao + outbound HTTPS only), no blanket internal.
+  # Other profiles (ai-terrakube, ai-full-net) are follow-ups: each is a new tag
+  # + rules file, this map stays scoped to ai-github.
+  ai_github_container_ids = {
+    for k, v in var.containers : k => v.vm_id
+    if contains(coalesce(try(v.tags, null), []), "ai-github")
+  }
+
   # agentgateway MCP/LLM/A2A data-plane proxy (agentgateway tag). Inbound proxy
   # (8080) from internal AI agents/tools + admin UI (15000) from internal;
   # outbound internal (local LLM fabric) + HTTPS (external MCP servers, LLM APIs).
