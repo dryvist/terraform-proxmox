@@ -587,6 +587,37 @@
       "unprivileged": true,
       "root_disk": { "size": 24 }
     },
+
+    "_ai_runner_profiles_comment": "Additional headless AI-runner egress profiles (siblings of the `ai-github` runner). Each is a tag that selects one firewall profile in modules/firewall: `ai-terrakube` (ai_terrakube_rules.tf) = internal-only egress for a runner that drives OpenTofu against the private Terrakube backend — DNS/NTP/OpenBao + Terrakube API/registry + RustFS S3, and NO WAN at all. `ai-full-net` (ai_full_net_rules.tf) = a coding-agent guest needing general web access — internal DNS/NTP/OpenBao only + outbound HTTPS (443) to any, still no blanket internal reach. The `ai-runner` tag is the ansible-proxmox-ai inventory group. VMIDs/reserved_host octets below are illustrative (6-digit positional convention, docs vmid-network-tiers) — reconcile vm_id + reserved_host against your live deployment.json before applying.",
+    "ai-runner-terrakube-01": {
+      "vm_id": 515020,
+      "dhcp": true,
+      "reserved_host": 49,
+      "vlan": "ai",
+      "hostname": "ai-runner-terrakube-01",
+      "description": "Headless OpenTofu runner — drives `tofu` against the private Terrakube backend, confined by the ai-terrakube firewall profile (internal-only egress, no WAN). Converged by the ansible-proxmox-ai ai_runner role.",
+      "cpu_cores": 4,
+      "memory_dedicated": 8192,
+      "tags": ["terraform", "container", "ai", "ai-runner", "ai-terrakube"],
+      "pool_id": "ai",
+      "unprivileged": true,
+      "root_disk": { "size": 24 }
+    },
+    "ai-runner-fullnet-01": {
+      "vm_id": 515030,
+      "dhcp": true,
+      "reserved_host": 51,
+      "vlan": "ai",
+      "hostname": "ai-runner-fullnet-01",
+      "description": "Headless AI coding-agent runner needing general web access — confined by the ai-full-net firewall profile (internal DNS/NTP/OpenBao + outbound HTTPS to any). Converged by the ansible-proxmox-ai ai_runner role.",
+      "cpu_cores": 4,
+      "memory_dedicated": 8192,
+      "tags": ["terraform", "container", "ai", "ai-runner", "ai-full-net"],
+      "pool_id": "ai",
+      "unprivileged": true,
+      "root_disk": { "size": 24 }
+    },
+
     "agentgateway": {
       "vm_id": 516000,
       "dhcp": true,
