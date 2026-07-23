@@ -171,6 +171,18 @@ variable "ai_github_container_ids" {
   default     = {}
 }
 
+variable "ai_terrakube_container_ids" {
+  description = "Map of AI runner LXC names to IDs (tag-driven: ai-terrakube). Headless OpenTofu runner for the private Terrakube backend — inbound SSH/ICMP from internal (Ansible converge); egress to internal DNS/NTP/OpenBao + Terrakube API/registry + RustFS S3 only. No WAN, no blanket internal reach."
+  type        = map(number)
+  default     = {}
+}
+
+variable "ai_full_net_container_ids" {
+  description = "Map of AI runner LXC names to IDs (tag-driven: ai-full-net). Headless coding-agent guest needing general web access — inbound SSH/ICMP from internal (Ansible converge); egress to internal DNS/NTP/OpenBao only + outbound HTTPS (TCP 443) to any. Still tight on internal reach (no blanket RFC1918 egress)."
+  type        = map(number)
+  default     = {}
+}
+
 variable "honeypot_container_ids" {
   description = "Map of honeypot LXC names to IDs (honeypot tag): per-VLAN OpenCanary tripwires + the apprise-api notify gateway. Tag-driven, set by root locals."
   type        = map(number)
@@ -223,6 +235,7 @@ variable "pipeline_constants" {
     honeypot_ports     = map(number)
     ai_log_ports       = map(number)
     media_ports        = map(number)
+    iac_platform_ports = map(number)
   })
 }
 

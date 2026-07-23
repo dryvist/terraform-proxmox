@@ -38,4 +38,20 @@ locals {
     for k, v in var.containers : k => v.vm_id
     if contains(coalesce(try(v.tags, null), []), "agentgateway")
   }
+
+  # AI runner LXCs (ai-terrakube tag): headless OpenTofu runners for the private
+  # Terrakube backend. See modules/firewall/ai_terrakube_rules.tf — internal-only
+  # egress (DNS/NTP/OpenBao + Terrakube API/registry + RustFS S3), NO WAN.
+  ai_terrakube_container_ids = {
+    for k, v in var.containers : k => v.vm_id
+    if contains(coalesce(try(v.tags, null), []), "ai-terrakube")
+  }
+
+  # AI runner LXCs (ai-full-net tag): coding-agent guests needing general web
+  # access. See modules/firewall/ai_full_net_rules.tf — internal DNS/NTP/OpenBao
+  # + outbound HTTPS (443) to any; no blanket internal reach.
+  ai_full_net_container_ids = {
+    for k, v in var.containers : k => v.vm_id
+    if contains(coalesce(try(v.tags, null), []), "ai-full-net")
+  }
 }
