@@ -91,6 +91,14 @@ jobs:
       - name: OpenTofu Test (Proxmox stack module)
         run: tofu test -no-color
         working-directory: modules/proxmox-stack
+      # tofu test does not recurse into modules/*/tests — gate module suites
+      # explicitly so they can never silently rot again (#580).
+      - name: OpenTofu Init (firewall module)
+        run: tofu init -backend=false
+        working-directory: modules/firewall
+      - name: OpenTofu Test (firewall module)
+        run: tofu test -no-color
+        working-directory: modules/firewall
 
   markdown-lint:
     name: Markdown Lint
