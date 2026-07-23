@@ -165,6 +165,12 @@ variable "agentgateway_container_ids" {
   default     = {}
 }
 
+variable "ai_github_container_ids" {
+  description = "Map of AI runner LXC names to IDs (tag-driven: ai-github). Headless coding-agent guest in the tightest AI-plane egress profile — inbound SSH/ICMP from internal (Ansible converge); egress to internal DNS/NTP/OpenBao only + outbound HTTPS (github.com + Anthropic/OpenAI, CDN-fronted). No blanket internal reach."
+  type        = map(number)
+  default     = {}
+}
+
 variable "honeypot_container_ids" {
   description = "Map of honeypot LXC names to IDs (honeypot tag): per-VLAN OpenCanary tripwires + the apprise-api notify gateway. Tag-driven, set by root locals."
   type        = map(number)
