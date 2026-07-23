@@ -49,7 +49,7 @@ locals {
 }
 
 resource "proxmox_virtual_environment_cluster_firewall_security_group" "ai_terrakube_egress" {
-  name    = "ai-terrakube-egress"
+  name    = "ai-tkube-egress" # Proxmox caps SG names at 18 chars
   comment = "AI runner ai-terrakube profile: outbound to internal DNS/NTP/OpenBao + Terrakube API/registry + RustFS S3 only (no WAN)"
 
   dynamic "rule" {
