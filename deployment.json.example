@@ -149,8 +149,8 @@
       "name_prefix": "traefik-",
       "vlan": "mgmt",
       "per_node": {
-        "proxmox-1": { "suffix": "1", "vm_id": 101, "host_octet": 101 },
-        "proxmox-3": { "suffix": "3", "vm_id": 107, "host_octet": 107 }
+        "proxmox-1": { "suffix": 10, "vm_id": 101, "host_octet": 101 },
+        "proxmox-3": { "suffix": 30, "vm_id": 107, "host_octet": 107 }
       },
       "_per_node_comment": "proxmox-2 is intentionally absent here, not just gated by services_enabled=false: it is mid a storage rebuild (a separate, owning migration effort) and gets no reserved vm_id/host_octet -- not even a placeholder -- until that effort hands it back. Add its entry then, alongside flipping services_enabled back to true.",
       "container_defaults": {

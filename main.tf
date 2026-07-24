@@ -129,15 +129,20 @@ locals {
   # otherwise eligible — vm_id/IP are reserved-octet allocations, never
   # derived by formula, so an unlisted node has no safe address to assign.
   node_service_templates = try(local.deployment.node_services, {})
+  # Naming law: every generated name ends in a two-digit <node-id><counter>
+  # suffix (pve3 instance 0 -> "-30"), never a single digit -- names are
+  # deliberately non-transferable (rebuild-from-scratch doctrine), same as
+  # the openbao_generated_containers suffix above. `suffix` is numeric in
+  # per_node and zero-padded here (%02d), matching that pattern exactly.
   node_service_containers = merge([
     for service_name, tmpl in local.node_service_templates : {
       for node_name, node in local.deployment.nodes :
-      format("%s%s", try(tmpl.name_prefix, "${service_name}-"), try(tmpl.per_node[node_name].suffix, node_name)) => merge(
+      format("%s%02d", try(tmpl.name_prefix, "${service_name}-"), tmpl.per_node[node_name].suffix) => merge(
         try(tmpl.container_defaults, {}),
         {
           vm_id     = tmpl.per_node[node_name].vm_id
           vlan      = tmpl.vlan
-          hostname  = format("%s%s", try(tmpl.name_prefix, "${service_name}-"), try(tmpl.per_node[node_name].suffix, node_name))
+          hostname  = format("%s%02d", try(tmpl.name_prefix, "${service_name}-"), tmpl.per_node[node_name].suffix)
           node_name = node_name
           ip_config = {
             ipv4_address = format(
