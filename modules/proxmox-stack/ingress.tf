@@ -46,10 +46,10 @@ locals {
     chat   = { backend = "open-webui", port = local.pipeline_constants.service_ports.open_webui_web }
     qdrant = { backend = "qdrant", port = local.pipeline_constants.vector_db_ports.qdrant_http, sso = false } # vector API for agents/MCP
     # AI orchestration stack UIs (ai VLAN) + Langfuse LLM observability (siem VLAN).
-    n8n          = { backend = "n8n", port = local.pipeline_constants.service_ports.n8n_web }
-    dify         = { backend = "dify", port = local.pipeline_constants.service_ports.dify_web }
-    langflow     = { backend = "langflow", port = local.pipeline_constants.service_ports.langflow_web }
-    langfuse     = { backend = "langfuse", port = local.pipeline_constants.service_ports.langfuse_web }
+    n8n      = { backend = "n8n", port = local.pipeline_constants.service_ports.n8n_web }
+    dify     = { backend = "dify", port = local.pipeline_constants.service_ports.dify_web }
+    langflow = { backend = "langflow", port = local.pipeline_constants.service_ports.langflow_web }
+    langfuse = { backend = "langfuse", port = local.pipeline_constants.service_ports.langfuse_web }
     # agentgateway + mcp are fronted as load-balanced pools (agentgateway_backends
     # in locals-ingress-backends.tf), same as llm/openbao — not single rows here.
     # LangGraph (self-hosted): the `langgraph dev` server API + its Agent Chat UI,
