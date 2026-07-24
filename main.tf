@@ -144,6 +144,14 @@ locals {
           vlan      = tmpl.vlan
           hostname  = format("%s%02d", try(tmpl.name_prefix, "${service_name}-"), tmpl.per_node[node_name].suffix)
           node_name = node_name
+        },
+        # Addressing: full DHCP is the standard (static assignment, when wanted,
+        # is UniFi's job driven by the Nautobot SSOT — not a tofu-side octet).
+        # A template that still carries per_node host_octet reservations (the
+        # pre-DHCP traefik/VIP allocation) keeps its static ip_config unchanged.
+        try(tmpl.dhcp, false) || !contains(keys(tmpl.per_node[node_name]), "host_octet") ? {
+          dhcp = true
+          } : {
           ip_config = {
             ipv4_address = format(
               "%s/%s",
