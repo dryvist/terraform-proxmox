@@ -15,49 +15,48 @@ locals {
     if n.commissioned
   ]
 
-  # OpenBao Raft HA backend pool. Every LXC tagged "openbao" is load-balanced
-  # behind a single openbao.<domain> route with health checks, so a node loss
-  # drops only that node from the pool and the ingress stays up. Standby peers
-  # transparently forward API requests to the active node, so the client sees
-  # one logical endpoint. The key sort keeps route rendering deterministic.
-  openbao_backend_keys = sort([
-    for k, v in var.containers : k
-    if contains(coalesce(try(v.tags, null), []), "openbao")
-  ])
-  openbao_backends = [
-    for k in local.openbao_backend_keys : local.container_address[k]
-  ]
+  # Generic tag-keyed HA backend pools (DRY: one derivation for every pooled
+  # service instead of a copy-pasted keys/addresses local pair per app). Every
+  # LXC carrying the tag joins that tag's pool; the sort keeps route rendering
+  # deterministic; skip-missing-peers falls out naturally (an undeclared or
+  # gated-off instance simply isn't in var.containers). Adding the next pooled
+  # app = add its tag here + one route entry below — nothing else.
+  pooled_backend_tags = ["openbao", "hindsight", "zammad", "agentgateway"]
+  tag_backend_pools = {
+    for tag in local.pooled_backend_tags : tag => [
+      for k in sort([
+        for k, v in var.containers : k
+        if contains(coalesce(try(v.tags, null), []), tag)
+      ]) : local.container_address[k]
+    ]
+  }
+
+  # OpenBao Raft HA pool: standby peers forward to the active node; the
+  # health-check path below deliberately evicts standbys (see route comment).
+  openbao_backends = local.tag_backend_pools["openbao"]
 
   # LiteLLM router pool: THE fabric endpoint (https://llm.<domain>/v1) for every
-  # consumer, load-balanced across the stateless router guests. Same
-  # skip-missing-peers shape as openbao_backends.
+  # consumer, load-balanced across the stateless router guests. Name-keyed (not
+  # tag-keyed) because the routers predate the tag convention.
   llm_router_backends = [
     for k in ["llm-router-1", "llm-router-2", "llm-router-3"] : local.container_address[k]
     if contains(keys(var.containers), k)
   ]
 
-  # Hindsight agent-memory pool. Every LXC tagged "hindsight" is load-balanced
-  # behind a single hindsight.<domain> route with health checks. The replicas
-  # are stateless (all state in the ai-VLAN Postgres cluster), so no sticky.
-  # Clients — agentgateway's MCP target, Hermes remote memory, Claude Code —
-  # all dial this one pooled hostname.
-  hindsight_backend_keys = sort([
-    for k, v in var.containers : k
-    if contains(coalesce(try(v.tags, null), []), "hindsight")
-  ])
-  hindsight_backends = [
-    for k in local.hindsight_backend_keys : local.container_address[k]
-  ]
+  # Hindsight agent-memory pool: stateless replicas (all state in the ai-VLAN
+  # Postgres cluster), no sticky. Clients — agentgateway's MCP target, Hermes
+  # remote memory, Claude Code — all dial the one pooled hostname.
+  hindsight_backends = local.tag_backend_pools["hindsight"]
 
-  # Zammad HA backend pool. Every LXC tagged "zammad" is load-balanced
-  # behind a single zammad.<domain> route with sticky sessions.
-  zammad_backend_keys = sort([
-    for k, v in var.containers : k
-    if contains(coalesce(try(v.tags, null), []), "zammad")
-  ])
-  zammad_backends = [
-    for k in local.zammad_backend_keys : local.container_address[k]
-  ]
+  # Zammad HA pool (sticky sessions at the route).
+  zammad_backends = local.tag_backend_pools["zammad"]
+
+  # agentgateway MCP-fabric pool: the only path agents (Hermes) have to the
+  # splunk/context7/qdrant/memory MCP targets, so it is the one pool whose loss
+  # blacks out the whole tool plane (2026-07-24 pve1 incident). Instances are
+  # stateless (identical config from the agentgateway_docker role; targets are
+  # themselves pooled or external), so no sticky.
+  agentgateway_backends = local.tag_backend_pools["agentgateway"]
 
   # Assembled routes: one {name, ip, port} per fronted service whose backend
   # container is actually defined (others are skipped, so a partial deployment
@@ -176,6 +175,31 @@ locals {
         health_check      = true
         health_check_path = "/health/liveliness"
         sso               = false # OpenAI-compatible API clients
+      }
+    ] : [],
+    # agentgateway MCP fabric: mcp.<domain> (proxy plane) + agentgateway.<domain>
+    # (admin UI) each load-balance every tagged instance. Health = the stats
+    # server's /metrics on its own port (health_check_port): the proxy port
+    # answers 404/406 to plain GETs, which a same-port health check would read
+    # as "down" and eject every healthy server.
+    length(local.agentgateway_backends) > 0 ? [
+      {
+        name              = "mcp"
+        backends          = local.agentgateway_backends
+        port              = local.pipeline_constants.service_ports.agentgateway_proxy
+        health_check      = true
+        health_check_path = "/metrics"
+        health_check_port = local.pipeline_constants.service_ports.agentgateway_metrics
+        sso               = false # MCP tool clients (machines)
+      },
+      {
+        name              = "agentgateway"
+        backends          = local.agentgateway_backends
+        port              = local.pipeline_constants.service_ports.agentgateway_admin
+        health_check      = true
+        health_check_path = "/metrics"
+        health_check_port = local.pipeline_constants.service_ports.agentgateway_metrics
+        sso               = true # browser admin UI — gated
       }
     ] : [],
     # Hindsight agent memory: one hindsight.<domain> route load-balancing the

@@ -50,10 +50,8 @@ locals {
     dify         = { backend = "dify", port = local.pipeline_constants.service_ports.dify_web }
     langflow     = { backend = "langflow", port = local.pipeline_constants.service_ports.langflow_web }
     langfuse     = { backend = "langfuse", port = local.pipeline_constants.service_ports.langfuse_web }
-    agentgateway = { backend = "agentgateway", port = local.pipeline_constants.service_ports.agentgateway_admin }
-    # MCP tool-plane front door (the `llm`-alias pattern, for tools): clients
-    # dial https://mcp.<domain>/<target>/mcp; `agentgateway` stays the admin UI.
-    mcp = { backend = "agentgateway", port = local.pipeline_constants.service_ports.agentgateway_proxy, sso = false } # MCP tool clients
+    # agentgateway + mcp are fronted as load-balanced pools (agentgateway_backends
+    # in locals-ingress-backends.tf), same as llm/openbao — not single rows here.
     # LangGraph (self-hosted): the `langgraph dev` server API + its Agent Chat UI,
     # both backed by the one `langgraph` guest. Chat UI is the primary play surface;
     # the API host also lets browser Studio point its ?baseUrl at it.
